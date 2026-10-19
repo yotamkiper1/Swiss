@@ -5,7 +5,7 @@ Everything for the 80-second commercial is made in code: no video editor.
 - `posters.swift` — the demo pictures used on screen.
 - Swiss Test (`./build.sh test`, `STASH_LIBRARY=… "build/Swiss Test.app/…"`) with the `stashtest://debug…` hooks
   stages and captures each screen (`debugshot`).
-- Voice-over: macOS `say -v Samantha` (one WAV per scene, named `vo/v1.wav` … `v11.wav`).
+- Voice-over: Piper (open-source neural voice, en_US-amy-medium) reading `script/voiceover.txt`, one WAV per line in `vo3/v1.wav` … `v11.wav`, 44.1 kHz mono, each fitted to its scene.
 - `audio.swift` — the music, sound effects and the mix (ducked under the voice).
 - `main.swift` — scenes, camera moves, transitions, encoding. `film <dir> preview 12.5 40` writes stills,
   `film <dir> audio` mixes the sound, `film <dir> render` makes `out/video.mp4`.

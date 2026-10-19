@@ -355,7 +355,7 @@ func buildAudio(root: String) -> Bus {
     // Voice.
     var voice = Bus(n)
     for (i, start) in voiceStarts.enumerated() {
-        var samples = readWav("\(root)/vo2/v\(i + 1).wav")
+        var samples = readWav("\(root)/vo3/v\(i + 1).wav")
         let count = samples.count
         // High-pass and a little warmth.
         var lp: Float = 0

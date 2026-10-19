@@ -476,7 +476,7 @@ func buildAudio(root: String) -> Bus {
         var fade: Float = 1
         if i > fadeStart { fade = max(0, 1 - Float(i - fadeStart) / Float(n - fadeStart)) }
         let musicGain: Float = 0.85 * duck[i] * fade
-        let v = voiceMono[i] * 1.0 + voiceVerb[i] * 0.22
+        let v = voiceMono[i] * 1.5 + voiceVerb[i] * 0.3
         let m = tonalVerb[i] * 0.4
         out.l[i] = v + (tonal.l[i] * 0.85 + drums.l[i] * 0.95 + m) * musicGain + sfx.l[i] * 0.95 + sfxVerb[i] * 0.22
         out.r[i] = v + (tonal.r[i] * 0.85 + drums.r[i] * 0.95 + m) * musicGain + sfx.r[i] * 0.95 + sfxVerb[i] * 0.22

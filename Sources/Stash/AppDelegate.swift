@@ -79,6 +79,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         // Let the status item settle into the menu bar before anchoring to it.
         DispatchQueue.main.async { AppDelegate.shared.showCompact() }
+        // The first time: a short tour of the tools.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { MainActor.assumeIsolated { WelcomeTour.showIfFirstLaunch() } }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

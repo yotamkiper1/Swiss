@@ -1,8 +1,20 @@
+<p align="center"><img src="docs/images/icon.png" width="128" alt="Swiss icon"></p>
+
 # Swiss
+
+<p align="center">
+  <img src="docs/images/window.png" width="720" alt="Swiss's big window: projects in the sidebar, the board, the quick bar">
+</p>
+<p align="center">
+  <img src="docs/images/canvas.png" width="400" alt="The Frame: a free canvas with its library">
+  <img src="docs/images/welcome-tour.png" width="400" alt="The welcome tour">
+</p>
 
 Swiss (formerly Stash) is a tiny macOS menu bar app for collecting project references fast: links, images, files, ideas and sentences.
 
 ## Latest tweaks
+
+- **Welcome tour**: the first time Swiss opens, a small animated window walks through its tools page by page. It moves on by itself; **Stay** holds a page, ‹ and Next step through, Skip closes. Help → Welcome Tour shows it again.
 
 - **Tabs only close.** × (or Close Tab) closes a project's tab — it stays closed until you open the project again; with no tabs left you're on Recent, which is always there. Connected folders' × works the same.
 - **Projects are deleted from the lists**: the trash icon that shows when you point at a project in All Projects or the sidebar (it asks first). Unsorted can be deleted too — its things go to Recently Deleted.

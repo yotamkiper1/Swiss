@@ -108,6 +108,16 @@ extension AppDelegate {
                 if q.name == "open" { store.showingRecent = false; store.filter = .project(p.id) }
             }
             log("tabs: open=\(store.projects.filter { $0.tabClosed != true }.map(\.name)) all=\(store.projects.map(\.name)) recent=\(store.showingRecent) filter=\(store.name(for: { if case .project(let id) = store.filter { id } else { nil } }()))")
+        case "debugtour":
+            // Shows the tour on page ?n and saves a picture of it to the path.
+            WelcomeTour.show()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { MainActor.assumeIsolated {
+                guard let w = NSApp.windows.first(where: { $0 is NSPanel && $0.isVisible && $0.frame.width == 540 }),
+                      let view = w.contentView, let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { log("tour: no window"); return }
+                view.cacheDisplay(in: view.bounds, to: rep)
+                try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: url.path))
+                log("tour shot")
+            } }
         case "debugrenamesel":
             // Starts renaming the one selected thing (like pressing Return).
             switch store.selection.first {

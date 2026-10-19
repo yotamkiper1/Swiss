@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Stash — Technical Brief</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: 10.2pt; line-height: 1.45; color: #1d1d1f; }
+h1 { font-size: 24pt; margin: 0 0 4pt; letter-spacing: -0.3pt; }
+h2 { font-size: 14.5pt; margin: 20pt 0 6pt; padding-top: 6pt; border-top: 1px solid #ddd; page-break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 12pt 0 4pt; page-break-after: avoid; }
+p { margin: 4pt 0 6pt; }
+ul, ol { margin: 3pt 0 7pt 0; padding-left: 16pt; }
+li { margin: 1.5pt 0; }
+code, .mono { font-family: "SF Mono", Menlo, monospace; font-size: 8.8pt; background: #f3f3f5; padding: 0 2.5pt; border-radius: 3pt; }
+pre { font-family: "SF Mono", Menlo, monospace; font-size: 8.4pt; background: #f6f6f8; border: 1px solid #e6e6ea; border-radius: 5pt; padding: 7pt 9pt; white-space: pre-wrap; page-break-inside: avoid; margin: 5pt 0 8pt; }
+table { border-collapse: collapse; width: 100%; margin: 5pt 0 9pt; font-size: 9pt; page-break-inside: auto; }
+th, td { border: 1px solid #e2e2e6; padding: 3.5pt 5pt; text-align: left; vertical-align: top; }
+th { background: #f3f3f6; font-weight: 600; }
+tr { page-break-inside: avoid; }
+.sub { color: #6e6e73; font-size: 10.5pt; margin-bottom: 14pt; }
+.box { border: 1px solid #e2e2e6; border-radius: 6pt; padding: 7pt 10pt; background: #fafafb; margin: 7pt 0 10pt; page-break-inside: avoid; }
+.warn { border-color: #f0c36d; background: #fffaf0; }
+.tag { display: inline-block; font-size: 8pt; padding: 0 5pt; border-radius: 8pt; background: #eef; color: #335; margin-right: 3pt; }
+.hi { background: #fde8e6; color: #8a1f12; } .mid { background: #fff1d6; color: #7a4b00; } .lo { background: #e6f4ea; color: #1e5c33; }
+</style></head><body>
+
+<h1>Stash — Technical Brief</h1>
+<div class="sub">A native macOS menu bar app for saving project references. This document describes everything that exists today —
+product behaviour, architecture, data, every source file, the tricky parts, and where it can be made more efficient —
+so an AI assistant (or a developer) can understand the whole program before changing it. Snapshot: October 2026 · ~9,300 lines of Swift · 38 source files.</div>
+
+<div class="box"><b>How to use this brief (for the AI reading it).</b> Treat it as the ground truth of the current design. When you propose a change:
+(1) name the files you would touch, (2) keep the user-facing behaviours listed in section 4 unless told otherwise, (3) respect the constraints in
+section 9 (non-activating panels, iCloud-hidden library folder, mirror-as-truth for files), and (4) prefer changes that reduce work on the main
+thread. The owner is a designer, not a programmer: explain trade-offs in plain words, and give step-by-step instructions.</div>
+
+<h2>1. What Stash is</h2>
+<p>Stash is a fast "scrapbook" for creative projects that lives in the macOS menu bar. You throw links, images, notes, files, videos and audio into it
+(paste, drag, a global shortcut, or right after a screenshot) and it keeps them organised by <b>project</b> (browser-style tabs) and by <b>folders</b>
+(nested, with typed folders that sort things automatically). Everything is also kept as <b>real files</b> in a hidden folder,
+<code>~/Documents/.Stash</code>, so nothing is locked inside the app.</p>
+<ul>
+<li><b>Two windows.</b> A compact pop-up (330×440) that hangs from the menu bar icon, and a big movable window (⤢). ⌥Space toggles. Both are
+non-activating panels, so the app you were in stays in front.</li>
+<li><b>Projects</b> = tabs. "Not Selected" holds things in no project. Only pinned + recently opened projects get tabs; a ▾ list shows all.</li>
+<li><b>Folders</b> can nest. Styles: Folder (classic), Kraft, Pastel, Midnight, and typed folders <b>Linker</b> (links), <b>PhotoBook</b> (images),
+<b>Notepad</b> (notes), <b>Files</b> (other files). The wand "organizes" loose things into the typed folders.</li>
+<li><b>Built-in media tools.</b> Convert video/audio to MP3/MP4 (AVFoundation + a bundled LAME encoder) and download YouTube etc. as MP3/MP4
+(bundled <code>yt-dlp</code>), with no external installs.</li>
+<li><b>Finder-like behaviour</b> throughout: selection, rename, colour tags, Get Info (⌘I), Quick Look (Space), drag anything in or out, ⌘Z undo.</li>
+</ul>
+
+<h2>2. Tech stack and build</h2>
+<table>
+<tr><th style="width:26%">Item</th><th>Detail</th></tr>
+<tr><td>Language / UI</td><td>Swift 5.10, SwiftUI for views, AppKit for windows, events, menus, drag sessions, Quick Look, pasteboard.</td></tr>
+<tr><td>Package</td><td>Swift Package Manager executable target <code>Stash</code> (<code>Package.swift</code>, platform macOS 14+). No third-party Swift packages.</td></tr>
+<tr><td>Bundled tools</td><td><code>Resources/tools/lame</code> (0.3 MB, built from LAME 3.100 source), <code>Resources/tools/yt-dlp</code> (35 MB standalone binary).
+yt-dlp is copied to <code>~/Library/Application Support/Stash/tools</code> so it can self-update.</td></tr>
+<tr><td>Build</td><td><code>./build.sh</code> → <code>swift build -c release</code>, assembles <code>Stash.app</code> in a temp folder (outside iCloud Desktop, whose file
+attributes break codesign), clears xattrs, ad-hoc signs, copies to <code>build/Stash.app</code>. <code>./build.sh install</code> also replaces
+<code>/Applications/Stash.app</code> and relaunches.</td></tr>
+<tr><td>App type</td><td><code>LSUIElement</code> (menu bar only, no Dock icon). URL scheme <code>stash://</code> (<code>clipboard</code>, <code>add?text=</code>, <code>open</code>).</td></tr>
+<tr><td>Test switches</td><td>Env vars: <code>STASH_LIBRARY</code> (use another library folder), <code>STASH_MIGRATE_FROM</code>, <code>STASH_LAME</code>, <code>STASH_YTDLP</code>.
+<code>./build.sh test</code> builds "Stash Test" (bundle id <code>com.yotamkiper.stash.test</code>): separate settings, separate library, <code>stashtest://</code>, no global hot keys; debug hooks only run there.</td></tr>
+</table>
+
+<h2>3. Architecture at a glance</h2>
+<pre>
+ AppDelegate (@main) ── NSStatusItem (menu bar icon, drop target)
+      │                ├─ compact StashPanel (borderless, .popUpMenu level) → CompactView
+      │                ├─ big StashPanel (titled, resizable, .floating)      → RootView
+      │                ├─ Settings panel, Get Info panels, image Preview panel
+      │                └─ Carbon global hot keys (⌥Space, quick save ⌥⌘V)
+      ▼
+ StashPanel.sendEvent ── keys (Delete, arrows, Space, Return, digits, Tab, ⌃Tab) ── BoardDrag (mouse)
+ DropView (NSView container) ── drops from other apps, ⌘V / ⌘C / ⌘I / ⌘A / ⌘Z / ⌘1–6 / ⌘,
+      ▼
+ Store (singleton ObservableObject, @MainActor) ── projects, folders, items, selection, UI state
+      │   save() → writeLibrary() (library.json) → scheduleMirror() → syncMirror() → exportSavedProjects()
+      ├─ Undo (snapshot stack)          ├─ Ingest (pasteboard → items, previews, OCR)
+      ├─ Mirror (real files on disk)    ├─ Converter (MP3/MP4, downloads)
+      ├─ Arrange (free positions)       ├─ ProjectExport (Save to Mac, live)
+      └─ ClipHistory (last 5 copies, separate ObservableObject, polls the pasteboard)
+</pre>
+<p>There is one source of truth in memory, <code>Store.shared</code>. Every SwiftUI view reads it through <code>@EnvironmentObject</code>.
+Every change calls <code>save()</code>, which rewrites the JSON library and schedules a mirror pass that makes the folder on disk match.</p>
+
+<h2>4. Features and behaviour (what must keep working)</h2>
+<h3>4.1 Windows and header</h3>
+<ul>
+<li>Compact pop-up hangs under the menu bar icon; it can be dragged by its top bar. <b>Lock</b> keeps it exactly there (reopens there); <b>Unlock</b> sends it back under the icon. The big window can be locked too (size and place); while it is locked and was the last one open, Stash reopens big.</li>
+<li>Header is two rows: <b>project tab strip</b> (Not Selected + pinned/recent projects, as many as fit, ▾ list of all, +), then a <b>tool row</b>.</li>
+<li>Tools (each can be hidden in Settings → Toolbar): Search (big window, current tab only, folders and items), 📋 Recent copies,
+Lock ▾ (pop-up: Lock / Unlock; big window: Draw Frame… / Lock / Unlock — locked = orange 🔒, no resize/move), ❝ minimal/full view (big window),
+Arrange By ▾ (None, Name, Kind, Date Added, Tags), Icons | List switch, Organize wand, expand/collapse.</li>
+<li>Bottom bar: ⌘1 Note, ⌘2 Folder, ⌘3 Linker, ⌘4 PhotoBook, ⌘5 Notepad, ⌘6 Files, 🗑 Clear (two clicks: empties current tab), ? help.</li>
+<li>Day/night look is automatic by the clock (dark 19:00–07:00).</li>
+</ul>
+<h3>4.2 The board</h3>
+<ul>
+<li><b>Icons view</b>: free placement (Finder "None"): drag anything anywhere and it stays; new things take the first free slot; positions are stored
+per window and per mode (<code>compact</code>, <code>window</code>, <code>window-tiles</code>). Arrange By lines things up again.</li>
+<li>Pop-up and big-window-minimal show <b>icon tiles</b> (icon/thumbnail + name; media links/files get MP3/MP4 chips). Big window with ❝ on shows
+<b>full cards</b> (notes as quote cards with Copy, link previews, file details).</li>
+<li><b>List view</b>: Finder-style rows with stripes.</li>
+<li>Folder icons (design "Dot"): one grey folder shape + a coloured dot for the type; fullness shows sheets peeking out (1–5, 6+) and a count (20+).</li>
+<li>Selection like Finder: click, ⌘/⇧-click, box select, arrows; grey box behind icon + name in a blue pill.</li>
+</ul>
+<h3>4.3 Keys and mouse</h3>
+<table>
+<tr><th style="width:24%">Input</th><th>Action</th></tr>
+<tr><td>⌥Space (global)</td><td>Toggle Stash; right after a screenshot, saves it; with something just copied, opens the matching folder (clipboard banner).</td></tr>
+<tr><td>⌥⌘V (global, configurable)</td><td>Quick save the clipboard without opening Stash.</td></tr>
+<tr><td>Return / ⌘↓ / double-click</td><td>Rename / open / open.</td></tr>
+<tr><td>Space</td><td>Note → open editor; anything else → macOS Quick Look (QLPreviewPanel).</td></tr>
+<tr><td>⌘⌫ · ⌫ / Tab / ⌘[</td><td>Delete immediately (⌘Z undoes) · go up to the parent folder.</td></tr>
+<tr><td>1–9 · ⌃Tab</td><td>Open the numbered folder (numbers follow reading order) · next/previous project tab.</td></tr>
+<tr><td>⌘C ⌘V ⌘A ⌘I ⌘Z ⌘⇧Z ⌘F ⌘,</td><td>Copy selection · paste into board · select all · Get Info · undo/redo · search · Settings.</td></tr>
+<tr><td>Press-hold-release</td><td>Rename (notes open editor).</td></tr>
+<tr><td>Drag on board</td><td>Moves with the pointer instantly (handled in AppKit by <code>BoardDrag</code>); over a folder → put inside; out of the window → system drag with fresh visible copies of the real files.</td></tr>
+</table>
+<h3>4.4 Content</h3>
+<ul>
+<li><b>Notes</b>: rich text editor (font, size, B/I/U, spacing, colour, emoji, lists). Return saves, ⇧Return new line. Saved as .txt or .rtf.</li>
+<li><b>Links</b>: title/preview fetched; YouTube etc. get MP3/MP4. Download progress shows on the link itself; when done, the file
+<b>replaces</b> the link and keeps it as a small badge (open, copy, put back, remove).</li>
+<li><b>Files</b> copied into the library by default (setting), shown with their real Finder icon.</li>
+<li><b>Images</b>: thumbnails, OCR text for search, Quick Look.</li>
+<li>Colour tags (Finder's 7, written to real files), Rename N Items (name + index), Get Info window.</li>
+<li><b>Save to Mac…</b> (project tab menu): keeps a live one-way copy of a project in a folder you choose; only touches what it wrote; removals go to the Trash.</li>
+<li><b>Recent copies</b>: last 5 clipboard items from anywhere (files kept as links only, images as ~50 KB JPEG previews, secrets skipped).</li>
+</ul>
+
+<h2>5. Data model (Models.swift)</h2>
+<pre>
+Project  { id, name, createdAt, lastOpened?, pinned? }
+Folder   { id, name, style: FolderStyle, projectID?, parentID?, isNamed?, colorTags?, spots?, createdAt }
+Item     { id, kind: link|image|text|file, projectID?, folderID?, createdAt,
+           text?, richText (RTF Data)?, url?, title?, imageFile?, sourceURL?, storedPath?, ocrText?,
+           tags: [String], colorTags?, spots? }
+BoardSpot { x, y, board: "f:&lt;folder&gt;" | "p:&lt;project or none&gt;" }   // spots: [windowKey: BoardSpot]
+FolderStyle: classic, kraft, pastel, midnight, linker, photos (=PhotoBook), noteHanger (=Notepad), files
+Selectable: .item(UUID) | .folder(UUID)      Place { project?, folder? }      Filter: .inbox | .project(id) | .all (legacy)
+</pre>
+<p>Optional fields exist so older libraries still decode. <code>NotebookPage</code>/<code>PageNote</code> are legacy (the handwriting notebook was removed; code kept in <code>Unused/Notebook.swift.txt</code>).</p>
+
+<h2>6. Storage on disk</h2>
+<table>
+<tr><th style="width:36%">Path</th><th>What</th></tr>
+<tr><td><code>~/Documents/.Stash/</code></td><td>The library root (hidden by its dot name). Mirrors projects → folders → files.</td></tr>
+<tr><td><code>…/&lt;Project&gt;/&lt;Folder&gt;/…</code></td><td>Real files: images, copied files, notes as .txt/.rtf, links as .webloc. Finder colour tags set.</td></tr>
+<tr><td><code>…/.stash/library.json</code></td><td>The whole database (pretty-printed, sorted keys, ISO dates). Rewritten completely on every save.</td></tr>
+<tr><td><code>…/.stash/previews/</code></td><td>Thumbnails / preview images (<code>Item.imageFile</code>).</td></tr>
+<tr><td><code>…/.stash/staging, trash/&lt;id&gt;</code></td><td>Mirror moves are two-phase via staging; deleted files wait in trash for 30 days, listed in <code>trash/deleted.json</code> (Recently Deleted, with Restore).</td></tr>
+<tr><td><code>…/.stash/library.prev.json, backups/</code></td><td>Previous good library version (kept on every save) and hourly backups (newest 24). Used automatically if library.json is damaged.</td></tr>
+<tr><td><code>…/.stash/exports/</code></td><td>Save-to-Mac targets (<code>targets.json</code>) and per-project manifests.</td></tr>
+<tr><td><code>…/.stash/clips/</code></td><td>Recent copies list and small JPEG previews.</td></tr>
+<tr><td><code>$TMPDIR/StashOut/</code>, <code>StashDrag/</code></td><td>Fresh visible copies handed out on drag-out / Quick Look (cleared at launch); generated link notes (.rtf).</td></tr>
+<tr><td><code>UserDefaults</code></td><td>UI settings: layout, sort, pop-up lock and spot, big-window locked frame, quotes, toolbar tools, organizer options, quick-save shortcut, window frames.</td></tr>
+</table>
+
+<h2>7. Source files (what lives where)</h2>
+<table>
+<tr><th style="width:23%">File (lines)</th><th>Responsibility</th></tr>
+<tr><td>AppDelegate.swift (526)</td><td>Entry point; status item; creates panels; show/hide/expand/collapse; locking the pop-up in place; settings window; image preview; URL scheme; hot keys; quick save.</td></tr>
+<tr><td>Panel.swift (302)</td><td><code>StashPanel</code> (event routing, key handling, rename commit on outside click, search focus guard, Quick Look hooks) and <code>DropView</code> (drops, ⌘ shortcuts).</td></tr>
+<tr><td>Store.swift (995)</td><td>State, persistence, queries (<code>visibleItems/visibleFolders/visibleOrder</code>), selection, projects, delete, put-in-folder, tags, batch rename, toasts.</td></tr>
+<tr><td>Models.swift (174)</td><td>Codable data types (section 5).</td></tr>
+<tr><td>Undo.swift (110)</td><td>Snapshot undo/redo of projects, folders, pages, items (<code>checkpoint</code>, <code>undoGroup</code>).</td></tr>
+<tr><td>Mirror.swift (369)</td><td><code>syncMirror</code>: computes target paths, moves/renames/creates files, cleans leftovers, Finder tags, trash; <code>visibleCopy</code> for drag-out.</td></tr>
+<tr><td>Ingest.swift (371)</td><td>Pasteboard/drop → items; link titles &amp; previews; OCR; thumbnails; copy; drag-out providers (<code>itemProvider</code>, <code>folderProvider</code>, <code>projectProvider</code>, link .rtf note).</td></tr>
+<tr><td>Converter.swift (588)</td><td>MP3/MP4 conversion (AVFoundation → WAV → LAME), yt-dlp downloads with progress, merging a downloaded link into its file, tools settings.</td></tr>
+<tr><td>Arrange.swift (206)</td><td>Free positions (<code>moveOnBoard</code>, <code>arrange(by:)</code>), <code>FreeBoardLayout</code> (custom SwiftUI Layout), Arrange menu.</td></tr>
+<tr><td>BoardDrag.swift (220)</td><td>AppKit-level Finder-style dragging: live offset, folder drop, hand-off to NSDraggingSession when leaving the window, press-hold rename.</td></tr>
+<tr><td>ProjectExport.swift (136)</td><td>Save to Mac: choose location, one-way manifest-based sync on a background queue.</td></tr>
+<tr><td>ClipHistory.swift (320)</td><td>Last 5 copies: pasteboard polling (0.8 s), file links, JPEG previews, popover UI.</td></tr>
+<tr><td>QuickLook.swift (64) · FrameDraw.swift (185)</td><td>Space → QLPreviewPanel · draw/lock the big window frame (overlay windows on every screen).</td></tr>
+<tr><td>Clipboard.swift (152) · QuickSave.swift (83) · Screenshots.swift (69)</td><td>Clipboard banner after ⌥Space · global quick save · catching a fresh screenshot.</td></tr>
+<tr><td>RichText.swift (446)</td><td>Note editor (NSTextView), toolbar, emoji grid.</td></tr>
+<tr><td>Settings.swift (159) · HotKey.swift (41) · Files.swift (46) · Preview.swift (133)</td><td>Settings window · Carbon hot keys · file helpers · big image preview window.</td></tr>
+<tr><td>Views/BoardView.swift (507)</td><td>The board: icons/list, free layout, box select, menus, note composer, empty state, sort enum.</td></tr>
+<tr><td>Views/CardView.swift (843)</td><td>Every item look: tile, full card, quote card, list row, hover actions, MP3/MP4 chips, progress ring, source-link badge, rename/editor popovers, header toggles.</td></tr>
+<tr><td>Views/FolderViews.swift (653)</td><td>Folder icon (Dot design), tile/row, fullness icon, folder header (Back/path drop zones), delete prompts, Put in Folder menu.</td></tr>
+<tr><td>Views/RootView, CompactView, ProjectBar, AllProjects, QuickBar, Tags, InfoView, PopMenu, ToolbarTools, Appearance, NativeFields, MasonryLayout</td><td>Window layouts, tabs and project list, bottom bar, tags &amp; batch rename, Get Info, custom menu buttons, toolbar settings, auto dark mode, <code>RenameField</code> (NSTextField), legacy masonry.</td></tr>
+</table>
+
+<h2>8. Key flows</h2>
+<h3>Adding something</h3>
+<p>Paste / drop / quick save → <code>Store.ingest(pasteboard, into: Place)</code> → creates <code>Item</code>(s), copies files into the library if enabled,
+starts async work (link title fetch, thumbnail, OCR) → <code>save()</code> → mirror writes the real file.</p>
+<h3>Any change</h3>
+<p><code>checkpoint("…")</code> (undo snapshot of all arrays) → mutate arrays → <code>save()</code>: encode the whole library to JSON and write it;
+<code>scheduleMirror()</code> coalesces into one <code>syncMirror()</code> on the next main-loop turn, then <code>exportSavedProjects()</code>.</p>
+<h3>Dragging out</h3>
+<p>Board (Icons): <code>BoardDrag</code> moves tiles live; leaving the window starts an <code>NSDraggingSession</code> whose pasteboard items carry
+<b>fresh copies</b> (<code>Store.visibleCopy</code>, APFS clone into <code>$TMPDIR/StashOut</code>, hidden flag cleared) plus text/URL. List view and
+project tabs use SwiftUI <code>onDrag</code> with <code>NSItemProvider</code> file representations (also fresh copies).</p>
+<h3>Download</h3>
+<p><code>download(itemID, as:)</code> runs yt-dlp in a detached task, parses "% " lines for progress (<code>pending</code> → ring on the link), converts
+M4A → MP3 when needed, then <code>finishConversion</code> replaces the link item in place with the file item (keeps position, tags; <code>sourceURL</code> = link).</p>
+<h3>Delete and undo</h3>
+<p><code>requestDelete</code> → <code>performDelete</code> (folders take their contents) → mirror moves files into <code>.stash/trash</code>; ⌘Z restores the
+snapshot and the mirror moves files back. On the next launch the trash is emptied.</p>
+
+<h2>9. Constraints and gotchas (read before changing things)</h2>
+<div class="box warn"><ul>
+<li><b>iCloud re-hides library files.</b> <code>~/Documents</code> is synced by iCloud Drive, which sets the "hidden" flag on everything inside the dot-folder
+<code>.Stash</code> within seconds. Never hand library files directly to other apps — always use <code>visibleCopy</code>. Moving the library out of
+<code>Documents</code> (e.g. to Application Support with a visible export) would remove this whole class of problems.</li>
+<li><b>Recently Deleted.</b> Deletions are recorded with full metadata and kept 30 days across restarts (<code>RecentlyDeleted.swift</code>); undo/redo removals are recorded too.</li>
+<li><b>Non-activating panels.</b> Windows must take keys without activating the app; SwiftUI swallows Space/Delete, so keys are handled in
+<code>StashPanel.sendEvent</code>. Mouse dragging on the board is intercepted there too (<code>BoardDrag</code>), so SwiftUI <code>onDrag</code> only works in List view.</li>
+<li><b>SwiftUI focus quirks.</b> Rename uses an AppKit <code>NSTextField</code> (<code>RenameField</code>); search can only take focus on click or ⌘F (guard in <code>makeFirstResponder</code>).</li>
+<li><b>SwiftUI menus</b> with <code>.borderlessButton</code> draw only an icon, so header menu buttons are custom (<code>MenuIconButton</code> + <code>NSMenu</code>).</li>
+<li><b>Mirror is authoritative for files.</b> Item file paths (<code>storedPath</code>) change when things move or are renamed; always resolve through <code>contentURL</code>/<code>dragFile</code>.</li>
+<li><b>Code signing</b> fails on iCloud-synced folders (extended attributes) — build.sh signs in a temp folder.</li>
+<li><b>Saving</b> is asynchronous on a serial queue (<code>Persistence.swift</code>): numbered snapshots, newest wins, read-back check, atomic replace with <code>library.prev.json</code>, hourly backups, recovery at launch. Flushed in <code>applicationWillTerminate</code>.</li>
+</ul></div>
+
+<h2>10. Where it can be made more efficient</h2>
+<p>Ordered by expected impact. <span class="tag hi">High</span> = noticeable with large libraries; <span class="tag mid">Medium</span>; <span class="tag lo">Low</span>.</p>
+<table>
+<tr><th style="width:5%">#</th><th style="width:30%">Area</th><th>Today → suggestion</th></tr>
+<tr><td>1</td><td><span class="tag mid">Partly done</span> Whole-library save on every change</td><td>Saves now encode and write on a background queue with coalescing, read-back check, atomic replace and backups (<code>Persistence.swift</code>); main-thread cost &lt;1 ms. Still a full rewrite (~40–60 ms in the background for 2,000 items).
+→ Debounce saves (e.g. 300 ms), encode off the main thread, drop pretty-printing, or move to SQLite/GRDB or one file per project.</td></tr>
+<tr><td>2</td><td><span class="tag mid">Partly done</span> Full mirror pass after every save</td><td>Now fingerprinted (Oct 2026): <code>mirrorPrints</code> skip disk checks, note-content reads and tag reads for unchanged items; full audit at launch and every 5 min. 2,000 items: 207–280 ms → ~35 ms. Next: move the remaining CPU work (paths, unique names) off the main thread.</td></tr>
+<tr><td>3</td><td><span class="tag hi">High</span> One giant ObservableObject</td><td>Every <code>@Published</code> change (selection, toast, drag offset, search text) re-evaluates every view that reads <code>Store</code>.
+→ Split into smaller observable models (library data, UI/selection, drag state) or adopt the Observation framework (<code>@Observable</code>, macOS 14) so views only update when what they read changes.</td></tr>
+<tr><td>4</td><td><span class="tag lo">Done</span> Drag redraws</td><td>Fixed (Oct 2026): drag state lives in <code>DragSelection</code>/<code>DragOffset</code>, not Store; a snapshot "ghost" NSImageView follows the pointer. 2,000-item board: ~450 ms/step → 16.7 ms/frame, 0 card redraws per frame.</td></tr>
+<tr><td>5</td><td><span class="tag mid">Medium</span> Repeated computed queries</td><td><code>visibleItems</code>/<code>visibleFolders</code>/<code>visibleOrder</code>, <code>count(in:)</code>, <code>tabProjects</code> (called per <code>ViewThatFits</code> candidate) filter whole arrays every render.
+→ Cache derived indexes (items by folder/project, counts) and invalidate on change; use dictionaries keyed by ID instead of <code>first(where:)</code>.</td></tr>
+<tr><td>6</td><td><span class="tag mid">Medium</span> Undo snapshots copy everything</td><td><code>checkpoint</code> stores full copies of all arrays (cheap copy-on-write until mutated, but each mutation then duplicates). → Store diffs (inverse operations) or cap memory by size.</td></tr>
+<tr><td>7</td><td><span class="tag mid">Partly done</span> Images and icons in render paths</td><td><code>displayImage</code>, <code>NSWorkspace.icon(forFile:)</code>, <code>previewImages</code>, file sizes in cards are fetched during view bodies.
+→ Cache thumbnails at display size (NSCache keyed by item + size), generate with QuickLookThumbnailing off-main, prefetch.</td></tr>
+<tr><td>8</td><td><span class="tag mid">Medium</span> FreeBoardLayout free-slot search</td><td>Places each unpositioned item by scanning rows in 8 pt steps against all placed rects (O(n²)). → Use a grid occupancy map or only scan near the end of the content; cache layout results in the Layout cache.</td></tr>
+<tr><td>9</td><td><span class="tag mid">Medium</span> Save-to-Mac sync walks everything</td><td>Each change walks the whole project folder and compares sizes/dates. → Reuse the mirror's change set (item 2) to copy only what changed; FSEvents for external edits.</td></tr>
+<tr><td>10</td><td><span class="tag lo">Low</span> Clipboard polling</td><td>Timer every 0.8 s reading <code>changeCount</code> (cheap). → Fine; could pause while the Mac is idle/asleep.</td></tr>
+<tr><td>11</td><td><span class="tag lo">Low</span> Drag-out copies</td><td><code>visibleCopy</code> clones files at hand-off (instant on APFS, but folder clones walk trees). → Create lazily with <code>NSFilePromiseProvider</code>, only when the receiver accepts the drop.</td></tr>
+<tr><td>12</td><td><span class="tag lo">Low</span> Big files in Views</td><td><code>CardView.swift</code> (843 lines) mixes many looks. → Split into TileView, CardView, QuoteCard, RowView for faster compiles and clearer diffs.</td></tr>
+</table>
+<p><b>Disk work done (Oct 2026):</b> previews capped at 600 px JPEG/PNG (<code>Storage.swift</code>, one-time shrink of old ones),
+thumbnail NSCache limits, yt-dlp run from the bundle (copy only on update), lzfse-compressed hourly backups, temporary folders
+cleared at launch (separate ones for Stash Test), and a Settings → Storage report with safe clean-up actions.</p>
+<p><b>Biggest single win:</b> items 1–3 together — debounced background persistence, an incremental mirror, and finer-grained observation — keep the UI
+smooth as libraries grow into thousands of items.</p>
+
+<h2>11. Suggested questions to ask an AI with this brief</h2>
+<ul>
+<li>"Design an incremental version of <code>syncMirror</code> that only processes changed IDs. Show the data structures and where to hook it into <code>save()</code>."</li>
+<li>"Migrate <code>Store</code> from <code>ObservableObject</code> to the Observation framework without changing behaviour. What breaks?"</li>
+<li>"Should the library move out of iCloud Documents? Propose a safe migration that keeps a visible folder for the user."</li>
+<li>"Replace JSON persistence with SQLite (GRDB) — schema, migration from library.json, and expected speed-up."</li>
+<li>"Build a thumbnail cache using QuickLookThumbnailing and NSCache for cards and tiles."</li>
+</ul>
+
+</body></html>

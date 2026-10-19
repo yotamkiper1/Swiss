@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Stash — Design and Features</title>
+<style>
+@page { size: A4; margin: 16mm 15mm; }
+body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: 10.2pt; line-height: 1.45; color: #1d1d1f; }
+h1 { font-size: 30pt; margin: 0; letter-spacing: -0.6pt; }
+h2 { font-size: 16pt; margin: 0 0 6pt; letter-spacing: -0.2pt; }
+h3 { font-size: 11.5pt; margin: 10pt 0 3pt; }
+p { margin: 3pt 0 6pt; }
+ul { margin: 2pt 0 6pt; padding-left: 15pt; } li { margin: 1.5pt 0; }
+.page { page-break-after: always; }
+.page:last-child { page-break-after: auto; }
+.lead { color: #6e6e73; font-size: 11.5pt; margin: 6pt 0 14pt; }
+.eyebrow { text-transform: uppercase; letter-spacing: 1.2pt; font-size: 8pt; color: #8e8e93; font-weight: 600; margin-bottom: 4pt; }
+.shot { border-radius: 10pt; border: 1px solid #e3e3e6; box-shadow: 0 2pt 10pt rgba(0,0,0,0.08); display: block; }
+.cap { font-size: 8.8pt; color: #6e6e73; margin: 4pt 0 0; text-align: center; }
+.row { display: flex; gap: 12pt; align-items: flex-start; }
+.col { flex: 1; min-width: 0; }
+.chips span { display: inline-block; font-size: 8.5pt; padding: 1pt 7pt; border-radius: 9pt; background: #f1f1f4; margin: 0 3pt 3pt 0; }
+.key { font-family: "SF Mono", Menlo, monospace; font-size: 8.6pt; background: #f1f1f4; border-radius: 4pt; padding: 0 4pt; }
+table { border-collapse: collapse; width: 100%; font-size: 9.2pt; margin: 4pt 0 8pt; }
+td, th { border-bottom: 1px solid #ececef; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+th { font-weight: 600; color: #6e6e73; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.6pt; }
+.swatch { display: inline-block; width: 11pt; height: 11pt; border-radius: 50%; vertical-align: -2pt; margin-right: 4pt; }
+.box { background: #f7f7f9; border-radius: 8pt; padding: 7pt 10pt; margin: 6pt 0; }
+</style></head><body>
+
+<!-- Cover -->
+<div class="page">
+  <div class="eyebrow">macOS menu bar app · October 2026</div>
+  <h1>Stash</h1>
+  <div class="lead">A quiet scrapbook for creative projects. Throw links, pictures, notes, files, music and video into it without leaving what
+  you're doing — Stash keeps them in projects and folders, and as real files on your Mac.</div>
+  <div class="row">
+    <div class="col" style="flex:0 0 40%"><img class="shot" src="01-popup.png" style="width:100%"><div class="cap">The pop-up, hanging from the menu bar</div></div>
+    <div class="col"><img class="shot" src="13-big-full.png" style="width:100%"><div class="cap">The big window, everything in full</div></div>
+  </div>
+  <h3 style="margin-top:16pt">What it's for</h3>
+  <ul>
+    <li><b>Capture without switching.</b> ⌥Space opens it over any app; paste, drop or press ⌥⌘V to save without opening it at all.</li>
+    <li><b>Organise like Finder.</b> Projects as tabs, folders that sort themselves, free placement, colour tags, Get Info, Quick Look.</li>
+    <li><b>Nothing locked in.</b> Every project and folder is a real folder on disk; drag anything out and it arrives as a real Mac file.</li>
+  </ul>
+</div>
+
+<!-- Design principles -->
+<div class="page">
+  <div class="eyebrow">01 · Design choices</div>
+  <h2>Quiet, grey, and out of the way</h2>
+  <p class="lead">The content is the colour. The interface stays a soft grey, so links, pictures and notes are what you see.</p>
+  <table>
+    <tr><th style="width:26%">Choice</th><th>What it means in the app</th></tr>
+    <tr><td><b>Minimal chrome</b></td><td>Flat grey surfaces (macOS material), hairline dividers, no heavy borders or shadows. Icon-only tools that only show a soft grey when hovered.</td></tr>
+    <tr><td><b>Finder as the model</b></td><td>Selection is a grey box behind the icon with the name in a blue pill; Return renames, ⌘⌫ deletes, Space previews, arrows move, 1–9 open folders.</td></tr>
+    <tr><td><b>Two windows, one board</b></td><td>A small pop-up (330 × 440) for quick capture and a big movable window for organising. Both float above other apps without taking focus away from them.</td></tr>
+    <tr><td><b>Two-row header</b></td><td>Like a browser: project tabs on their own strip, the tools in a slim row underneath.</td></tr>
+    <tr><td><b>Folders: "Dot" design</b></td><td>Every folder is the same quiet grey shape; only a small coloured dot says what kind it is. The board stays calm.</td></tr>
+    <tr><td><b>Fullness, not decoration</b></td><td>Folders show how full they are — sheets peek out (1–5 things, then a stack) and a small count (20+ after twenty).</td></tr>
+    <tr><td><b>Minimal or full</b></td><td>The ❝ switch: minimal icon tiles, or everything in full (link previews, file details, notes as quote cards).</td></tr>
+    <tr><td><b>Day and night by the clock</b></td><td>Light during the day, dark from 7 pm to 7 am — nothing to switch.</td></tr>
+    <tr><td><b>Serif for words</b></td><td>Notes shown as quotes use a serif face, so written words read differently from the interface around them.</td></tr>
+    <tr><td><b>Soft project tints</b></td><td>Each project has a muted tint (blue-grey, sage, sand, rose, lavender, teal); Not Selected stays plain grey.</td></tr>
+  </table>
+  <h3>Folder and type colours</h3>
+  <p>
+    <span class="swatch" style="background:#388ade"></span>Folder &nbsp;
+    <span class="swatch" style="background:#1c9e75"></span>Linker (links) &nbsp;
+    <span class="swatch" style="background:#d95a30"></span>PhotoBook (pictures) &nbsp;
+    <span class="swatch" style="background:#f09e26"></span>Notepad (notes) &nbsp;
+    <span class="swatch" style="background:#878780"></span>Files &nbsp;
+    <span class="swatch" style="background:#c79a6b"></span>Kraft &nbsp;
+    <span class="swatch" style="background:#f2adc7"></span>Pastel &nbsp;
+    <span class="swatch" style="background:#3d425c"></span>Midnight
+  </p>
+  <div class="row" style="margin-top:8pt; justify-content:center">
+    <div style="width:50%"><img class="shot" src="10-big-minimal.png" style="width:100%"><div class="cap">Minimal view: folders with their dots and counts, items as tiles</div></div>
+  </div>
+</div>
+
+<!-- Windows -->
+<div class="page">
+  <div class="eyebrow">02 · Windows</div>
+  <h2>The pop-up and the big window</h2>
+  <div class="row">
+    <div class="col" style="flex:0 0 38%">
+      <img class="shot" src="01-popup.png" style="width:100%"><div class="cap">Pop-up: tabs, the tool row, the board, the bottom bar</div>
+      <img class="shot" src="02-popup-photobook.png" style="width:100%; margin-top:10pt"><div class="cap">Inside a folder: path with Back, everything inside</div>
+    </div>
+    <div class="col">
+      <h3>The pop-up</h3>
+      <ul>
+        <li>Hangs under the menu bar icon; ⌥Space toggles it from any app.</li>
+        <li>Everything is a small icon tile with its name: pictures as thumbnails, files with their real Mac icons, links with their preview and a link badge.</li>
+        <li><b>Lock / Unlock</b> (🔓 ▾): drag it anywhere by its top bar, lock it, and it reopens exactly there.</li>
+      </ul>
+      <h3>The big window</h3>
+      <ul>
+        <li>⤢ expands; it can be moved and resized — or locked: draw a frame on screen (<b>Draw Frame…</b>) or <b>Lock</b> it where it is; it shows an orange 🔒 Locked.</li>
+        <li>Search (current tab only, folders and items), the ❝ minimal/full switch, Arrange By, Icons | List, the Organize wand.</li>
+      </ul>
+      <h3>The tool row</h3>
+      <ul>
+        <li><b>↓ Project ▸ Folder</b> always shows where new things will be saved.</li>
+        <li>📋 Recent copies · 🔓 Lock · ❝ view · Arrange By ▾ · Icons | List · wand · expand. Each can be hidden in Settings → Toolbar.</li>
+      </ul>
+      <h3>The bottom bar</h3>
+      <ul>
+        <li><span class="key">⌘1</span> Note, <span class="key">⌘2</span> Folder, <span class="key">⌘3</span> Linker, <span class="key">⌘4</span> PhotoBook, <span class="key">⌘5</span> Notepad, <span class="key">⌘6</span> Files — each with its own coloured icon.</li>
+        <li>🗑 <b>Clear</b> empties the tab (two clicks, Undo, Recently Deleted), and <b>?</b> lists every button.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Board views -->
+<div class="page">
+  <div class="eyebrow">03 · The board</div>
+  <h2>Icons, full view, list</h2>
+  <div class="row">
+    <div class="col"><img class="shot" src="13-big-full.png" style="width:100%"><div class="cap">Full view (❝ on): the picture, the YouTube card with MP3/MP4, notes as quotes with Copy</div></div>
+  </div>
+  <div class="row" style="margin-top:10pt">
+    <div class="col"><img class="shot" src="15-big-list.png" style="width:100%"><div class="cap">List view, Finder-style rows</div></div>
+    <div class="col"><img class="shot" src="14-big-notepad-quotes.png" style="width:100%"><div class="cap">A Notepad folder in full view: notes to read and copy</div></div>
+  </div>
+  <ul style="margin-top:8pt">
+    <li><b>Free placement</b> (Arrange By: None): drag anything anywhere and it stays; new things take the first free spot. Name, Kind, Date Added or Tags line everything up again.</li>
+    <li>Each window and each view keeps its own arrangement. Folder numbers 1–9 follow where the folders sit.</li>
+  </ul>
+</div>
+
+<!-- Folders & items -->
+<div class="page">
+  <div class="eyebrow">04 · Folders and things</div>
+  <h2>Typed folders that sort themselves</h2>
+  <div class="row">
+    <div class="col"><img class="shot" src="11-big-linker.png" style="width:100%"><div class="cap">Linker: links with their page pictures; YouTube gets MP3/MP4</div></div>
+    <div class="col"><img class="shot" src="12-big-photobook.png" style="width:100%"><div class="cap">PhotoBook: pictures as thumbnails</div></div>
+  </div>
+  <table style="margin-top:10pt">
+    <tr><th style="width:22%">Folder</th><th>Holds</th></tr>
+    <tr><td><span class="swatch" style="background:#1c9e75"></span>Linker</td><td>Links — title and preview fetched automatically; a link dragged out becomes a small note with the clickable link.</td></tr>
+    <tr><td><span class="swatch" style="background:#d95a30"></span>PhotoBook</td><td>Pictures — with text inside them recognised, so search finds them.</td></tr>
+    <tr><td><span class="swatch" style="background:#f09e26"></span>Notepad</td><td>Notes — rich text (fonts, sizes, bold, colour, lists, emoji); saved as .txt or .rtf.</td></tr>
+    <tr><td><span class="swatch" style="background:#878780"></span>Files</td><td>Everything else — music, video, 3D, documents — copied into Stash by default.</td></tr>
+    <tr><td><span class="swatch" style="background:#388ade"></span>Folder, Kraft, Pastel, Midnight</td><td>Your own folders, nested as deep as you like.</td></tr>
+  </table>
+  <ul>
+    <li><b>The wand</b> sorts loose things into Linker, PhotoBook, Notepad and Files. Deep Organize lives in Settings.</li>
+    <li><b>Names</b>: Return renames (or press-hold-release); new folders open their name box right away. Rename N Items gives a name and a number.</li>
+    <li><b>Colour tags</b>: Finder's seven colours, written onto the real files too.</li>
+  </ul>
+</div>
+
+<!-- Media -->
+<div class="page">
+  <div class="eyebrow">05 · Music and video</div>
+  <h2>MP3 and MP4, built in</h2>
+  <div class="row">
+    <div class="col" style="flex:0 0 38%"><img class="shot" src="25-failed.png" style="width:100%"><div class="cap">A download that didn't work keeps a red ! with the reason and Try Again</div></div>
+    <div class="col">
+      <ul>
+        <li><b>MP3 / MP4 chips</b> appear only on media links (YouTube and similar) and on video or sound files.</li>
+        <li>One click downloads (links, via the built-in downloader) or converts (files, via the Mac's own media tools and the built-in MP3 encoder) — nothing to install.</li>
+        <li><b>Progress on the thing itself</b>: a see-through ring with the percent, and a small × to cancel.</li>
+        <li><b>The link moves inside the file</b>: when the MP3/MP4 is ready it takes the link's place, and the link lives on as a small badge on its corner — open it, copy it, put it back on the board, or remove it. No extra copies on the board.</li>
+        <li><b>If it fails</b>: a red ! stays on it — click for the reason, Try Again or Dismiss.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="page">
+  <div class="eyebrow">06 · Projects and moving around</div>
+  <h2>Tabs for what you're working on</h2>
+  <div class="row">
+    <div class="col" style="flex:0 0 42%"><img class="shot" src="22-all-projects.png" style="width:100%"><div class="cap">The project list (▾ next to the tabs)</div></div>
+    <div class="col">
+      <ul>
+        <li><b>Tabs</b> show the pinned projects (📌) and the ones you opened last — as many as fit, always including the one you're in.</li>
+        <li>The <b>▾ list</b> shows every project with how much is in it and a pin; click to open, right-click to rename, pin, save to Mac or delete.</li>
+        <li><b>+</b> makes a new tab with its name box open.</li>
+        <li><b>Search</b> looks only in the tab you're in, and finds folders and things by name anywhere inside it.</li>
+      </ul>
+      <h3>Keys</h3>
+      <table>
+        <tr><td style="width:36%"><span class="key">⌥Space</span></td><td>Open or close Stash from any app</td></tr>
+        <tr><td><span class="key">⌥⌘V</span></td><td>Save the clipboard without opening Stash</td></tr>
+        <tr><td><span class="key">Return</span> · <span class="key">⌘↓</span></td><td>Rename · open</td></tr>
+        <tr><td><span class="key">Space</span></td><td>Quick Look (notes open for editing)</td></tr>
+        <tr><td><span class="key">⌘⌫</span> · <span class="key">⌘Z</span></td><td>Delete · undo</td></tr>
+        <tr><td><span class="key">⌫</span> · <span class="key">Tab</span></td><td>Back up to the folder holding this one</td></tr>
+        <tr><td><span class="key">1–9</span> · <span class="key">⌃Tab</span></td><td>Open a numbered folder · next project tab</td></tr>
+        <tr><td><span class="key">⌘C</span> <span class="key">⌘V</span> <span class="key">⌘I</span> <span class="key">⌘F</span> <span class="key">⌘,</span></td><td>Copy · paste · Get Info · search · Settings</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Drag & info -->
+<div class="page">
+  <div class="eyebrow">07 · Like Finder</div>
+  <h2>Drag, Get Info, Quick Look</h2>
+  <div class="row" style="justify-content:center">
+    <div style="width:78%"><img class="shot" src="18-drag.png" style="width:100%"><div class="cap">Dragging: the tile's picture follows the pointer; the real one waits, dimmed</div></div>
+  </div>
+  <div class="row" style="margin-top:10pt">
+    <div class="col" style="flex:0 0 27%"><img class="shot" src="20-info.png" style="width:100%"><div class="cap">Get Info (⌘I)</div></div>
+    <div class="col">
+      <ul>
+        <li><b>Dragging</b> starts instantly, selected or not; over a folder it goes inside; out of the window it becomes a real Mac file (a copy) in Finder, the Desktop or any app. Dragging a project tab out gives the whole project as a folder.</li>
+        <li><b>Get Info</b> shows kind, size, where it is, dates, the link, dimensions or duration, clickable colour tags, Show in Finder and a preview.</li>
+        <li><b>Quick Look</b> (Space) is the real macOS one: pictures, video, music, PDFs.</li>
+        <li><b>⌘C</b> copies what's selected; several notes and links paste one after another.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Safety, copies -->
+<div class="page">
+  <div class="eyebrow">08 · Safe and remembered</div>
+  <h2>Undo, Recently Deleted, Recent copies</h2>
+  <div class="row">
+    <div class="col" style="flex:0 0 40%"><img class="shot" src="23-recently-deleted.png" style="width:100%"><div class="cap">Recently Deleted, with the Undo message below</div></div>
+    <div class="col">
+      <ul>
+        <li><b>Undo in the message</b>: deleting, moving, renaming, clearing, organising and finished downloads show a message with <b>Undo</b>.</li>
+        <li><b>Recently Deleted</b>: everything deleted stays 30 days, even after a restart — Restore puts it back where it was.</li>
+        <li><b>Crash-safe saving</b>: saves are checked before they replace the old file; the previous version and compressed hourly backups are kept, and a damaged library is restored automatically.</li>
+      </ul>
+      <img class="shot" src="21-recent-copies.png" style="width:70%; margin-top:8pt"><div class="cap" style="text-align:left">Recent copies (📋): the last 5 things you copied anywhere</div>
+      <ul>
+        <li>Click one to copy it again, save it to the board, or drag it out. Files are only linked, so they take no space; secrets from password managers are never kept.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Night & settings -->
+<div class="page">
+  <div class="eyebrow">09 · Night, settings, storage</div>
+  <h2>Day and night, and what it keeps on disk</h2>
+  <div class="row">
+    <div class="col"><img class="shot" src="16-big-dark.png" style="width:100%"><div class="cap">Night look (after 7 pm), minimal view</div></div>
+    <div class="col"><img class="shot" src="17-big-dark-full.png" style="width:100%"><div class="cap">Night look, full view</div></div>
+  </div>
+  <div class="row" style="margin-top:10pt">
+    <div class="col" style="flex:0 0 40%"><img class="shot" src="24-settings.png" style="width:100%"><div class="cap">Settings: quick save, toolbar, storage</div></div>
+    <div class="col">
+      <ul>
+        <li><b>Quick save</b>: choose the shortcut, keep copies of files, make typed folders when pasting.</li>
+        <li><b>Toolbar</b>: turn each header tool on or off.</li>
+        <li><b>Storage</b>: what Stash uses — your files, previews, Recently Deleted, library and backups, recent copies, temporary files, built-in tools — with safe clean-up buttons.</li>
+        <li><b>Save to Mac…</b> (right-click a tab): a live copy of a project in any folder you choose, kept up to date as you change things.</li>
+        <li><b>Accessibility</b>: VoiceOver names for every button, card and folder; Reduce Motion turns off animations.</li>
+      </ul>
+      <div class="box"><b>Where your things live:</b> <span class="key">~/Documents/.Stash</span> — one folder per project, one per folder, the real files inside (notes as .txt/.rtf, links as .webloc, pictures and media as themselves).</div>
+    </div>
+  </div>
+</div>
+
+</body></html>

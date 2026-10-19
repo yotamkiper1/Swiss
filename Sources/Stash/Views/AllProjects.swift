@@ -3,6 +3,21 @@ import SwiftUI
 // MARK: - Which projects get a tab
 
 extension Store {
+    /// Opens a project (or Unsorted) from anywhere — a tab, the list, the sidebar: leaves Recent, All Items or a connected
+    /// folder, brings its tab back if it was closed, and shows it. Always works, even if it was already "selected" underneath.
+    func openProject(_ id: UUID?) {
+        showingRecent = false
+        libraryView = nil
+        connectedView = nil
+        if let id, let index = projects.firstIndex(where: { $0.id == id }) {
+            if projects[index].tabClosed == true { projects[index].tabClosed = nil }
+            projects[index].lastOpened = Date()
+        }
+        let target: Filter = id.map { .project($0) } ?? .inbox
+        if filter == target { openFolderID = nil; selection = [] } else { filter = target }
+        save(touchesFiles: false)
+    }
+
     func togglePin(_ id: UUID) {
         guard let index = projects.firstIndex(where: { $0.id == id }) else { return }
         projects[index].pinned = projects[index].pinned == true ? nil : true
@@ -27,12 +42,17 @@ extension Store {
 struct AllProjectsButton: View {
     @EnvironmentObject var store: Store
     let total: Int
+    /// No project tab is open: say what the button is for.
+    var labelled = false
     private var showing: Binding<Bool> { Binding(get: { store.showingAllProjects }, set: { store.showingAllProjects = $0 }) }
 
     var body: some View {
         Button { store.showingAllProjects.toggle() } label: {
             HStack(spacing: 2) {
                 Image(systemName: "chevron.down.circle").font(.system(size: 11))
+                if labelled && total > 0 {
+                    Text(total == 1 ? "Open project" : "Open a project").font(.system(size: 11, weight: .medium))
+                }
                 if total > 0 {
                     Text("\(total)").font(.system(size: 10, weight: .semibold, design: .rounded)).monospacedDigit()
                 }
@@ -154,14 +174,14 @@ private struct ProjectRow: View {
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .onTapGesture {
-            store.filter = filter
+            store.openProject(project?.id)
             close()
         }
         .contextMenu {
             if let project {
                 Button(project.pinned == true ? "Unpin Tab" : "Pin Tab") { store.togglePin(project.id) }
                 Button("Rename") {
-                    store.filter = filter
+                    store.openProject(project.id)
                     close()
                     AppDelegate.shared.renameProject(project)
                 }

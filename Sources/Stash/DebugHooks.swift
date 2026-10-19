@@ -139,6 +139,10 @@ extension AppDelegate {
             for link in ["https://www.are.na", "https://en.wikipedia.org/wiki/Swiss_Style_(design)", "https://www.apple.com/design/"] { store.addText(link, place: place) }
             for note in ["Typeface shortlist: Helvetica Now, Söhne, GT America", "Print run: 50 copies, A2, matte 170 g", "Send files to the print shop Thursday"] { store.addText(note, place: place) }
             store.selection = []
+        case "debugopenproject":
+            // Opens the named project the way the list / tabs do, then reports where we are.
+            if let p = store.projects.first(where: { $0.name == url.query?.removingPercentEncoding }) { store.openProject(p.id) }
+            log("openproject: recent=\(store.showingRecent) tabClosed=\(store.projects.filter { $0.tabClosed == true }.map(\.name)) filter=\(store.name(for: { if case .project(let id) = store.filter { id } else { nil } }()))")
         case "debugrenamesel":
             // Starts renaming the one selected thing (like pressing Return).
             switch store.selection.first {

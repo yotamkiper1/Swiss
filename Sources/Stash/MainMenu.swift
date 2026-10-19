@@ -191,10 +191,7 @@ final class MainMenu: NSObject, NSMenuDelegate {
         for (index, project) in store.projects.enumerated() {
             let here = !store.showingRecent && store.libraryView == nil && store.connectedView == nil && store.filter == .project(project.id)
             items.append(item(project.name, index < 9 ? String(index + 1) : "", [.command, .control], checked: here) {
-                self.store.showingRecent = false
-                self.store.libraryView = nil
-                self.store.connectedView = nil
-                self.store.filter = .project(project.id)
+                self.store.openProject(project.id)
             })
         }
         let connected = ConnectedRegistry.shared.folders

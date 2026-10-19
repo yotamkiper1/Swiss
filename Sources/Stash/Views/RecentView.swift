@@ -244,9 +244,7 @@ private struct RecentRow: View {
     /// Opens its project and folder, with it selected.
     private func reveal() {
         guard let saved else { return }
-        store.showingRecent = false
-        store.libraryView = nil
-        if let project = saved.projectID { store.filter = .project(project) }
+        store.openProject(saved.projectID)
         store.openFolderID = saved.folderID
         store.selection = [.item(saved.id)]
         store.scrollTarget = .item(saved.id)

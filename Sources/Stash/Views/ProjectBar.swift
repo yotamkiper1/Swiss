@@ -56,7 +56,7 @@ struct ProjectBar: View {
                 }
             }
             .frame(height: 30)
-            AllProjectsButton(total: store.projects.count)
+            AllProjectsButton(total: store.projects.count, labelled: projects.isEmpty && openConnected.isEmpty)
             Button { AppDelegate.shared.newProject() } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 11))
@@ -148,10 +148,7 @@ private struct ProjectTab: View {
             if (NSApp.currentEvent?.clickCount ?? 1) >= 2, let project {
                 AppDelegate.shared.renameProject(project)
             } else {
-                store.filter = filter
-                store.showingRecent = false
-                store.libraryView = nil
-                store.connectedView = nil
+                store.openProject(project?.id)
             }
         }
         // Drag a tab out (to the Desktop, Finder…) for a copy of the whole project as a real folder.

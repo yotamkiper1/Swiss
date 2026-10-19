@@ -108,10 +108,7 @@ struct LibrarySidebar: View {
         } else {
             row(project?.name ?? "Not Selected", symbol: project == nil ? "tray" : "folder", dot: project.flatMap(tint),
                 pinned: project?.pinned == true, count: count, selected: selected) {
-                store.showingRecent = false
-                store.libraryView = nil
-                store.connectedView = nil
-                store.filter = filter
+                store.openProject(project?.id)
             }
             .projectDropTarget(project?.id) // drop things here to put them in this project
             .modifier(DeleteOnHover(enabled: project != nil) { if let project { store.requestDeleteProject(project.id) } })
@@ -270,9 +267,7 @@ struct AllItemsView: View {
 
     /// Jumps to the thing in its own project and folder, selected.
     private func reveal(_ item: Item) {
-        store.libraryView = nil
-        store.showingRecent = false
-        store.filter = item.projectID.map { .project($0) } ?? .inbox
+        store.openProject(item.projectID)
         store.openFolderID = item.folderID
         store.selection = [.item(item.id)]
         store.scrollTarget = .item(item.id)

@@ -118,6 +118,27 @@ extension AppDelegate {
                 try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: url.path))
                 log("tour shot")
             } }
+        case "debugsize":
+            // The big window at ?w,h points, centered on the screen.
+            let d = (url.query ?? "1100,720").split(separator: ",").compactMap { Double($0) }
+            if d.count == 2, let screen = NSScreen.main?.visibleFrame {
+                panel.setFrame(NSRect(x: screen.midX - d[0] / 2, y: screen.midY - d[1] / 2, width: d[0], height: d[1]), display: true)
+            }
+        case "debugrecentclear": RecentStore.shared.clear()
+        case "debugorganize": store.autoOrganize(reuseExisting: true)
+        case "debugmess":
+            // A project with everything loose on the board (for the wand): the files in the path, links and notes.
+            let dir = URL(fileURLWithPath: url.path)
+            let project = store.addProject(named: "Brand Refresh"); store.renamingProjectID = nil
+            store.filter = .project(project.id)
+            let place = Place(project: project.id)
+            let pb = NSPasteboard(name: .init("swiss.mess"))
+            for name in ["Poster draft — orange.jpg", "Poster draft — blue.jpg", "Color study.jpg", "Green mood.jpg", "Intro sting.aiff"] {
+                pb.clearContents(); pb.writeObjects([dir.appendingPathComponent(name) as NSURL]); _ = store.ingest(pb, into: place)
+            }
+            for link in ["https://www.are.na", "https://en.wikipedia.org/wiki/Swiss_Style_(design)", "https://www.apple.com/design/"] { store.addText(link, place: place) }
+            for note in ["Typeface shortlist: Helvetica Now, Söhne, GT America", "Print run: 50 copies, A2, matte 170 g", "Send files to the print shop Thursday"] { store.addText(note, place: place) }
+            store.selection = []
         case "debugrenamesel":
             // Starts renaming the one selected thing (like pressing Return).
             switch store.selection.first {
@@ -571,7 +592,10 @@ extension AppDelegate {
             // "Something changed", 40 times, 0.25 s apart (sample the app meanwhile to see what redraws cost).
             for i in 0..<40 { DispatchQueue.main.asyncAfter(deadline: .now() + 0.25 * Double(i)) { store.objectWillChange.send() } }
         case "debugproject":
-            if let p = store.projects.first(where: { $0.name == url.query?.removingPercentEncoding }) { store.filter = .project(p.id); store.openFolderID = nil }
+            if let p = store.projects.first(where: { $0.name == url.query?.removingPercentEncoding }) {
+                store.connectedView = nil; store.showingRecent = false; store.libraryView = nil
+                store.filter = .project(p.id); store.openFolderID = nil
+            }
         case "debugbench": runBench(label: url.query ?? "run")
         case "debugmodes":
             log("modes popup=\(compact.isVisible) window=\(panel.isVisible) floating=\(floating.isVisible) mode=\(WindowMode.current.rawValue) zoom=\(store.boardZoom) frame=\(NSStringFromRect(floating.frame)) popupFrame=\(NSStringFromRect(compact.frame)) windowFrame=\(NSStringFromRect(panel.frame)) screenH=\(NSScreen.screens[0].frame.height) items=\(store.visibleItems.count) names=\(store.visibleItems.map(\.title).suffix(3))")

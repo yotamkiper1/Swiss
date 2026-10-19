@@ -14,6 +14,8 @@ Swiss (formerly Stash) is a tiny macOS menu bar app for collecting project refer
 
 ## Latest tweaks
 
+- **The commercial**: an 80-second film with voice-over, music, sound effects, zooms and transitions, made entirely in code (see `tools/film/`).
+
 - **Welcome tour**: the first time Swiss opens, a small animated window walks through its tools page by page. It moves on by itself; **Stay** holds a page, ‹ and Next step through, Skip closes. Help → Welcome Tour shows it again.
 
 - **Tabs only close.** × (or Close Tab) closes a project's tab — it stays closed until you open the project again; with no tabs left you're on Recent, which is always there. Connected folders' × works the same.

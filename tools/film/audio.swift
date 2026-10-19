@@ -7,7 +7,7 @@ let TOTAL = 80.0
 
 /// Where each scene starts (seconds) — the video uses the same numbers.
 let sceneStarts: [Double] = [0, 5.5, 13.2, 20.0, 26.8, 35.0, 42.2, 50.4, 60.2, 66.2, 70.9]
-let voiceStarts: [Double] = [2.0, 5.9, 13.5, 20.3, 27.1, 35.3, 42.5, 50.7, 60.5, 66.5, 72.0]
+let voiceStarts: [Double] = [2.0, 5.9, 13.5, 20.3, 27.1, 35.3, 42.5, 50.6, 60.5, 66.4, 72.0]
 
 struct Bus {
     var l: [Float]
@@ -56,25 +56,23 @@ func whoosh(_ dur: Double, up: Bool, f0: Double = 250, f1: Double = 5000) -> [Fl
         let high = x - low - 0.35 * band
         band += f * high
         let env = pow(sin(Double.pi * min(1, p * 1.0)), 1.4) * (up ? (0.4 + 0.6 * p) : (1.0 - 0.4 * p))
-        out[i] = Float(band * env * 1.5)
+        out[i] = Float(band * env * 0.55)
     }
     return out
 }
 
 func impact() -> [Float] {
-    let n = Int(2.2 * SR)
+    // A soft bubbly bloom: two quick pops and a light shimmer (no sub-bass boom).
+    let n = Int(1.2 * SR)
     var out = [Float](repeating: 0, count: n)
-    var phase = 0.0, lp = 0.0
+    var p1 = 0.0, p2 = 0.0
     for i in 0..<n {
         let t = Double(i) / SR
-        let f = 38 + 95 * exp(-t * 16)
-        phase += 2 * Double.pi * f / SR
-        let sub = sin(phase) * exp(-t * 2.6)
-        lp += 0.25 * (Double(noise()) - lp)
-        let thump = lp * exp(-t * 14) * 0.9
-        let air = Double(noise()) * exp(-t * 40) * 0.25
-        let shimmer = (sin(2 * Double.pi * 1760 * t) + 0.6 * sin(2 * Double.pi * 2349 * t)) * exp(-t * 3.2) * 0.07
-        out[i] = Float(sub * 0.95 + thump + air + shimmer)
+        p1 += 2 * Double.pi * (300 + 700 * exp(-t * 34)) / SR
+        var v = sin(p1) * exp(-t * 16) * 0.55
+        if t > 0.09 { let u = t - 0.09; p2 += 2 * Double.pi * (480 + 900 * exp(-u * 36)) / SR; v += sin(p2) * exp(-u * 18) * 0.4 }
+        v += (sin(2 * Double.pi * 1568 * t) + 0.5 * sin(2 * Double.pi * 2093 * t)) * exp(-t * 5) * 0.05
+        out[i] = Float(v)
     }
     return out
 }
@@ -84,7 +82,7 @@ func clickSound() -> [Float] {
     var out = [Float](repeating: 0, count: n)
     for i in 0..<n {
         let t = Double(i) / SR
-        var v = sin(2 * Double.pi * 2300 * t) * exp(-t * 520) * 0.7 + Double(noise()) * exp(-t * 700) * 0.35
+        var v = sin(2 * Double.pi * 1900 * t) * exp(-t * 380) * 0.45 + Double(noise()) * exp(-t * 900) * 0.08
         if t > 0.055 { let u = t - 0.055; v += sin(2 * Double.pi * 1500 * u) * exp(-u * 600) * 0.35 }
         out[i] = Float(v)
     }
@@ -92,13 +90,14 @@ func clickSound() -> [Float] {
 }
 
 func pop(_ base: Double = 220) -> [Float] {
-    let n = Int(0.22 * SR)
+    // A bubble pop: a quick blip with a little harmonic sparkle.
+    let n = Int(0.16 * SR)
     var out = [Float](repeating: 0, count: n)
     var phase = 0.0
     for i in 0..<n {
         let t = Double(i) / SR
-        phase += 2 * Double.pi * (base + base * 2.4 * exp(-t * 38)) / SR
-        out[i] = Float(sin(phase) * exp(-t * 22) * 0.9)
+        phase += 2 * Double.pi * (base * 1.6 + base * 3.2 * exp(-t * 55)) / SR
+        out[i] = Float((sin(phase) + 0.25 * sin(phase * 2)) * exp(-t * 30) * 0.7)
     }
     return out
 }
@@ -107,7 +106,7 @@ func tick(_ f: Double = 3200) -> [Float] {
     let n = Int(0.05 * SR)
     return (0..<n).map { i in
         let t = Double(i) / SR
-        return Float(sin(2 * Double.pi * f * t) * exp(-t * 260) * 0.5 + Double(noise()) * exp(-t * 500) * 0.15)
+        return Float(sin(2 * Double.pi * f * t) * exp(-t * 300) * 0.32)
     }
 }
 
@@ -123,7 +122,7 @@ func shutter() -> [Float] {
         if t < 0.03 { v += hp * exp(-t * 130) }
         if t > 0.07 && t < 0.13 { v += hp * exp(-(t - 0.07) * 70) * 0.8 }
         v += sin(2 * Double.pi * 900 * t) * exp(-t * 90) * 0.18
-        out[i] = Float(v * 0.8)
+        out[i] = Float(v * 0.4)
     }
     return out
 }
@@ -137,7 +136,7 @@ func sparkle(notes: Int = 7, base: Double = 0) -> [Float] {
         let start = Int(Double(k) * 0.065 * SR)
         for i in 0..<(n - start) {
             let t = Double(i) / SR
-            let v = (sin(2 * Double.pi * f * t) + 0.35 * sin(2 * Double.pi * f * 2.01 * t)) * exp(-t * 5.5) * 0.18
+            let v = (sin(2 * Double.pi * f * t) + 0.35 * sin(2 * Double.pi * f * 2.01 * t)) * exp(-t * 6.5) * 0.12
             out[start + i] += Float(v)
         }
     }
@@ -167,12 +166,12 @@ func typeTick() -> [Float] {
 }
 
 func thud() -> [Float] {
-    let n = Int(0.4 * SR)
+    let n = Int(0.14 * SR)
     var phase = 0.0
     return (0..<n).map { i in
         let t = Double(i) / SR
-        phase += 2 * Double.pi * (52 + 80 * exp(-t * 30)) / SR
-        return Float(sin(phase) * exp(-t * 11) * 0.9)
+        phase += 2 * Double.pi * (170 + 260 * exp(-t * 45)) / SR
+        return Float(sin(phase) * exp(-t * 28) * 0.6)
     }
 }
 
@@ -356,7 +355,7 @@ func buildAudio(root: String) -> Bus {
     // Voice.
     var voice = Bus(n)
     for (i, start) in voiceStarts.enumerated() {
-        var samples = readWav("\(root)/vo/v\(i + 1).wav")
+        var samples = readWav("\(root)/vo2/v\(i + 1).wav")
         let count = samples.count
         // High-pass and a little warmth.
         var lp: Float = 0
@@ -397,8 +396,8 @@ func buildAudio(root: String) -> Bus {
     at(2.9, sparkle(), 0.5)
     // Scene changes.
     for b in sceneStarts.dropFirst() {
-        sweep(b - 0.38, whoosh(0.78, up: Int(b) % 2 == 0, f0: 300, f1: 6000), 0.5, -0.8, 0.8)
-        at(b - 0.02, thud(), 0.35)
+        sweep(b - 0.34, whoosh(0.62, up: Int(b) % 2 == 0, f0: 500, f1: 4200), 0.4, -0.7, 0.7)
+        at(b - 0.02, thud(), 0.3)
     }
     // 1 — scattered.
     for (k, t) in [6.1, 8.2, 9.4, 10.6].enumerated() { at(t, pop(200 + Double(k) * 40), 0.55, pan: Float(k % 2 == 0 ? -0.3 : 0.3)) }
@@ -479,8 +478,8 @@ func buildAudio(root: String) -> Bus {
         let musicGain: Float = 0.85 * duck[i] * fade
         let v = voiceMono[i] * 1.0 + voiceVerb[i] * 0.22
         let m = tonalVerb[i] * 0.4
-        out.l[i] = v + (tonal.l[i] * 0.85 + drums.l[i] * 0.95 + m) * musicGain + sfx.l[i] * 1.3 + sfxVerb[i] * 0.5
-        out.r[i] = v + (tonal.r[i] * 0.85 + drums.r[i] * 0.95 + m) * musicGain + sfx.r[i] * 1.3 + sfxVerb[i] * 0.5
+        out.l[i] = v + (tonal.l[i] * 0.85 + drums.l[i] * 0.95 + m) * musicGain + sfx.l[i] * 0.95 + sfxVerb[i] * 0.22
+        out.r[i] = v + (tonal.r[i] * 0.85 + drums.r[i] * 0.95 + m) * musicGain + sfx.r[i] * 0.95 + sfxVerb[i] * 0.22
     }
     // Gentle limiter, then normalise to -1 dB.
     var peak: Float = 0

@@ -229,6 +229,10 @@ private struct RecentRow: View {
             RecentTools(item: item, saved: saved)
             Divider()
             Button("Copy Again") { recent.copyAgain(item) }
+            Button("Share…") {
+                let picked = recent.selection.contains(item.id) ? recent.items.filter { recent.selection.contains($0.id) } : [item]
+                Sharing.share(recent: picked)
+            }
             if let url = recent.fileURL(item), item.kind != .image {
                 Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) }
             }

@@ -134,6 +134,8 @@ struct ConnectedFileMenu: View {
             NSPasteboard.general.writeObjects(urls as [NSURL])
             store.flash("Copied")
         }
+        let shareable = urls.filter { url in !folders.contains { $0.url == url } }
+        if !shareable.isEmpty { Button("Share…") { Sharing.share(files: shareable) } }
         Menu("Tags") {
             ForEach(TagColor.allCases) { tag in
                 Button { toggle(tag) } label: {

@@ -111,6 +111,8 @@ struct ImagePreview: View {
                     .help(source.absoluteString)
             }
             Button { store.reveal(item) } label: { Label("Show in Finder", systemImage: "folder") }
+            Button { Sharing.share(targets: [.item(item.id)]) } label: { Label("Share", systemImage: "square.and.arrow.up") }
+                .help("Share — AirDrop, Mail, Messages, WhatsApp…")
             Button { store.open(item) } label: { Label("Open", systemImage: "arrow.up.forward.app") }
                 .buttonStyle(.borderedProminent)
                 .help("Open in your default image app (↩)")

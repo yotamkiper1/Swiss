@@ -832,6 +832,7 @@ struct CardView: View {
         if item.kind == .image { Button("Preview") { AppDelegate.shared.preview(item.id) } }
         if item.kind != .text { Button("Open") { store.open(item) } }
         Button("Copy") { store.copy(item) }
+        Button("Share…") { Sharing.share(item: item) }
         Button("Get Info") { AppDelegate.shared.showInfo(for: [.item(item.id)]) }
         if item.kind != .text { Button("Rename") { store.renamingItemID = item.id } }
         Button(item.kind == .text ? "Edit…" : (item.text == nil ? "Add Note…" : "Edit Note…")) { startEditing() }

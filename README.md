@@ -72,6 +72,8 @@ Moving, renaming and deleting in Swiss does the same to the files. Very large fi
 
 ## Updates
 
+- Share: right-click anything (or use Share in the picture preview) for AirDrop, Mail, Messages and more; WhatsApp is added to the list.
+- The "you copied…" banner now disappears after 15 seconds or when you move to another project or folder.
 - Welcome tour on first launch.
 - Copy/paste of cards and folders inside Swiss, with numbered names.
 - The Frame: ⌘Z undo, a library panel, and a companion window.

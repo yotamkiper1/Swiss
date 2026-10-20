@@ -19,6 +19,7 @@ final class Store: ObservableObject {
     @Published var filter: Filter = .inbox {
         didSet {
             guard oldValue != filter else { return }
+            clipboardHint = nil // moved to another project: the "you copied…" banner is done
             openFolderID = nil
             selection = []
             pendingDelete = nil
@@ -34,11 +35,26 @@ final class Store: ObservableObject {
         didSet {
             guard oldValue != openFolderID else { return }
             selection = []
-            if clipboardHint?.folderID != openFolderID { clipboardHint = nil }
+            clipboardHint = nil // moved between folders (prepareForClipboard sets the banner after it opens its folder)
         }
     }
-    /// The paste banner for something you just copied.
-    @Published var clipboardHint: ClipboardHint?
+    /// The paste banner for something you just copied. It goes away when you close the window, move to another
+    /// project, folder, Recent or All Items, or after 15 seconds.
+    @Published var clipboardHint: ClipboardHint? { didSet { scheduleHintExpiry() } }
+    private var hintExpiry: DispatchWorkItem?
+
+    private func scheduleHintExpiry() {
+        hintExpiry?.cancel()
+        guard let shown = clipboardHint else { return }
+        let work = DispatchWorkItem { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.clipboardHint == shown else { return }
+                withAnimation(.easeOut(duration: 0.2)) { self.clipboardHint = nil }
+            }
+        }
+        hintExpiry = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15, execute: work)
+    }
     /// Clipboard change count Stash has already reacted to (so old copies don't re-trigger).
     var clipboardSeenCount = NSPasteboard.general.changeCount
     /// Selected cards and folders. Kept apart from the store (see SelectionCenter): selecting redraws only the
@@ -63,17 +79,17 @@ final class Store: ObservableObject {
     @Published var showingRecent = false {
         didSet {
             if showingRecent && !oldValue { keepPlace = currentPlace }
-            if showingRecent { connectedView = nil }
+            if showingRecent { connectedView = nil; clipboardHint = nil }
         }
     }
     /// A connected folder (a real folder elsewhere on the Mac) is on screen instead of a board.
-    @Published var connectedView: ConnectedLocation?
+    @Published var connectedView: ConnectedLocation? { didSet { if connectedView != nil { clipboardHint = nil } } }
     /// Where the sidebar's Connected heading is (drop a folder there to connect it).
     var connectDropFrame: CGRect?
     @Published var connectDropTargeted = false
     /// The big window's sidebar can show everything at once: All Items, or everything with one colour tag.
     @Published var libraryView: LibraryView? {
-        didSet { if libraryView != nil { connectedView = nil } }
+        didSet { if libraryView != nil { connectedView = nil; clipboardHint = nil } }
     }
     /// Where Keep puts things: the project/folder you were in before opening Recent.
     var keepPlace = Place()

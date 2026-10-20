@@ -143,6 +143,25 @@ extension AppDelegate {
             // Opens the named project the way the list / tabs do, then reports where we are.
             if let p = store.projects.first(where: { $0.name == url.query?.removingPercentEncoding }) { store.openProject(p.id) }
             log("openproject: recent=\(store.showingRecent) tabClosed=\(store.projects.filter { $0.tabClosed == true }.map(\.name)) filter=\(store.name(for: { if case .project(let id) = store.filter { id } else { nil } }()))")
+        case "debugshare":
+            // ?file|link|text|image|recent: what would be shared, and which share services this Mac offers for it.
+            let kind = url.query ?? "file"
+            var shareable = Shareable()
+            if kind == "recent" {
+                shareable = Sharing.shareable(recent: Array(RecentStore.shared.items.prefix(3)))
+            } else {
+                let k: ItemKind = ["link": .link, "text": .text, "image": .image][kind] ?? .file
+                if let it = store.items.first(where: { $0.kind == k }) { shareable = Sharing.shareable(items: [it]) }
+            }
+            let names = NSSharingService.sharingServices(forItems: shareable.objects).map(\.title)
+            let what = shareable.objects.map { o -> String in (o as? NSURL).map { $0.lastPathComponent ?? "url" } ?? (o is NSString ? "text" : "other") }
+            log("share \(kind): \(what) textFile=\(shareable.textFile?.lastPathComponent ?? "-") services=\(names)")
+        case "debugshareshow":
+            // Opens the real share sheet for the first thing of that kind (to look at it).
+            let k: ItemKind = ["link": .link, "text": .text, "image": .image][url.query ?? "file"] ?? .file
+            if let it = store.items.first(where: { $0.kind == k }) { Sharing.share(item: it) }
+        case "debugclipprepare": store.prepareForClipboard(); log("clip hint=\(store.clipboardHint != nil)")
+        case "debugcliphint": log("clip hint=\(store.clipboardHint != nil) project=\(store.name(for: { if case .project(let id) = store.filter { id } else { nil } }()))")
         case "debugrenamesel":
             // Starts renaming the one selected thing (like pressing Return).
             switch store.selection.first {

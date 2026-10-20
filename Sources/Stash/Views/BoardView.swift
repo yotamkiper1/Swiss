@@ -270,6 +270,7 @@ struct SelectionMenu: View {
             ProjectChoices(current: store.filter == .inbox ? nil : project) { store.moveToProject(targets, project: $0) }
         }
         Button("Rename \(store.describe(targets))…") { store.pendingBatchRename = targets }
+        Button("Share \(store.describe(targets))…") { Sharing.share(targets: targets) }
         Button("Get Info") { AppDelegate.shared.showInfo(for: targets) }
         TagMenu(targets: targets)
         PutInFolderMenu(targets: targets)

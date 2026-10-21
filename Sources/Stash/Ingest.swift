@@ -193,7 +193,8 @@ extension Store {
             guard let metadata else { return }
             let title = metadata.title
             Task { @MainActor in
-                Store.shared.update(id) { if let title, !title.isEmpty { $0.title = title } }
+                // At most 300 characters: a page can't fill the card with an endless title.
+                Store.shared.update(id) { if let title, !title.isEmpty { $0.title = String(title.prefix(300)) } }
             }
             metadata.imageProvider?.loadObject(ofClass: NSImage.self) { object, _ in
                 guard let cg = (object as? NSImage)?.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }

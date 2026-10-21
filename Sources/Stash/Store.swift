@@ -200,13 +200,17 @@ final class Store: ObservableObject {
 
     private init() {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        // STASH_LIBRARY points a test run at a separate folder.
-        rootDir = ProcessInfo.processInfo.environment["STASH_LIBRARY"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+        // STASH_LIBRARY points a test run at a separate folder (Swiss Test only).
+        rootDir = (TestMode.isOn ? ProcessInfo.processInfo.environment["STASH_LIBRARY"] : nil).map { URL(fileURLWithPath: $0, isDirectory: true) }
             ?? (TestMode.isOn ? TestMode.defaultLibrary : documents.appendingPathComponent(".Stash", isDirectory: true))
         dataDir = rootDir.appendingPathComponent(".stash", isDirectory: true)
         Store.libraryRootPath = rootDir.path + "/"
         imagesDir = dataDir.appendingPathComponent("previews", isDirectory: true)
         try? FileManager.default.createDirectory(at: imagesDir, withIntermediateDirectories: true)
+        // Only you can open Swiss's folders (not other accounts on this Mac).
+        for dir in [rootDir, dataDir, TestMode.supportDir] {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: dir.path)
+        }
         Store.migrateOldLibrary(into: dataDir, thumbs: imagesDir)
         // Copies handed out last time (drags, Quick Look, link notes) aren't needed any more.
         Store.removeTemporaryFiles()

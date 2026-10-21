@@ -7,7 +7,7 @@ struct CaptureSettingsView: View {
     @AppStorage(CaptureSettings.clipboardKey) private var clipboardOn = false
     @AppStorage(CaptureSettings.screenshotsKey) private var screenshotsOn = false
     @AppStorage(CaptureSettings.downloadsKey) private var downloadsOn = false
-    @AppStorage(CaptureSettings.retentionKey) private var retention = 3
+    @AppStorage(CaptureSettings.retentionKey) private var retention = 72
     @AppStorage(CaptureSettings.maxMBKey) private var maxMB = 500
     @State private var folderPath = CaptureSettings.screenshotFolder.path
     @State private var excluded = CaptureSettings.excluded
@@ -38,11 +38,7 @@ struct CaptureSettingsView: View {
             Toggle("Pause capture", isOn: Binding(get: { recent.paused }, set: { recent.setPaused($0) }))
                 .disabled(!clipboardOn && !screenshotsOn && !downloadsOn)
             Picker("Keep things in Recent for", selection: $retention) {
-                Text("1 day").tag(1)
-                Text("3 days").tag(3)
-                Text("A week").tag(7)
-                Text("30 days").tag(30)
-                Text("Until I clear it").tag(0)
+                ForEach(CaptureSettings.retentionChoices, id: \.hours) { Text($0.label).tag($0.hours) }
             }
             .onChange(of: retention) { recent.prune() }
             Picker("Recent can use up to", selection: $maxMB) {

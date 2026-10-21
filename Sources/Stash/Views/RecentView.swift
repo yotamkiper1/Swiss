@@ -9,7 +9,7 @@ struct RecentView: View {
     @AppStorage(CaptureSettings.clipboardKey) private var clipboardOn = false
     @AppStorage(CaptureSettings.screenshotsKey) private var screenshotsOn = false
     @AppStorage(CaptureSettings.downloadsKey) private var downloadsOn = false
-    @AppStorage(CaptureSettings.retentionKey) private var retention = 7
+    @AppStorage(CaptureSettings.retentionKey) private var retention = 72
     let compact: Bool
 
     var body: some View {
@@ -50,11 +50,13 @@ struct RecentView: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            Text("Recent").font(.system(size: 12, weight: .semibold))
-            Text("\(recent.items.count)").font(.system(size: 11)).foregroundStyle(.tertiary).monospacedDigit()
-            Text(retention == 0 ? "kept until you clear" : "kept \(retention) day\(retention == 1 ? "" : "s")")
-                .font(.system(size: 10.5)).foregroundStyle(.tertiary)
-            Spacer()
+            Text("Recent").font(.system(size: 12, weight: .semibold)).lineLimit(1).fixedSize()
+                .help(keptFor) // in the small pop-up this is the only place it's said
+            Text("\(recent.items.count)").font(.system(size: 11)).foregroundStyle(.tertiary).monospacedDigit().lineLimit(1).fixedSize()
+            if !compact {
+                Text(keptFor).font(.system(size: 10.5)).foregroundStyle(.tertiary).lineLimit(1).fixedSize()
+            }
+            Spacer(minLength: 4)
             // What's being captured, always in sight: flip either one right here.
             captureChip("Copies", symbol: "doc.on.clipboard", on: $clipboardOn)
             captureChip("Screenshots", symbol: "camera.viewfinder", on: $screenshotsOn)
@@ -73,11 +75,17 @@ struct RecentView: View {
             }
             if !recent.items.isEmpty {
                 Button("Clear") { recent.clear() }
-                    .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(.secondary)
+                    .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1).fixedSize()
                     .help("Remove everything from Recent (things you kept stay in their projects)")
             }
         }
         .padding(.horizontal, 14).padding(.top, 8).padding(.bottom, 2)
+    }
+
+    /// "kept 3 days", "kept 1 hour", "kept until you clear".
+    private var keptFor: String {
+        let short = CaptureSettings.retentionChoices.first { $0.hours == retention }?.short ?? "\(retention) hours"
+        return retention == 0 ? "kept until you clear" : "kept " + short
     }
 
     /// A small on/off switch for one kind of capture. The pop-up shows just the icon (the tooltip names it).
@@ -129,16 +137,27 @@ struct KeepButton: View {
     var prominent = false
 
     var body: some View {
+        // Sure where it goes (one project): it says so. Several projects: "Keep…" asks which.
+        let sure = RecentStore.shared.sureKeepPlace
+        let title = RecentStore.shared.keepTitle
         HStack(spacing: 0) {
-            Button { RecentStore.shared.keep(ids, in: store.keepPlace) } label: {
-                Label("Keep", systemImage: "tray.and.arrow.down")
+            Button { RecentStore.shared.keepOrAsk(ids) } label: {
+                Label(title, systemImage: "tray.and.arrow.down")
                     .font(.system(size: 11, weight: .semibold))
+                    .lineLimit(1).fixedSize()
                     .padding(.horizontal, 8).frame(height: 24)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("Keep in \(store.describe(store.keepPlace)) (⌘K)")
-            .accessibilityLabel("Keep in \(store.describe(store.keepPlace))")
+            .help(sure == nil ? "Keep in a project — choose which (⌘K)" : "\(title) (⌘K)")
+            .accessibilityLabel(sure == nil ? "Keep, choose a project" : title)
+            if sure == nil { chooser }
+        }
+        .foregroundStyle(prominent ? Color.white : Color.accentColor)
+        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(prominent ? Color.accentColor : Color.accentColor.opacity(0.12)))
+    }
+
+    private var chooser: some View {
             Button {
                 PopMenu.show(store.projects.map { project in
                         MenuEntry(title: project.name, symbol: "folder") { RecentStore.shared.keep(ids, in: Place(project: project.id)) }
@@ -148,11 +167,8 @@ struct KeepButton: View {
                     .frame(width: 18, height: 24).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("Keep in another project")
-            .accessibilityLabel("Keep in another project")
-        }
-        .foregroundStyle(prominent ? Color.white : Color.accentColor)
-        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(prominent ? Color.accentColor : Color.accentColor.opacity(0.12)))
+            .help("Choose the project")
+            .accessibilityLabel("Choose the project to keep in")
     }
 }
 
@@ -226,7 +242,15 @@ private struct RecentRow: View {
             if saved != nil {
                 Button("Show in Project") { reveal() }
             } else {
-                Button("Keep in \(store.describe(store.keepPlace))") { recent.keep([item.id], in: store.keepPlace) }
+                if let sure = recent.sureKeepPlace {
+                    Button(recent.keepTitle) { recent.keep([item.id], in: sure) }
+                } else {
+                    Menu("Keep in") {
+                        ForEach(store.projects) { project in
+                            Button(project.name) { recent.keep([item.id], in: Place(project: project.id)) }
+                        }
+                    }
+                }
             }
             RecentTools(item: item, saved: saved)
             Divider()
@@ -339,9 +363,10 @@ private struct RecentTools: View {
             Button("Download as MP4") { store.download(saved.id, as: .mp4) }
         } else if saved == nil, item.kind == .link, let link = item.text.flatMap(URL.init(string:)), Converter.isMediaLink(link) {
             ForEach([ConvertTarget.mp3, .mp4]) { target in
-                Button("Keep & Download as \(target.rawValue.uppercased())") {
-                    RecentStore.shared.keep([item.id], in: store.keepPlace)
-                    if let id = RecentStore.shared.items.first(where: { $0.id == item.id })?.itemID { store.download(id, as: target) }
+                Button("Keep & Download as \(target.rawValue.uppercased())\(RecentStore.shared.sureKeepPlace == nil ? "…" : "")") {
+                    RecentStore.shared.keepOrAsk([item.id]) {
+                        if let id = RecentStore.shared.items.first(where: { $0.id == item.id })?.itemID { store.download(id, as: target) }
+                    }
                 }
             }
         } else if let file, !Converter.targets(for: file).isEmpty {

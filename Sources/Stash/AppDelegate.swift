@@ -62,7 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.shared = self
-        if ProcessInfo.processInfo.environment["STASH_COUNTERS"] != nil { Perf.startCounterLog() }
+        if TestMode.isOn, ProcessInfo.processInfo.environment["STASH_COUNTERS"] != nil { Perf.startCounterLog() }
         OrganizerSettings.register()
         AppLock.start() // Settings ▸ Privacy ▸ Require Touch ID
         MainMenu.shared.install() // Swiss's tools in the Mac menu bar
@@ -117,8 +117,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 if !text.isEmpty { RecentStore.shared.addExplicit(text: text, source: "Browser") }
             case "add":
                 if !text.isEmpty { store.addText(text, place: store.currentPlace) }
+            #if SWISS_TEST
             case let host? where host.hasPrefix("debug") && TestMode.isOn:
-                handleDebug(url, compact: compact, panel: panel) // test hooks exist only in Stash Test
+                handleDebug(url, compact: compact, panel: panel) // test hooks exist only in Swiss Test
+            #endif
             default:
                 if !panel.isVisible { showCompact() }
             }

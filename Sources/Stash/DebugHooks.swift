@@ -2,6 +2,8 @@ import AppKit
 import Quartz
 import Carbon.HIToolbox
 
+#if SWISS_TEST // Swiss Test only (./build.sh test): not in the real app at all
+
 /// Test hooks (stashtest://debug…). They only run inside "Stash Test" (see TestMode); the real Stash ignores them.
 extension AppDelegate {
     func handleDebug(_ url: URL, compact: NSWindow, panel: NSWindow) {
@@ -302,6 +304,12 @@ extension AppDelegate {
         case "debuglockstate": log("lock enabled=\(AppLock.enabled) unlocked=\(AppLock.isUnlocked) windows=\(NSApp.windows.filter { $0.isVisible && !$0.className.contains("StatusBar") }.map { "\($0.className):\($0.title)" })")
         case "debuglocknow": AppLock.lock()
         case "debugfeedback": Feedback.sendFeedback()
+        case "debugagerecent": // stashtest://debugagerecent?2 → the newest Recent entry was last seen 2 hours ago
+            RecentStore.shared.age(hours: Double(url.query ?? "1") ?? 1)
+            log("retention=\(UserDefaults.standard.integer(forKey: CaptureSettings.retentionKey)) recent=\(RecentStore.shared.items.count)")
+        case "debugrecentselect": RecentStore.shared.selection = Set(RecentStore.shared.items.prefix(Int(url.query ?? "1") ?? 1).map(\.id))
+        case "debugkeeptitle":
+            log("keep sure=\(RecentStore.shared.sureKeepPlace.map { store.describe($0) } ?? "ask") projects=\(store.projects.count)")
         case "debugrecent": store.showingRecent = url.path != "/off"
         case "debugcapture":
             UserDefaults.standard.set(url.path.contains("clip"), forKey: CaptureSettings.clipboardKey)
@@ -672,3 +680,4 @@ final class TestDrop: NSObject, NSDraggingInfo {
     var springLoadingHighlight: NSSpringLoadingHighlight { .none }
     func resetSpringLoading() {}
 }
+#endif

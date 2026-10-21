@@ -1,5 +1,7 @@
 import AppKit
 
+#if SWISS_TEST // Swiss Test only (./build.sh test): not in the real app at all
+
 // MARK: - Stash Test only: a 10,000-item library and timings on it
 
 extension AppDelegate {
@@ -133,3 +135,4 @@ extension AppDelegate {
         next()
     }
 }
+#endif

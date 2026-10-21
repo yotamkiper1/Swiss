@@ -380,7 +380,7 @@ final class CanvasStore: ObservableObject {
         provider.startFetchingMetadata(for: url) { metadata, _ in
             _ = provider
             guard let title = metadata?.title, !title.isEmpty else { return }
-            Task { @MainActor in CanvasStore.shared.update(id) { $0.text = title } }
+            Task { @MainActor in CanvasStore.shared.update(id) { $0.text = String(title.prefix(300)) } }
         }
     }
 

@@ -70,6 +70,7 @@ Moving, renaming and deleting in Swiss does the same to the files. Very large fi
 - **Settings → Privacy → Require Touch ID** locks Swiss's windows behind Touch ID or your Mac password (macOS's own prompt). It locks again when the Mac locks or sleeps.
 - Files are checked before they run (code-like files ask first), downloads are quarantined like Safari's, and the downloader runs without user config and only for web links. `swiss://` links from web pages are limited (5 per 10 s, text only, invisible characters removed) and never take a password from the clipboard.
 - Saves are written in the background, checked, and swapped in atomically; the last good copy and hourly backups are kept.
+- The full checklist and its status: [docs/SECURITY.md](docs/SECURITY.md).
 - **Help → Report a Problem / Send Feedback** opens an email to the developer that you read and send yourself. Diagnostics are optional and hold versions, switches and counts, never library contents or file names.
 
 ## Updates

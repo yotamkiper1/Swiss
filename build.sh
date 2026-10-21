@@ -8,8 +8,11 @@ cd "$(dirname "$0")"
 WORK="$HOME/Library/Caches/SwissBuild"
 mkdir -p "$WORK/src"
 rsync -a --delete --exclude .build --exclude build --exclude .git --exclude docs --exclude tools --exclude Unused ./ "$WORK/src/"
-(cd "$WORK/src" && swift build -c release --build-path "$WORK/.build")
-BIN="$(cd "$WORK/src" && swift build -c release --build-path "$WORK/.build" --show-bin-path)/Stash"
+# The test hooks (stashtest://debug…, DebugHooks.swift) are compiled into Swiss Test only: the real Swiss doesn't contain them.
+BUILD=(-c release --build-path "$WORK/.build")
+[[ "${1:-}" == "test" ]] && BUILD=(-c release --build-path "$WORK/.build-test" -Xswiftc -DSWISS_TEST)
+(cd "$WORK/src" && swift build "${BUILD[@]}")
+BIN="$(cd "$WORK/src" && swift build "${BUILD[@]}" --show-bin-path)/Stash"
 
 # `./build.sh test` makes "Swiss Test.app": its own bundle id (own settings), own library, stashtest:// and no
 # global shortcuts — for testing without touching the real Swiss.

@@ -253,7 +253,7 @@ final class StashPanel: NSPanel {
         let ids = recent.items.map(\.id)
         let current = recent.cursor.flatMap { c in ids.firstIndex(of: c) } ?? recent.items.firstIndex { recent.selection.contains($0.id) }
         if Shortcut.keep.combo?.matches(event) == true { // ⌘K, or what you set in Settings → Shortcuts
-            recent.keep(recent.selection, in: Store.shared.keepPlace)
+            recent.keepOrAsk(recent.selection)
             return true
         }
         switch Int(event.keyCode) {
@@ -268,7 +268,7 @@ final class StashPanel: NSPanel {
             RecentQuickLook.show(recent.items.filter { recent.selection.contains($0.id) })
             return true
         case kVK_Return, kVK_ANSI_KeypadEnter:
-            recent.keep(recent.selection, in: Store.shared.keepPlace)
+            recent.keepOrAsk(recent.selection)
             return true
         case kVK_Delete, kVK_ForwardDelete:
             recent.remove(recent.selection)

@@ -63,7 +63,8 @@ enum CaptureSettings {
     static let screenshotFolderKey = "capture.screenshotFolder"
     static let downloadsKey = "capture.downloads"
     static let pausedKey = "capture.paused"
-    static let retentionKey = "recent.retentionDays" // 1, 3 (the default), 7, 30, or 0 = until you clear it
+    static let retentionKey = "recent.retentionHours" // 1, 3, 24, 72 (the default), 168, 720, or 0 = until you clear it
+    private static let oldRetentionDaysKey = "recent.retentionDays"
     static let maxMBKey = "recent.maxMB"
     static let excludedKey = "capture.excludedApps"
 
@@ -74,9 +75,20 @@ enum CaptureSettings {
                                   "in.sinew.Enpass-Desktop", "me.proton.pass.electron", "com.nordpass.macos.NordPass"]
 
     static func register() {
+        // Once, before the defaults below count as set: the old setting in days becomes hours (0, "until you clear it", stays 0).
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: retentionKey) == nil, defaults.object(forKey: oldRetentionDaysKey) != nil {
+            defaults.set(defaults.integer(forKey: oldRetentionDaysKey) * 24, forKey: retentionKey)
+        }
         UserDefaults.standard.register(defaults: [clipboardKey: false, screenshotsKey: false, downloadsKey: false, pausedKey: false,
-                                                  retentionKey: 3, maxMBKey: 500, excludedKey: defaultExcluded])
+                                                  retentionKey: 72, maxMBKey: 500, excludedKey: defaultExcluded])
     }
+
+    /// The choices for "Keep things in Recent for", in hours (0 = until you clear it).
+    static let retentionChoices: [(hours: Int, label: String, short: String)] = [
+        (1, "1 hour", "1 hour"), (3, "3 hours", "3 hours"), (24, "1 day", "1 day"), (72, "3 days", "3 days"),
+        (168, "A week", "a week"), (720, "A month", "a month"), (0, "Never (until I clear it)", "until you clear it"),
+    ]
 
     static var clipboardOn: Bool { UserDefaults.standard.bool(forKey: clipboardKey) }
     static var screenshotsOn: Bool { UserDefaults.standard.bool(forKey: screenshotsKey) }
@@ -161,7 +173,7 @@ final class RecentStore: ObservableObject {
         screenshotTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
             MainActor.assumeIsolated { RecentStore.shared.checkScreenshots(); RecentStore.shared.checkDownloads() }
         }
-        Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { _ in
+        Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in // every 5 minutes: "1 hour" means about an hour
             MainActor.assumeIsolated { RecentStore.shared.prune() }
         }
     }
@@ -402,9 +414,9 @@ final class RecentStore: ObservableObject {
     /// Removes what's past its time, then the oldest until Recent fits its size limit.
     func prune() {
         dropMissingReferences()
-        let days = UserDefaults.standard.integer(forKey: CaptureSettings.retentionKey)
-        if days > 0 {
-            let cutoff = Date().addingTimeInterval(-Double(days) * 86_400)
+        let hours = UserDefaults.standard.integer(forKey: CaptureSettings.retentionKey)
+        if hours > 0 {
+            let cutoff = Date().addingTimeInterval(-Double(hours) * 3600)
             for old in items where old.lastSeen < cutoff { drop(files: old) }
             items.removeAll { $0.lastSeen < cutoff }
         }
@@ -474,6 +486,47 @@ final class RecentStore: ObservableObject {
 
     /// Makes them permanent in `place`: notes and links as themselves; pictures, files and screenshots are copied
     /// into the project (only now). The Recent entry stays, marked "Kept in …", until it expires.
+    #if SWISS_TEST
+    /// Test runs: the newest entry was last seen `hours` ago, then the usual clean-up runs.
+    func age(hours: Double) {
+        guard !items.isEmpty else { return }
+        items[0].lastSeen = Date().addingTimeInterval(-hours * 3600)
+        prune()
+    }
+    #endif
+
+    /// Where Keep goes without asking: the only project there is (or the inbox when there are none).
+    /// With several projects Swiss doesn't guess — Keep asks which one.
+    var sureKeepPlace: Place? {
+        let projects = Store.shared.projects
+        if projects.isEmpty { return Place() }
+        return projects.count == 1 ? Place(project: projects[0].id) : nil
+    }
+
+    /// "Keep in Poster Series" when it's sure, "Keep…" when it will ask, "Keep" when there are no projects yet.
+    var keepTitle: String {
+        guard let place = sureKeepPlace else { return "Keep…" }
+        let name = Store.shared.describe(place)
+        return place.project == nil ? "Keep" : "Keep in \(name.count > 22 ? name.prefix(21) + "…" : name)" // fits the pop-up
+    }
+
+    /// Keep (button, ⌘K, Return, right-click): straight in when there's one project, otherwise a list of projects
+    /// to pick from first. `then` runs after keeping.
+    func keepOrAsk(_ ids: Set<UUID>, then: (() -> Void)? = nil) {
+        guard !ids.isEmpty else { return }
+        if let place = sureKeepPlace {
+            keep(ids, in: place)
+            then?()
+            return
+        }
+        PopMenu.show(Store.shared.projects.map { project in
+            MenuEntry(title: "Keep in \(project.name)", symbol: "folder") {
+                RecentStore.shared.keep(ids, in: Place(project: project.id))
+                then?()
+            }
+        })
+    }
+
     func keep(_ ids: Set<UUID>, in place: Place) {
         let store = Store.shared
         // Already in a project (it *is* a project item): nothing to keep.

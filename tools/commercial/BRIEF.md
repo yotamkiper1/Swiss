@@ -1,4 +1,4 @@
-# Swiss: silent product film (40 s) — production brief
+# Swiss: silent product film (34 s, v2) — production brief
 
 Everything here was checked against the source on `main` (commit `9785414`). File references are to `Sources/Stash/`.
 
@@ -18,53 +18,55 @@ Everything here was checked against the source on `main` (commit `9785414`). Fil
 | 5c | The app’s own organization system | Projects (tabs) → folders (Classic, Linker, PhotoBook, Notepad, Files) → items (link, image, text, file), plus notes, colour tags and #tags. Folder icon = Finder-blue folder with a coloured kind dot. | — | `Models.swift:3–60, 266`; `Views/FolderViews.swift:5–88` |
 | 5d | “Priority folders” | **No feature with that name.** The closest real features: the **first nine folders on a board are numbered**; pressing **1–9** opens that folder and **⌥1–⌥9** puts the selection into it. And **pinned projects** (Pin Tab) always keep a tab and sort first. The film shows numbered folders but does not call them “priority folders”. | Automatic numbering; pinning is an action. | `Views/BoardGrid.swift:126`; `Views/FolderViews.swift:135–160`; `Panel.swift:321–355`; `Views/Sidebar.swift:15–17`; `Views/AllProjects.swift:23, 156–165` |
 
-Not advertised in the film: Convert, YouTube MP3/MP4 download, Share, Deep Organize. They exist but would crowd 40 seconds.
+Not advertised in the film: Convert, YouTube MP3/MP4 download, Share, Deep Organize. They exist but would crowd 34 seconds.
 
-## 2. Final on-screen copy
+## 2. Final on-screen copy (v2)
 
-Captions (Inter Semibold, near-black on the light stage; one line each):
+Each beat has a red eyebrow, one headline and at most a few chips (the reference film's style). Inter, near-black on the light stage.
 
-1. **Project material ends up everywhere.**
-2. **Copy it. Swiss keeps it in Recent.**
-   small: *Capture is opt-in · Settings → Capture*
-3. **Keep what matters in a project.**
-4. **One click sorts the board by kind.**
-5. **The Frame stays on top while you work.**
-6. **Connect a Finder folder. Edit the real files.**
-7. **Everything for the project, in one place.**
-8. End card: Swiss icon, wordmark **Swiss**, line **A pocket knife for your ideas.**, small: *For Mac · macOS 14 or later*
+| Eyebrow | Headline | Chips |
+|---|---|---|
+| — | Your project lives in **browser tabs. / Downloads. / screenshots.** (the red word cycles) | — |
+| 01 · Recent | Copy it once. It lands in Recent. | + Link captured · + Screenshot captured · *Opt-in · Settings → Capture* |
+| 02 · Keep | Keep what matters in a project. | + Moved into Mammoth · *Recent clears after 3 days* |
+| 03 · The wand | One click sorts the board by kind. | + Pictures → PhotoBook · + Links → Linker · + Notes → Notepad · + Files & docs → Files |
+| 04 · The Frame | A canvas that stays on top. | + Drag in from your library · + Videos play in place |
+| 05 · Connected folders | Work right inside any Finder folder. | + Rename, move, tag · + Finder follows along |
+| 06 · On your Mac | Everything in one place. | + No account · + No cloud (README: “no account, no cloud”) |
+| End card | Swiss icon, **Swiss**, *A pocket knife for your ideas.*, *For Mac · macOS 14 or later* | — |
 
-In-UI text is taken from the app’s own strings: “Recent”, “Keep”, “Kept in Poster Series”, “Organized 8 items into 4 new folders”, “Linker / PhotoBook / Notepad / Files”, “Connected”, “Search Poster Series”, “Photos, videos, links (YouTube plays here), text, files.”
+In-UI text uses the app's own strings: “Recent”, “kept 3 days”, “Copies”, “Screenshots”, “Keep”, “Kept in Mammoth”, “Organized 9 items into 4 new folders” (`Store.swift:1021`), “Linker / PhotoBook / Notepad / Files”, “Connected”.
 
-## 3. Timed storyboard (30 fps, 40.0 s = 1200 frames)
+## 3. Timed storyboard (30 fps, 34.0 s = 1020 frames)
 
-| Time | Scene | Footage | Action | Caption | Transition |
-|---|---|---|---|---|---|
-| 0.0–4.6 | Problem | Mac desktop (neutral wallpaper): a browser with a reference page, Finder-style Desktop icons “poster_final_v2.png”, “Screenshot 09.14.png”, “brief (1).pdf”, “final final 2.psd”, two sticky notes | Very slow push-in (100→103 %) | 1 | Fade from white 0.6 s |
-| 4.6–9.6 | Capture | Browser left, Swiss big window right showing **Recent** | Cursor clicks address bar, ⌘C key hint; a link row slides into Recent (“Link · Safari · now”); a moment later ⇧⌘4 hint and a Screenshot row appears | 2 + small note | Dip through the desktop (0.35 s out, 0.35 s in) |
-| 9.6–13.6 | Keep | Same window, close-up 115 % on Recent | Cursor selects the screenshot row, clicks **Keep**; label becomes “✓ Kept in Poster Series”; flash bubble | 3 | Gentle scale |
-| 13.6–21.0 | Wand | Big window, project tab **Poster Series** (pinned), an existing plain folder “Print shop” (number 1) and 8 loose cards (3 pictures, 1 link, 1 Google Docs link, 2 notes, 1 PDF) | Cursor to the wand, click. No kind folders exist yet, so there is no prompt; new **PhotoBook, Linker, Notepad, Files** folders appear (numbers 2–5) and the cards glide into them, the Google Doc into Files; “Print shop” is untouched; flash “Organized 8 items into 4 new folders” | 4 | Dip through the desktop |
-| 21.0–28.6 | Frame | A design app window fills the screen; the Frame floats on top, library (Recent) on the left | Cursor drags a picture from the library onto the canvas; a YouTube link card plays with a progress bar; cursor clicks back into the design app — the Frame stays in front | 5 | Dip through the desktop |
-| 28.6–34.6 | Connected folder | Big window: sidebar **Connected › Client Files**; a Finder window beside it showing the same folder | Cursor renames “brief (1).pdf” → “Brief.pdf” in Swiss; the Finder window updates the same name | 6 | Dip through the desktop |
-| 34.6–37.4 | Organized | Big window with sidebar: Poster Series (pinned) selected, folders Print shop 1, PhotoBook 2, Linker 3, Notepad 4, Files 5 with counts, a few cards | Slow pull-back 104→100 % | 7 | Dip through the desktop |
-| 37.2–40.0 | End | Off-white card (the icon's own background), Swiss icon, wordmark, line, small platform line | Icon, wordmark, line and platform line fade in one after another, 4 % settle, no bounce | 8 | Fade to end card 0.7 s |
+| Time | Beat | What happens | Techniques |
+|---|---|---|---|
+| 0.0–3.6 | Problem | Desktop: Chrome on the real Wikipedia *Woolly mammoth* page (tabs: that page and “Exhibition text – Google Docs”), Finder **Downloads** with real names (the project folder, menu-auditorium.jpg, enjoy_the_show!_v1 (1080p).mp4, Stash-Design-and-Features.pdf), two screenshots on the desktop | Word-cycling headline; a red ring moves Chrome → Downloads → screenshots in step with the word |
+| 3.6–9.8 | Recent → Keep | Click the address bar, ⌘C: a link row arrives in Recent (“en.wikipedia.org · Chrome · now”). ⇧⌘4 over the skeleton photo: a screenshot row arrives with that crop as its thumbnail. Zoom 120 % on Recent, select it, **Keep** → “Kept in Mammoth” | Key hints, red ring on each new row, chips as each thing lands |
+| 9.8–15.8 | Wand | Project **Mammoth** (pinned tab) with the plain folder “Print shop” and 9 loose cards: five of the user's pictures, the Wikipedia link, the Google Doc, the video file, a note. Wand click: PhotoBook, Linker, Notepad, Files appear; cards fly in (video and doc → Files); flash; zoom on the folders | Ring on the wand, then on the new folders; four mapping chips |
+| 15.8–22.2 | Frame | Chrome fills the screen; the Frame floats over it with the Mammoth library. Drag picture #3 onto the canvas; play the local video with the Mac's own controls (real frames of enjoy_the_show, 10 fps); click back into Chrome: Chrome becomes active, the Frame stays in front | Push-in on the Frame, ring on the Frame at the end |
+| 22.2–27.4 | Connected folder | Finder list of the real folder (its 10 real image files) beside Swiss › Connected with real thumbnails #1–#6. Rename #3 to “Mammoth #3 – print.jpg” in Swiss; Finder updates the row and date | ↩ hints, ring on the Finder row |
+| 27.4–30.6 | Organized | Mammoth board: Print shop 6, PhotoBook 5, Linker 1, Notepad 1, Files 2, a few cards | Slow pull-back 108 → 100 % |
+| 30.15–31.0 | Wipe | A red diagonal wipe crosses the stage | From the reference film |
+| 30.6–34.0 | End card | Icon, wordmark, line, platform line arrive one after another | Ease-out, no bounce |
 
-Easing: cubic in-out for camera and cursor, ease-out for things arriving. No scale above 115 %, no shake, no flash frames, no particles.
+Scenes dip through the shared wallpaper (0.3 s). Cubic in-out for camera and cursor, ease-out for arrivals; no zoom above 120 %.
 
-## 4. Assets and recording needs
+## 4. Assets
 
-- **Used from the repo:** `Resources/AppIcon-source.png` (logo), the app’s colours (`Views/FolderViews.swift` kind colours, Finder-blue folders, accent blue), layout and strings from the source, `docs/images/*.png` as reference.
-- **Rebuilt in HTML (faithful demonstration, not a screen recording):** the window, sidebar, tabs, Recent list, cards, folders, the Frame, a Finder window and a browser. The container is Linux, so the macOS app cannot run or be recorded here.
-- **Font:** macOS uses SF Pro; the render uses **Inter** (closest open font installed here). On a Mac, swap in SF Pro for pixel-exact type.
-- **Icons:** SF Symbols are Apple-only; simplified SVG equivalents are drawn inline.
-- **Demo pictures:** generated gradients/posters in code (no stock).
-- **YouTube:** shown as a generic player frame labelled youtube.com; no third-party video content or logo.
-- **For a version with real captures:** on a Mac run `./build.sh test` and use the existing `stashtest://debug…` hooks (`DebugHooks.swift`, `tools/film/`) to stage each screen, then record 1920×1080 at 2× with the cursor visible. Needed shots: Recent receiving a link and a screenshot, Keep; the wand on a messy board; the Frame over another app with YouTube playing; a connected folder rename with Finder beside it. The HTML timing can be kept as the edit.
+- **The user's own material** (`tools/commercial/assets/`, from the connected Mac; **kept out of git**, since the repo is public — it's in the project files, and `assets/names.js` holds the real file names): pictures #1–#6 and #9 of the mammoth series (downscaled to 1200 px), menu-auditorium.jpg, 150 frames of enjoy_the_show!_v1 (1080p).mp4 (480×240, from 96 s), and real file and folder names from Downloads and the project folder.
+- **Chrome:** a real headless-Chromium capture of en.wikipedia.org/wiki/Woolly_mammoth (`wiki.jpg`) and a crop of its skeleton photo (`wiki-skeleton.jpg`), shown inside a Chrome-style window. The user's own Chrome was not screen-recorded.
+- **Deliberately left out:** personal documents seen in Downloads (CV, payment receipt, letters, an applications tracker).
+- **Rebuilt in HTML (faithful demonstration, not a screen recording):** Swiss's windows, sidebar, Recent, cards, folders, the Frame, Finder. The container is Linux, so the macOS app can't run or be recorded here.
+- **Repo:** `Resources/AppIcon-source.png` (logo), the app's colours and strings.
+- **Font:** Inter stands in for SF Pro; Hebrew falls back to Liberation Sans. SF Symbols are drawn as simplified SVGs.
+- **For a version with real captures:** on a Mac run `./build.sh test` and use the `stashtest://debug…` hooks (`DebugHooks.swift`, `tools/film/`) to stage each screen, then record at 2× with the cursor visible; this HTML timing can serve as the edit.
 
 ## 5. What was rendered
 
-- `swiss-film-1920x1080.mp4`: 1920×1080, 30 fps, 40.0 s (1200 frames), H.264 High, yuv420p, **no audio stream**.
-- `swiss-film-1080x1920-vertical.mp4`: the same film reframed for 1080×1920 (a 680-point-wide crop per scene with one calm move each; captions below the screen).
-- Source: `tools/commercial/film.html` (all scenes, captions and timing; `?t=12.3` shows any moment, `?v=1` the vertical layout) and `tools/commercial/render.mjs` (headless Chromium → ffmpeg).
+- `swiss-film-1920x1080.mp4`: 1920×1080, 30 fps, 34.0 s (1020 frames), H.264 High, yuv420p, **no audio stream**.
+- `swiss-film-1080x1920-vertical.mp4`: the same film reframed for 1080×1920 (a 680-point-wide crop per scene, captions below).
+- Both decode cleanly end to end; the only still stretch is the 2.6 s end-card hold.
+- v1 (40 s) is in git history.
 
-Rebuild: `node render.mjs video out/swiss-film-1920x1080.mp4` and `node render.mjs video out/swiss-film-1080x1920-vertical.mp4 v` (needs Node with Playwright, Chromium, ffmpeg, and the Inter font).
+Rebuild: `node render.mjs video out/swiss-film-1920x1080.mp4` and `node render.mjs video out/swiss-film-1080x1920-vertical.mp4 v` (Node with Playwright, Chromium, ffmpeg, Inter).

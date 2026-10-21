@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <title>Swiss Film</title>
 <style>
-/* The Swiss product film: a faithful rebuild of the app's screens, driven frame by frame by seek(t).
+/* The Swiss product film (v2, 34 s): a faithful rebuild of the app's screens around the user's real files and a real
+   Wikipedia page in Chrome, driven frame by frame by seek(t).
    Colours and strings come from Sources/Stash (FolderViews.swift, RecentView.swift, Store.swift…). */
 :root {
   --paper: #F3F4F1;          /* the icon's background */
@@ -34,11 +35,6 @@ body { font-family: Inter, -apple-system, sans-serif; color: var(--ink); -webkit
 .scene { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; opacity: 0; }
 .abs { position: absolute; }
 
-/* Captions */
-#captions { position: absolute; left: 0; width: 100%; text-align: center; }
-.cap { position: absolute; left: 0; width: 100%; opacity: 0; }
-.cap .main { font-weight: 600; color: #2B2B2E; letter-spacing: -0.015em; }
-.cap .sub { margin-top: 8px; color: #8A8A8E; font-weight: 500; }
 
 /* macOS bits */
 .wallpaper { position: absolute; inset: 0; background:
@@ -111,9 +107,25 @@ body { font-family: Inter, -apple-system, sans-serif; color: var(--ink); -webkit
 .frow { height: 26px; display: flex; align-items: center; font-size: 12.5px; padding: 0 12px; gap: 8px; }
 .frow:nth-child(even) { background: rgba(0,0,0,.03); }
 .frow .d { margin-left: auto; color: var(--ink2); width: 150px; }
+#captions { position: absolute; left: 0; width: 100%; }
+/* v2: captions in the reference film's style (red eyebrow, headline, chips) and red highlight rings */
+.cap { position: absolute; left: 0; width: 100%; opacity: 0; text-align: center; }
+.cap .eye { color: var(--red); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.cap .h1 { margin-top: 8px; font-weight: 650; color: #2B2B2E; letter-spacing: -0.02em; line-height: 1.15; }
+.cyc-wrap { display: inline-block; text-align: left; }
+.cyc { position: relative; display: inline-block; color: var(--red); }
+.cyc .w { position: absolute; left: 0; top: 0; white-space: nowrap; }
+.cyc .sizer { visibility: hidden; white-space: nowrap; }
+.chips { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 0 40px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #3a3a3c; font-weight: 550; padding: .42em .9em; border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 2px 8px rgba(60,40,30,.06); opacity: 0; }
+.chip b { color: var(--red); font-weight: 800; }
+.chip.muted { background: transparent; box-shadow: 0 0 0 1px rgba(0,0,0,.12); color: #8A8A8E; }
+.hl { position: absolute; border: 2.5px solid var(--red); box-shadow: 0 0 0 5px rgba(223,70,55,.13); opacity: 0; pointer-events: none; z-index: 80; }
 </style>
 </head>
 <body>
+<script src="assets/names.js"></script>
 <div id="stage">
   <div id="screen"><div class="wallpaper"></div></div>
   <div id="captions"></div>
@@ -134,9 +146,9 @@ const SW = VERTICAL ? 1080 : 1920, SH = VERTICAL ? 1920 : 1080;
 const stage = document.getElementById('stage');
 stage.style.width = SW + 'px'; stage.style.height = SH + 'px';
 const screenEl = document.getElementById('screen');
-// The Mac's screen: world 1280×720 points, shown at K px per point.
-const L = VERTICAL ? { x: 40, y: 300, w: 1000, h: 1040, cap: 1420, capSize: 50, subSize: 27 }
-                   : { x: 192, y: 56, w: 1536, cap: 952, capSize: 40, subSize: 21 };
+// The Mac's screen: world 1280×720 points, shown at K px per point. Captions sit below it.
+const L = VERTICAL ? { x: 40, y: 250, w: 1000, h: 1040, cap: 1350, eye: 22, h1: 54, chip: 25 }
+                   : { x: 210, y: 34, w: 1500, cap: 900, eye: 15, h1: 40, chip: 17 };
 L.h = L.h || L.w * 9 / 16; const K = VERTICAL ? L.w / 680 : L.w / 1280; // vertical shows a 680-point-wide crop
 Object.assign(screenEl.style, { left: L.x + 'px', top: L.y + 'px', width: L.w + 'px', height: L.h + 'px' });
 const caps = document.getElementById('captions'); caps.style.top = L.cap + 'px';
@@ -195,40 +207,6 @@ function folderIcon(kind, s, opts = {}) {
 function folderTile(kind, name, x, y, opts = {}) {
   return `<div class="ftile" style="left:${x}px;top:${y}px" ${opts.id ? `id="${opts.id}"` : ''}>${folderIcon(kind, 64, opts)}
     <div class="label">${opts.tag ? `<span class="dotc" style="background:${opts.tag};margin-right:5px"></span>` : ''}${name}</div></div>`;
-}
-
-// Demo pictures, made in code (no stock).
-const posters = [
-  'background: radial-gradient(90% 70% at 30% 20%, #8CA6FF 0%, transparent 60%), radial-gradient(80% 80% at 80% 80%, #F07A5A 0%, transparent 60%), linear-gradient(160deg,#5E6BE8,#F0A27A)',
-  'background: radial-gradient(circle at 62% 46%, #FFF3E3 0 22%, transparent 22.5%), linear-gradient(170deg, #E25A42, #B9372B)',
-  'background: repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 22px), linear-gradient(150deg,#C9F06B,#3E9B6A)',
-  'background: linear-gradient(180deg, #1F2A44 0 55%, #E9D9BE 55%)',
-  'background: radial-gradient(70% 60% at 50% 40%, #FFD27A, #E7894A 70%)',
-  'background: linear-gradient(135deg,#2C2C2E 0 50%, #E8E4DD 50%)',
-];
-const posterType = (i, size = 1) => {
-  const words = ['SWISS<br>TYPE', 'FORM<br>/21', 'GRID', 'NIGHT<br>PRINT', 'SUN', 'HALF'][i];
-  const color = [ '#fff', '#3a1810', '#163a24', '#E9D9BE', '#6a2a0c', '#E25A42'][i];
-  return `<div style="position:absolute;left:10%;bottom:9%;font:800 ${22 * size}px/0.95 Inter;letter-spacing:-.02em;color:${color}">${words}</div>`;
-};
-const poster = (i, w, h, extra = '') => `<div style="position:relative;width:${w}px;height:${h}px;${posters[i]};${extra}">${posterType(i, w / 160)}</div>`;
-
-const menubar = (app, menus = ['File', 'Edit', 'View', 'Window', 'Help']) => `<div class="menubar"><b>${app}</b>${menus.map(m => `<span>${m}</span>`).join('')}
-  <div class="right"><span style="color:#1d1d1f;font-size:16px">${I.knife}</span><span>Wed 21 Oct&nbsp; 9:41</span></div></div>`;
-
-// A browser window with a reference page.
-function browser(x, y, w, h, id) {
-  const tiles = [0, 1, 2, 3, 4, 5].map(i => `<div style="border-radius:6px;overflow:hidden">${poster(i, (w - 72) / 3, (h - 150) / 2 - 6)}</div>`).join('');
-  return `<div class="window" id="${id}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:#fff">
-    <div style="height:40px;background:#F2F2F1;display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--line)">
-      <div class="lights"><i></i><i></i><i></i></div>
-      <div class="url" style="flex:1;height:26px;border-radius:7px;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:12.5px;color:#3a3a3c">
-        <span class="urltext" style="padding:1px 3px;border-radius:3px">are.na/studio/poster-references</span></div>
-    </div>
-    <div style="padding:16px 24px 0;font-size:18px;font-weight:700">Poster references</div>
-    <div style="padding:2px 24px 10px;font-size:12px;color:var(--ink2)">32 blocks · updated today</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 24px">${tiles}</div>
-  </div>`;
 }
 
 // The cursor (macOS arrow).
@@ -292,60 +270,125 @@ function moveCursor(sc, keys, t) {
 const show = (el, o, dy = 0) => { el.style.opacity = o; if (dy) el.style.transform = `translateY(${dy}px)`; };
 const fadeIO = (t, a, b, d = 0.35) => Math.min(seg(t, a, a + d), 1 - seg(t, b - d, b));
 
-// ================= Scene 1 — the problem (0–4.6) =================
-{
-  const icons = [
-    [930, 64, 'img', 'poster_final_v2.png', 0], [1100, 86, 'img', 'Screenshot 2026-10-21 at 09.14.png', 5],
-    [960, 206, 'pdf', 'brief (1).pdf'], [1132, 236, 'psd', 'final final 2.psd'],
-    [1010, 352, 'dir', 'untitled folder'], [1150, 386, 'img', 'IMG_4821.HEIC', 4],
-    [880, 470, 'txt', 'links to check.txt'], [1060, 520, 'img', 'poster_final_v3.png', 1],
-    [1180, 560, 'pdf', 'Print specs.pdf'],
-  ].map(([x, y, kind, name, p]) => {
-    const pic = kind === 'img' ? `<div style="width:64px;height:64px;border-radius:4px;overflow:hidden;margin:0 auto;box-shadow:0 1px 3px rgba(0,0,0,.25)">${poster(p, 64, 64)}</div>`
-      : kind === 'dir' ? `<div style="width:64px;margin:0 auto;padding-top:6px">${folderIcon('classic', 64)}</div>`
-      : `<div style="width:52px;height:64px;margin:0 auto;background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.25);display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;font:700 10px Inter;color:${kind === 'pdf' ? '#D33' : kind === 'psd' ? '#2a6bd6' : '#777'}">${kind.toUpperCase()}</div>`;
-    return `<div class="abs dicon" style="left:${x}px;top:${y}px;width:110px;text-align:center">${pic}
-      <div style="margin-top:6px;font-size:11.5px;font-weight:500;color:#1d1d1f;text-shadow:0 1px 2px rgba(255,255,255,.7);line-height:1.25">${name}</div></div>`;
-  }).join('');
-  const el = scene(0, 4.6, `${menubar('Safari')}${icons}${browser(110, 92, 680, 470, 'b1')}`,
-    (t, el) => {
-      el.querySelectorAll('.dicon').forEach((d, i) => d.style.opacity = eo(seg(t, 0.4 + i * 0.12, 1.0 + i * 0.12)));
-    },
-    [[0, 1.0, 640, 360], [4.6, 1.025, 660, 351]]);
+// ---------- real material (assets/: the user's own pictures, film frames and file names) ----------
+const A = 'assets/';
+// The real file and folder names live in assets/names.js, which stays out of git with the rest of assets/; these are stand-ins.
+const NAMES = Object.assign({ art: n => `Mammoth #${n}, 2026.jpg`, dir: 'Final project (Mammoth)' }, window.PRIVATE_NAMES || {});
+const ART = NAMES.art, PROJECT_DIR = NAMES.dir;
+const img = (src, w, h, extra = '') => `<img src="${A}${src}" style="display:block;width:${w}px;height:${h}px;object-fit:cover;${extra}">`;
+const he = s => `<span dir="auto" style="font-family:Inter,'Liberation Sans',sans-serif">${s}</span>`;
+
+const menubar = (app, menus = ['File', 'Edit', 'View', 'Window', 'Help']) => `<div class="menubar"><b>${app}</b>${menus.map(m => `<span>${m}</span>`).join('')}
+  <div class="right"><span style="color:#1d1d1f;font-size:16px">${I.knife}</span><span>Wed 21 Oct&nbsp; 10:41</span></div></div>`;
+const CHROME_MENUS = ['File', 'Edit', 'View', 'History', 'Bookmarks', 'Profiles', 'Tab', 'Window', 'Help'];
+
+// A Chrome window. The page is a real capture of en.wikipedia.org/wiki/Woolly_mammoth (assets/wiki.jpg, 1280 wide), scaled by s and offset by ox, oy.
+function chrome(x, y, w, h, id, { s = 1, ox = 0, oy = 0, active = true } = {}) {
+  const favW = `<span style="width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);font:700 10px 'DejaVu Serif',serif;display:flex;align-items:center;justify-content:center;color:#222">W</span>`;
+  const favD = `<span style="width:12px;height:15px;border-radius:2px;background:#4285F4;display:block"></span>`;
+  return `<div class="window chrome" id="${id}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:#fff">
+    <div style="height:36px;background:#DFE3E8;display:flex;align-items:flex-end;gap:2px;padding:0 10px">
+      <div class="lights ${active ? '' : 'off'}" style="align-self:center;margin-right:14px"><i></i><i></i><i></i></div>
+      <div style="height:30px;background:#fff;border-radius:9px 9px 0 0;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:12px;color:#202124;width:210px;white-space:nowrap;overflow:hidden">${favW}Woolly mammoth – Wikipedia</div>
+      <div style="height:30px;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:12px;color:#5f6368;width:190px;white-space:nowrap;overflow:hidden">${favD}Exhibition text – Google Docs</div>
+      <div style="height:30px;display:flex;align-items:center;padding:0 8px;color:#5f6368;font-size:14px">${I.plus}</div>
+    </div>
+    <div style="height:38px;display:flex;align-items:center;gap:14px;padding:0 12px;border-bottom:1px solid #E3E3E3;color:#5f6368;font-size:15px">
+      <span>‹</span><span>›</span><span style="font-size:13px">↻</span>
+      <div style="flex:1;height:28px;border-radius:14px;background:#EEF1F4;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:12.5px;color:#202124">
+        <span style="font-size:11px;color:#5f6368">${I.lock}</span><span class="urltext" style="padding:1px 3px;border-radius:3px">en.wikipedia.org/wiki/Woolly_mammoth</span></div>
+    </div>
+    <div class="abs" style="left:0;right:0;top:74px;bottom:0;overflow:hidden">
+      <img src="${A}wiki.jpg" style="position:absolute;left:${-ox * s}px;top:${-oy * s}px;width:${1280 * s}px;height:${900 * s}px"></div>
+  </div>`;
 }
 
-// ================= Scenes 2–3 — capture into Recent, then Keep (4.6–13.6) =================
-{
-  const thumb = (inner, bg = '#fff') => `<div class="th" style="background:${bg}">${inner}</div>`;
-  const rows = [
-    { id: 'r-shot', th: `<div style="width:38px;height:38px;background:#fff;padding:3px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">${[0,1,3,4].map(i => poster(i, 15, 15)).join('')}</div></div>`,
-      t: 'Screenshot 2026-10-21 at 09.41.12', s: `<span style="font-size:12px">${I.camera}</span> Screenshot · now` },
-    { id: 'r-link', th: thumb(`<span style="color:#fff;font-size:17px">${I.link}</span>`, 'var(--k-linker)'),
-      t: 'are.na', s: 'are.na/studio/poster-references · Safari · now' },
-    { id: 'r-a', th: thumb(`<span style="color:#9a6a1c;font-size:17px">${I.lines}</span>`, 'var(--note)'), t: 'Re-measure, install', s: 'Notes · 2 hours ago' },
-    { id: 'r-b', th: thumb(`<span style="color:var(--k-files);font-size:18px">${I.doc}</span>`), t: 'Type specimen.pdf', s: 'Finder · yesterday' },
-    { id: 'r-c', th: `<div class="th">${poster(4, 38, 38)}</div>`, t: 'Picture · 1200 × 900', s: 'Preview · yesterday' },
-  ].map(r => `<div class="rrow" id="${r.id}">${r.th}<div style="min-width:0"><div class="tt">${r.t}</div><div class="st">${r.s}</div></div></div>`).join('');
+// Swiss's sidebar, with the user's own projects and connected folder.
+function swissSidebar(sel, recentN = 5, w = 170) {
+  const r = (key, icon, name, n, extra = '') => `<div class="srow ${sel === key ? 'sel' : ''}"><span class="ic">${icon}</span>${name}${extra}<span class="n" ${key === 'recent' ? 'data-rcount' : ''}>${n}</span></div>`;
+  return `<div class="sidebar" style="width:${w}px">
+    <div class="lights abs" style="left:16px;top:16px"><i></i><i></i><i></i></div>
+    ${r('recent', I.clock, 'Recent', recentN)}${r('all', I.stack, 'All Items', 214)}
+    <div class="shead">Projects<span>${I.plus}</span></div>
+    ${r('mammoth', I.folder, 'Mammoth', 38, ' <span class="dotc" style="background:#DF4637"></span>')}
+    ${r('showreel', I.folder, 'Showreel', 12, ' <span class="dotc" style="background:#8cc78c"></span>')}
+    ${r('thesis', I.folder, 'Thesis', 31, ' <span class="dotc" style="background:#e0b46a"></span>')}
+    <div class="shead">Connected<span>${I.plus}</span></div>
+    <div class="srow ${sel === 'connected' ? 'sel' : ''}"><span class="ic">${I.drive}</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0">${he(PROJECT_DIR)}</span></div>
+  </div>`;
+}
+const quickbar = `<div class="quickbar"><span><small>⌘1</small>Note</span><span><small>⌘2</small>Folder</span><span><small>⌘3</small>Linker</span><span><small>⌘4</small>PhotoBook</span><span><small>⌘5</small>Notepad</span><span><small>⌘6</small>Files</span>
+  <span style="margin-left:auto;color:var(--ink3)">1–9 open · ⌃Tab tabs</span><span>?</span></div>`;
 
-  const sw = { x: 640, y: 116, w: 616, h: 470 };
+// Red highlight rings (from the reference film): [a, b, box] in scene time; box is {x,y,w,h} or a selector.
+function rings(sc, list) {
+  sc.rings = list.map(([a, b, box, pad = 8, rad = 14]) => {
+    if (typeof box === 'string') {
+      const r = $(sc.el, box).getBoundingClientRect(), s = screenEl.getBoundingClientRect();
+      box = { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };
+    }
+    const d = document.createElement('div'); d.className = 'hl';
+    Object.assign(d.style, { left: box.x - pad + 'px', top: box.y - pad + 'px', width: box.w + pad * 2 + 'px', height: box.h + pad * 2 + 'px', borderRadius: rad + 'px' });
+    sc.el.insertBefore(d, sc.cursor);
+    return { a, b, d };
+  });
+}
+function drawRings(sc, t) {
+  for (const r of sc.rings || []) {
+    const o = fadeIO(t, r.a, r.b, 0.22), u = eo(seg(t, r.a, r.a + 0.35));
+    r.d.style.opacity = o; r.d.style.transform = `scale(${1.035 - 0.035 * u})`;
+  }
+}
+
+// ================= Scene 1 — the problem (0–3.6) =================
+{
+  const dl = [
+    ['dir', PROJECT_DIR, 'Today 09:12', '--'],
+    ['img', 'menu-auditorium.jpg', 'Yesterday 18:03', '412 KB'],
+    ['vid', 'enjoy_the_show!_v1 (1080p).mp4', 'Yesterday 14:27', '96.4 MB'],
+    ['pdf', 'Stash-Design-and-Features.pdf', '19 Oct 2026', '2.1 MB'],
+  ];
+  const ico = k => k === 'dir' ? `<span style="color:var(--folder-back);font-size:14px">${I.folder}</span>`
+    : `<span style="color:${k === 'img' ? 'var(--k-photos)' : k === 'vid' ? '#6a5acd' : '#D33'};font-size:13px">${k === 'img' ? I.photo : k === 'vid' ? I.play : I.doc}</span>`;
+  const finder = `<div class="window" id="dlwin" style="left:600px;top:356px;width:560px;height:250px;background:#fff">
+    <div style="height:44px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 14px;font-size:13px">
+      <div class="lights off"><i></i><i></i><i></i></div><span style="font-weight:600;margin-left:60px">Downloads</span></div>
+    <div class="abs" style="left:0;top:44px;bottom:0;width:120px;background:#F0F0EF;border-right:1px solid var(--line);padding:10px;font-size:12px;line-height:2.1;color:#444">
+      <div style="font-size:10.5px;color:var(--ink3);font-weight:600">Favourites</div><div>Desktop</div><div>Documents</div><div style="background:rgba(0,0,0,.07);border-radius:5px;padding-left:4px">Downloads</div></div>
+    <div class="abs" style="left:120px;right:0;top:44px">
+      <div class="frow" style="font-size:11px;color:var(--ink3);background:#fff;border-bottom:1px solid var(--line)">Name<span class="d">Date Modified</span><span style="width:60px;text-align:right">Size</span></div>
+      ${dl.map(([k, n, d, s]) => `<div class="frow">${ico(k)}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px">${he(n)}</span><span class="d">${d}</span><span style="width:60px;text-align:right;color:var(--ink2)">${s}</span></div>`).join('')}
+    </div></div>`;
+  const shots = [['wiki-skeleton.jpg', 'Screenshot 2026-10-21 at 10.38.04.png', 52], ['mammoth5.jpg', 'Screenshot 2026-10-20 at 15.42.20.png', 186]];
+  const desk = shots.map(([src, n, y], i) => `<div class="abs dicon" style="left:1170px;top:${y}px;width:96px;text-align:center">
+    <div style="width:72px;height:52px;margin:0 auto;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)">${img(src, 68, 48)}</div>
+    <div style="margin-top:6px;font-size:11px;font-weight:500;color:#1d1d1f;line-height:1.25;text-shadow:0 1px 2px rgba(255,255,255,.8)">${n}</div></div>`).join('');
+  const el = scene(0, 3.6, `${menubar('Google Chrome', CHROME_MENUS)}${chrome(40, 52, 720, 500, 'c1', { s: 0.86, ox: 236, oy: 70 })}${finder}${desk}`,
+    (t, el) => el.querySelectorAll('.dicon').forEach((d, i) => d.style.opacity = eo(seg(t, 0.2 + i * 0.15, 0.7 + i * 0.15))),
+    [[0, 1.0, 640, 360], [3.6, 1.03, 650, 360]]);
+  const sc = scenes[scenes.length - 1];
+  rings(sc, [[0.35, 1.4, '#c1', 6, 16], [1.45, 2.5, '#dlwin', 6, 16], [2.55, 3.6, { x: 1166, y: 48, w: 104, h: 268 }, 4, 14]]);
+}
+
+// ================= Scene 2 — Recent, then Keep (3.6–9.8) =================
+{
+  const sw = { x: 650, y: 92, w: 606, h: 470 }, SIDE = 170;
+  const th = (inner, bg = '#fff') => `<div class="th" style="background:${bg}">${inner}</div>`;
+  const rows = [
+    { id: 'r-shot', th: `<div class="th">${img('wiki-skeleton.jpg', 38, 38)}</div>`, t: 'Screenshot 2026-10-21 at 10.41.12', s: `<span style="font-size:12px">${I.camera}</span> Screenshot · now` },
+    { id: 'r-link', th: th(`<span style="color:#fff;font-size:17px">${I.link}</span>`, 'var(--k-linker)'), t: 'Woolly mammoth – Wikipedia', s: 'en.wikipedia.org · Chrome · now' },
+    { id: 'r-a', th: th(`<span style="color:#9a6a1c;font-size:17px">${I.lines}</span>`, 'var(--note)'), t: 'Print #3 and #4 at 120 cm. Matte.', s: 'Notes · 2 hours ago' },
+    { id: 'r-b', th: `<div class="th">${img('menu.jpg', 38, 38)}</div>`, t: 'menu-auditorium.jpg', s: 'Finder · yesterday' },
+    { id: 'r-c', th: `<div class="th">${img('show/040.jpg', 38, 38)}</div>`, t: 'enjoy_the_show!_v1 (1080p).mp4', s: 'Finder · yesterday' },
+  ].map(r => `<div class="rrow" id="${r.id}">${r.th}<div style="min-width:0"><div class="tt">${r.t}</div><div class="st">${r.s}</div></div></div>`).join('');
+  const chip = (icon, n) => `<span style="height:24px;border-radius:12px;background:rgba(10,122,255,.16);color:var(--accent);font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;padding:0 9px">${icon}&nbsp;${n}</span>`;
   const swiss = `<div class="window" id="sw" style="left:${sw.x}px;top:${sw.y}px;width:${sw.w}px;height:${sw.h}px">
-    <div class="sidebar" style="width:178px">
-      <div class="lights abs" style="left:16px;top:16px"><i></i><i></i><i></i></div>
-      <div class="srow sel"><span class="ic">${I.clock}</span>Recent<span class="n" id="rcount">3</span></div>
-      <div class="srow"><span class="ic">${I.stack}</span>All Items<span class="n">214</span></div>
-      <div class="shead">Projects<span>${I.plus}</span></div>
-      <div class="srow"><span class="ic">${I.folder}</span>Poster Series <span class="dotc" style="background:#7aa7e0"></span><span class="n">24</span></div>
-      <div class="srow"><span class="ic">${I.folder}</span>Music Video <span class="dotc" style="background:#8cc78c"></span><span class="n">12</span></div>
-      <div class="srow"><span class="ic">${I.folder}</span>Thesis <span class="dotc" style="background:#e0b46a"></span><span class="n">31</span></div>
-      <div class="shead">Connected<span>${I.plus}</span></div>
-      <div class="srow"><span class="ic">${I.drive}</span>Client Files</div>
-    </div>
-    <div class="abs" style="left:178px;right:0;top:0;bottom:0">
+    ${swissSidebar('recent', 3, SIDE)}
+    <div class="abs" style="left:${SIDE}px;right:0;top:0;bottom:0">
       <div class="toolbar" style="left:14px;right:14px;top:10px">
-        <span style="font-weight:600;color:#1d1d1f">Recent</span><span id="rcount2" style="color:var(--ink3);font-size:12px">3</span><span style="color:var(--ink3);font-size:11.5px">kept 3 days</span>
-        <span style="margin-left:auto;height:24px;border-radius:12px;background:rgba(10,122,255,.16);color:var(--accent);font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;padding:0 9px">${I.doc}&nbsp;Copies</span>
-        <span style="height:24px;border-radius:12px;background:rgba(10,122,255,.16);color:var(--accent);font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;padding:0 9px">${I.camera}&nbsp;Screenshots</span>
-        <span style="height:24px;width:26px;border-radius:12px;background:rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;font-size:11px">❙❙</span><span style="font-size:12px">Clear</span>
+        <span style="font-weight:600;color:#1d1d1f">Recent</span><span data-rcount style="color:var(--ink3);font-size:12px">3</span><span style="color:var(--ink3);font-size:11.5px">kept 3 days</span>
+        <span style="margin-left:auto"></span>${chip(I.doc, 'Copies')}${chip(I.camera, 'Screenshots')}
+        <span style="height:24px;width:26px;border-radius:12px;background:rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;font-size:11px">❙❙</span>
       </div>
       <div class="abs" id="rlist" style="left:8px;right:8px;top:54px;bottom:50px">${rows}</div>
       <div class="abs" id="selbar" style="left:0;right:0;bottom:0;height:48px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 14px;font-size:12.5px;opacity:0;background:var(--win)">
@@ -354,282 +397,249 @@ const fadeIO = (t, a, b, d = 0.35) => Math.min(seg(t, a, a + d), 1 - seg(t, b - 
         <span id="keepbtn" style="display:flex;align-items:center;border-radius:7px;background:var(--accent);color:#fff;font-weight:600;height:28px;overflow:hidden">
           <span style="padding:0 11px;display:flex;gap:6px;align-items:center">${I.tray} Keep</span><span style="padding:0 8px;border-left:1px solid rgba(255,255,255,.3);height:100%;display:flex;align-items:center;font-size:10px">${I.chev}</span></span>
       </div>
-      <div class="flash" id="keptflash" style="left:50%;bottom:64px"><span style="color:#5BD27A">${I.check}</span>Kept in Poster Series</div>
+      <div class="flash" id="keptflash" style="left:50%;bottom:64px"><span style="color:#5BD27A">${I.check}</span>Kept in Mammoth</div>
     </div>
   </div>`;
-  const keys = `<div class="key" id="kc" style="left:292px;top:206px">⌘C</div><div class="key" id="ks" style="left:240px;top:576px">⇧⌘4</div>
-    <div class="abs" id="shotrect" style="border:1px solid rgba(255,255,255,.95);outline:1px solid rgba(0,0,0,.35);background:rgba(255,255,255,.12);opacity:0"></div>`;
-
-  const ROW = 56;
-  scene(4.6, 13.6, `${menubar('Safari')}${browser(28, 120, 596, 440, 'b2')}${swiss}${keys}`,
+  const keys = `<div class="key" id="kc" style="left:300px;top:182px">⌘C</div><div class="key" id="ks" style="left:300px;top:574px">⇧⌘4</div>
+    <div class="abs" id="shotrect" style="border:1px solid rgba(255,255,255,.95);outline:1px solid rgba(0,0,0,.35);background:rgba(255,255,255,.12);opacity:0;z-index:60"></div>`;
+  // The skeleton photo in the Wikipedia infobox sits at (742,375)–(993,567) in wiki.jpg; with s .79, ox 250, oy 90 it lands at (413,391)–(611,542).
+  const S0 = { x: 406, y: 384 }, S1 = { x: 618, y: 548 };
+  const ROW = 56, LINK = 1.2, SHOT = 2.55, SEL = 3.55, KEEP = 4.25;
+  scene(3.6, 9.8, `${menubar('Google Chrome', CHROME_MENUS)}${chrome(24, 92, 610, 470, 'c2', { s: 0.79, ox: 250, oy: 90 })}${swiss}${keys}`,
     (t, el) => {
-      // ⌘C on the address bar, then the link arrives in Recent.
-      $(el, '.urltext').style.background = t > 1.05 ? 'rgba(10,122,255,.28)' : 'transparent';
-      show($(el, '#kc'), fadeIO(t, 1.15, 2.4, 0.25));
-      // ⇧⌘4: drag a region of the page.
-      show($(el, '#ks'), fadeIO(t, 2.9, 4.1, 0.25));
-      const sr = $(el, '#shotrect'), u = io(seg(t, 3.25, 3.95));
-      Object.assign(sr.style, { left: '68px', top: '234px', width: (24 + u * 300) + 'px', height: (16 + u * 170) + 'px',
-        opacity: t > 3.2 && t < 4.05 ? 1 : 0 });
-      // Rows: the two new ones slide in at the top, the rest move down.
-      const linkIn = eo(seg(t, 2.0, 2.6)), shotIn = eo(seg(t, 4.3, 4.9));
-      const order = [['r-shot', shotIn], ['r-link', linkIn], ['r-a', 1], ['r-b', 1], ['r-c', 1]];
+      $(el, '.urltext').style.background = t > 0.6 ? 'rgba(10,122,255,.28)' : 'transparent';
+      show($(el, '#kc'), fadeIO(t, 0.68, 1.5, 0.2));
+      show($(el, '#ks'), fadeIO(t, 1.6, 2.5, 0.2));
+      const sr = $(el, '#shotrect'), u = io(seg(t, 1.85, 2.3));
+      Object.assign(sr.style, { left: S0.x + 'px', top: S0.y + 'px', width: 4 + u * (S1.x - S0.x) + 'px', height: 4 + u * (S1.y - S0.y) + 'px', opacity: t > 1.8 && t < 2.4 ? 1 : 0 });
+      const linkIn = eo(seg(t, LINK, LINK + 0.45)), shotIn = eo(seg(t, SHOT, SHOT + 0.45));
       let y = 0;
-      for (const [id, k] of order) {
+      for (const [id, k] of [['r-shot', shotIn], ['r-link', linkIn], ['r-a', 1], ['r-b', 1], ['r-c', 1]]) {
         const r = $(el, '#' + id);
-        r.style.top = (y - (1 - k) * 18) + 'px'; r.style.opacity = k;
+        r.style.top = (y - (1 - k) * 16) + 'px'; r.style.opacity = k;
         y += ROW * k;
       }
       const n = 3 + (linkIn > 0.5) + (shotIn > 0.5);
-      $(el, '#rcount').textContent = n; $(el, '#rcount2').textContent = n;
-      // Keep: select the screenshot, press Keep.
-      $(el, '#r-shot').classList.toggle('sel', t > 6.15);
-      show($(el, '#selbar'), eo(seg(t, 6.2, 6.5)));
-      const kept = t > 7.35;
-      $(el, '#r-shot .st').innerHTML = kept ? `<span style="font-size:12px">${I.check}</span> Kept in Poster Series` : `<span style="font-size:12px">${I.camera}</span> Screenshot · now`;
-      $(el, '#keepbtn').style.filter = t > 7.18 && t < 7.34 ? 'brightness(.85)' : 'none';
-      const f = $(el, '#keptflash'), fo = fadeIO(t, 7.4, 8.9, 0.3);
-      f.style.opacity = fo; f.style.transform = `translate(-50%, ${(1 - eo(seg(t, 7.4, 7.8))) * 8}px)`;
+      el.querySelectorAll('[data-rcount]').forEach(c => c.textContent = n);
+      $(el, '#r-shot').classList.toggle('sel', t > SEL + 0.05);
+      show($(el, '#selbar'), eo(seg(t, SEL + 0.05, SEL + 0.3)));
+      const kept = t > KEEP + 0.12;
+      $(el, '#r-shot .st').innerHTML = kept ? `<span style="font-size:12px">${I.check}</span> Kept in Mammoth` : `<span style="font-size:12px">${I.camera}</span> Screenshot · now`;
+      $(el, '#keepbtn').style.filter = t > KEEP - 0.04 && t < KEEP + 0.12 ? 'brightness(.85)' : 'none';
+      const f = $(el, '#keptflash');
+      f.style.opacity = fadeIO(t, KEEP + 0.15, 5.9, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, KEEP + 0.15, KEEP + 0.5))) * 8}px)`;
     },
-    [[0, 1.0, 640, 360], [5.0, 1.0, 640, 360], [5.9, 1.2, 948, 352], [9.0, 1.2, 948, 352]]);
+    [[0, 1.0, 640, 360], [2.85, 1.0, 640, 360], [3.45, 1.2, 950, 330], [6.2, 1.2, 950, 330]]);
+  const sc = scenes[scenes.length - 1];
+  const slot = { x: sw.x + SIDE + 8, y: sw.y + 54, w: sw.w - SIDE - 16, h: 54 };
+  rings(sc, [[LINK + 0.2, SHOT - 0.1, slot, 4, 12], [SHOT + 0.25, SEL - 0.05, slot, 4, 12]]);
+  const om = at(sc, '.urltext', -60, 0), kp = at(sc, '#keepbtn span'), sh = at(sc, '#r-shot .tt', -60, 4);
+  sc.cursorKeys = [[0, 470, 650], [0.45, om.x, om.y], [0.55, om.x, om.y, 1], [1.7, S0.x, S0.y], [1.85, S0.x, S0.y], [2.3, S1.x, S1.y], [2.5, S1.x, S1.y],
+    [SEL - 0.1, sh.x, sh.y], [SEL, sh.x, sh.y, 1], [KEEP - 0.15, kp.x, kp.y], [KEEP, kp.x, kp.y, 1], [6.2, kp.x - 60, kp.y - 50]];
 }
 
-// ================= Scene 4 — the wand (13.6–21.0) =================
+// ================= Scene 3 — the wand (9.8–15.8) =================
 {
   const W = { x: 24, y: 40, w: 1232, h: 664 };
-  // 8 loose things: 3 pictures, 2 links (one a Google Doc), 2 notes, 1 PDF.
+  const fileCard = (icon, title, host) => () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:12px">${icon}<div style="min-width:0"><div class="t">${title}</div><div class="h">${host}</div></div></div>`;
+  // Nine loose things on the Mammoth board: five pictures, a link, a Google Doc, a video file, a note.
   const C = [
-    { k: 'photos', x: 24, y: 128, w: 270, h: 200, html: c => poster(0, 270, 200) },
-    { k: 'linker', x: 310, y: 128, w: 270, h: 104, html: () => `<div style="height:44px;${posters[5]}"></div><div class="meta"><div class="t">Swiss Poster Archive</div><div class="h">${I.link} are.na</div></div>` },
-    { k: 'notes', x: 596, y: 128, w: 286, h: 142, note: true, html: () => `<div class="q">“</div>Opening: start on the blue poster, slow push in.<div class="ago">2 minutes ago</div>` },
-    { k: 'photos', x: 898, y: 128, w: 270, h: 170, html: () => poster(1, 270, 170) },
-    { k: 'files', x: 310, y: 248, w: 270, h: 74, html: () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:12px"><div style="width:34px;height:34px;border-radius:7px;background:rgba(66,133,245,.14);color:#4285F5;display:flex;align-items:center;justify-content:center;font-size:18px">${I.doc}</div><div><div class="t">Poster brief</div><div class="h">docs.google.com</div></div></div>` },
-    { k: 'files', x: 310, y: 338, w: 270, h: 74, html: () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:12px"><div style="width:30px;height:36px;border-radius:3px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);font:700 8px Inter;color:#D33;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px">PDF</div><div><div class="t">Print specs.pdf</div><div class="h">2.4 MB</div></div></div>` },
-    { k: 'photos', x: 24, y: 344, w: 270, h: 170, html: () => poster(2, 270, 170) },
-    { k: 'notes', x: 596, y: 286, w: 286, h: 120, note: true, html: () => `<div class="q">“</div>Print shop closes Friday at 4.<div class="ago">1 hour ago</div>` },
+    { k: 'photos', x: 24, y: 128, w: 280, h: 182, html: () => img('mammoth3.jpg', 280, 182) },
+    { k: 'notes', x: 24, y: 326, w: 280, h: 112, note: true, html: () => `<div class="q">“</div>Print #3 and #4 at 120 cm. Matte.<div class="ago">2 hours ago</div>` },
+    { k: 'linker', x: 320, y: 128, w: 280, h: 122, html: () => `<div style="height:64px;overflow:hidden"><img src="${A}wiki.jpg" style="width:560px;margin:-40px 0 0 -110px"></div><div class="meta"><div class="t">Woolly mammoth – Wikipedia</div><div class="h">${I.link} en.wikipedia.org</div></div>` },
+    { k: 'files', x: 320, y: 266, w: 280, h: 74, html: fileCard(`<div style="width:34px;height:34px;border-radius:7px;background:rgba(66,133,245,.14);color:#4285F5;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none">${I.doc}</div>`, 'Exhibition text', 'docs.google.com') },
+    { k: 'files', x: 320, y: 356, w: 280, h: 190, html: () => `${img('show/060.jpg', 280, 140)}<div class="meta"><div class="t">enjoy_the_show!_v1 (1080p).mp4</div><div class="h">96.4 MB · 1080p</div></div>` },
+    { k: 'photos', x: 616, y: 128, w: 280, h: 182, html: () => img('mammoth4.jpg', 280, 182) },
+    { k: 'photos', x: 616, y: 326, w: 280, h: 180, html: () => img('menu.jpg', 280, 180) },
+    { k: 'photos', x: 912, y: 128, w: 296, h: 197, html: () => img('mammoth1.jpg', 296, 197) },
+    { k: 'photos', x: 912, y: 341, w: 296, h: 197, html: () => img('mammoth9.jpg', 296, 197) },
   ];
   const F = { photos: { x: 140, n: 2 }, linker: { x: 260, n: 3 }, notes: { x: 380, n: 4 }, files: { x: 500, n: 5 } };
-  const FY = 16, SHIFT = 124;
-  const order = ['photos', 'linker', 'notes', 'files'];
+  const FY = 16, order = ['photos', 'linker', 'notes', 'files'];
   const cards = C.map((c, i) => `<div class="card ${c.note ? 'notecard' : ''}" id="c${i}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px">${c.html()}</div>`).join('');
   const folders = folderTile('classic', 'Print shop', 20, FY, { num: 1, count: 6, tag: '#F09E26' }) + order.map(k => folderTile(k, kindStyle[k].name, F[k].x, FY, { num: F[k].n, count: 0, id: 'f-' + k })).join('');
   const html = `${menubar('Swiss', ['File', 'Edit', 'View', 'Go', 'Window', 'Help'])}
   <div class="window" style="left:${W.x}px;top:${W.y}px;width:${W.w}px;height:${W.h}px">
     <div class="tabs"><div class="lights" style="margin-right:12px"><i></i><i></i><i></i></div>
-      <div class="tab">Not Selected</div><div class="tab sel"><span style="font-size:11px;color:var(--ink2)">${I.pin}</span>Poster Series</div>
-      <div class="tab"><span class="dotc" style="background:#8cc78c"></span>Music Video</div><div class="tab"><span class="dotc" style="background:#e0b46a"></span>Thesis</div>
+      <div class="tab">Not Selected</div><div class="tab sel"><span style="font-size:11px;color:var(--ink2)">${I.pin}</span>Mammoth</div>
+      <div class="tab"><span class="dotc" style="background:#8cc78c"></span>Showreel</div><div class="tab"><span class="dotc" style="background:#e0b46a"></span>Thesis</div>
       <div style="margin-left:auto;color:var(--ink2);font-size:15px">${I.plus}</div></div>
     <div class="toolbar" style="left:12px;right:12px;top:44px">
       <span>${I.lock}</span><span>${I.frame}</span><span>${I.sidebar}</span>
-      <div class="search" style="width:300px">${I.search} Search Poster Series</div>
-      <div class="pill">${I.tray} Poster Series</div>
+      <div class="search" style="width:300px">${I.search} Search Mammoth</div>
+      <div class="pill">${I.tray} Mammoth</div>
       <span style="margin-left:auto">${I.arrange}</span><span style="background:rgba(0,0,0,.07);border-radius:5px;padding:3px 5px">${I.grid}</span><span>${I.list}</span>
       <span id="wand" style="font-size:16px;padding:3px 5px;border-radius:6px">${I.wand}</span>
     </div>
     <div class="abs" id="board" style="left:0;right:0;top:82px;bottom:30px">${folders}${cards}</div>
-    <div class="quickbar"><span><small>⌘1</small>Note</span><span><small>⌘2</small>Folder</span><span><small>⌘3</small>Linker</span><span><small>⌘4</small>PhotoBook</span><span><small>⌘5</small>Notepad</span><span><small>⌘6</small>Files</span>
-      <span style="margin-left:auto;color:var(--ink2)">${I.trash} Clear</span><span style="color:var(--ink3)">1–9 open · ⌃Tab tabs</span><span>?</span></div>
-    <div class="flash" id="orgflash" style="left:50%;bottom:52px"><span style="color:#C9A6FF">${I.wand}</span>Organized 8 items into 4 new folders</div>
+    ${quickbar}
+    <div class="flash" id="orgflash" style="left:50%;top:252px"><span style="color:#C9A6FF">${I.wand}</span>Organized 9 items into 4 new folders</div>
   </div>`;
-  const CLICK = 1.85, START = 2.15;
-  scene(13.6, 21.0, html, (t, el) => {
-    $(el, '#wand').style.background = t > CLICK - 0.05 && t < CLICK + 0.25 ? 'rgba(0,0,0,.1)' : 'transparent';
-    $(el, '#wand').style.color = t > 1.3 ? 'var(--accent)' : '';
-    // Folders appear first (made only when needed), then each thing glides into its folder.
+  const CLICK = 1.35, START = 1.55;
+  scene(9.8, 15.8, html, (t, el) => {
+    $(el, '#wand').style.background = t > CLICK - 0.05 && t < CLICK + 0.22 ? 'rgba(0,0,0,.1)' : 'transparent';
+    $(el, '#wand').style.color = t > 1.0 ? 'var(--accent)' : '';
     order.forEach((k, i) => {
-      const f = $(el, '#f-' + k), a = eo(seg(t, START + i * 0.1, START + 0.35 + i * 0.1));
+      const f = $(el, '#f-' + k), a = eo(seg(t, START + i * 0.08, START + 0.3 + i * 0.08));
       f.style.opacity = a; f.style.transform = `scale(${0.92 + 0.08 * a})`;
     });
     const counts = { photos: 0, linker: 0, notes: 0, files: 0 };
-    // The board was laid out below the folder row; nothing else moves until the wand.
     C.forEach((c, i) => {
-      const d = $(el, '#c' + i), a = START + 0.35 + i * 0.12, u = io(seg(t, a, a + 0.85));
-      // The card's centre travels to its folder icon's centre and shrinks into it.
+      const d = $(el, '#c' + i), a = START + 0.3 + i * 0.1, u = io(seg(t, a, a + 0.72));
       const tx = F[c.k].x + 48 - (c.x + c.w / 2), ty = FY + 26 - (c.y + c.h / 2);
-      const s = lerp(1, 0.1, u);
-      d.style.transform = `translate(${tx * u}px, ${ty * u}px) scale(${s})`;
+      d.style.transform = `translate(${tx * u}px, ${ty * u}px) scale(${lerp(1, 0.1, u)})`;
       d.style.opacity = 1 - seg(u, 0.5, 0.9);
       if (u >= 1) counts[c.k]++;
     });
-    order.forEach(k => { $(el, '#f-' + k + ' [data-count]').textContent = counts[k]; $(el, '#f-' + k + ' [data-count]').style.opacity = counts[k] ? 1 : 0; });
-    const f = $(el, '#orgflash'), fo = fadeIO(t, 4.05, 6.9, 0.3);
-    f.style.opacity = fo; f.style.transform = `translate(-50%, ${(1 - eo(seg(t, 4.05, 4.45))) * 8}px)`;
-  }, [[0, 1.0, 640, 360], [4.3, 1.0, 640, 360], [5.5, 1.1, 582, 380], [7.4, 1.1, 582, 380]]);
-  { const sc = scenes[scenes.length - 1], w = at(sc, '#wand');
-    sc.cursorKeys = [[0, 760, 560], [1.6, w.x, w.y], [CLICK, w.x, w.y, 1], [3.6, 980, 420], [7.4, 980, 420]]; }
+    order.forEach(k => { const n = $(el, '#f-' + k + ' [data-count]'); n.textContent = counts[k]; n.style.opacity = counts[k] ? 1 : 0; });
+    const f = $(el, '#orgflash');
+    f.style.opacity = fadeIO(t, 3.35, 5.8, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, 3.35, 3.7))) * 8}px)`;
+  }, [[0, 1.0, 640, 360], [3.5, 1.0, 640, 360], [4.3, 1.18, 420, 250], [6, 1.18, 420, 250]]);
+  const sc = scenes[scenes.length - 1], w = at(sc, '#wand');
+  sc.cursorKeys = [[0, 760, 600], [1.2, w.x, w.y], [CLICK, w.x, w.y, 1], [2.8, 980, 470], [6, 980, 470]];
+  rings(sc, [[CLICK - 0.35, CLICK + 0.55, '#wand', 5, 10], [3.6, 5.8, { x: 140, y: 136, w: 480, h: 104 }, 6, 16]]);
 }
 
-// ================= Scene 5 — the Frame over another app (21.0–28.6) =================
+// ================= Scene 4 — the Frame over Chrome (15.8–22.2) =================
 {
-  const design = `<div class="window" id="dapp" style="left:0;top:24px;width:1280px;height:696px;border-radius:0;background:#E9E9EA">
-    <div style="height:38px;background:#F4F4F4;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:12px;font-size:12.5px">
-      <div class="lights" id="dlights"><i></i><i></i><i></i></div><span id="dtitle" style="margin-left:12px;color:var(--ink3);font-weight:600">Poster Series — Layout</span></div>
-    <div class="abs" style="left:0;top:38px;bottom:0;width:190px;background:#F4F4F4;border-right:1px solid var(--line);padding:12px;font-size:12px;color:#555;line-height:2">
-      <div style="font-weight:600;color:#333">Layers</div><div>▾ Poster A2</div><div style="padding-left:14px">Title</div><div style="padding-left:14px">Date</div><div style="padding-left:14px">Image</div><div style="padding-left:14px">Background</div></div>
-    <div class="abs" style="right:0;top:38px;bottom:0;width:200px;background:#F4F4F4;border-left:1px solid var(--line);padding:12px;font-size:12px;color:#555;line-height:2.1">
-      <div style="font-weight:600;color:#333">Text</div><div>Inter · Extra Bold</div><div>96 pt · −2 %</div><div style="font-weight:600;color:#333;margin-top:8px">Fill</div><div><span class="dotc" style="width:10px;height:10px;background:#fff;box-shadow:0 0 0 1px #aaa"></span>&nbsp; #FFFFFF</div></div>
-    <div class="abs" id="artboard" style="left:290px;top:90px;width:300px;height:424px;box-shadow:0 4px 18px rgba(0,0,0,.15)">${poster(0, 300, 424)}
-      <div class="abs" style="left:30px;top:30px;font:600 13px Inter;color:#fff;letter-spacing:.08em">21—30 OCT</div></div>
-  </div>`;
   const libRows = [
-    ['lib-p', `<div class="th" style="width:30px;height:30px">${poster(1, 30, 30)}</div>`, 'Poster 03'],
-    ['', `<div class="th" style="width:30px;height:30px;background:#fff;color:#ccc">${poster(3, 30, 30)}</div>`, 'Screenshot 09.41'],
-    ['', `<div class="th" style="width:30px;height:30px;background:var(--k-linker);color:#fff;font-size:14px">${I.link}</div>`, 'youtube.com'],
-    ['', `<div class="th" style="width:30px;height:30px;background:var(--note);color:#9a6a1c;font-size:14px">${I.lines}</div>`, 'Re-measure, install'],
-  ].map(([id, th, n]) => `<div ${id ? `id="${id}"` : ''} style="display:flex;align-items:center;gap:8px;height:40px;padding:0 6px;font-size:12px;border-radius:6px">${th}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span></div>`).join('');
-  const FR = { x: 688, y: 66, w: 568, h: 590 };
+    ['lib-p', `<div class="th" style="width:30px;height:30px">${img('mammoth3.jpg', 30, 30)}</div>`, he(ART(3))],
+    ['', `<div class="th" style="width:30px;height:30px">${img('show/060.jpg', 30, 30)}</div>`, 'enjoy_the_show!_v1 (1080p).mp4'],
+    ['', `<div class="th" style="width:30px;height:30px">${img('wiki-skeleton.jpg', 30, 30)}</div>`, 'Screenshot 2026-10-21 at 10.41.12'],
+    ['', `<div class="th" style="width:30px;height:30px;background:var(--k-linker);color:#fff;font-size:14px">${I.link}</div>`, 'en.wikipedia.org'],
+    ['', `<div class="th" style="width:30px;height:30px;background:var(--note);color:#9a6a1c;font-size:14px">${I.lines}</div>`, 'Print #3 and #4 at 120 cm'],
+  ].map(([id, th, n]) => `<div ${id ? `id="${id}"` : ''} style="display:flex;align-items:center;gap:8px;height:40px;padding:0 6px;font-size:12px;border-radius:6px">${th}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${n}</span></div>`).join('');
+  const FR = { x: 654, y: 60, w: 600, h: 612 };
+  const frames = Array.from({ length: 150 }, (_, i) => `<img class="vf" src="${A}show/${String(i + 1).padStart(3, '0')}.jpg" style="position:absolute;inset:0;width:100%;height:100%;display:${i ? 'none' : 'block'}">`).join('');
   const frame = `<div class="window" id="frame" style="left:${FR.x}px;top:${FR.y}px;width:${FR.w}px;height:${FR.h}px;background:#EDEDEC;box-shadow:0 0 0 .5px rgba(0,0,0,.25),0 18px 48px rgba(0,0,0,.30)">
     <div style="height:40px;display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid var(--line);color:var(--ink2);font-size:14px">
       <div class="lights" id="flights"><i></i><i></i><i></i></div><span style="color:#E8A23A">${I.lock}</span><span style="color:var(--accent)">${I.frame}</span><span>${I.sidebar}</span>
       <span style="margin-left:auto;background:rgba(0,0,0,.06);border-radius:7px;padding:3px 6px;display:flex;gap:8px"><span style="color:var(--accent)">${I.arrow}</span><span>${I.hand}</span></span>
       <span>${I.minus}</span><span style="font-size:11.5px;font-weight:500">100%</span><span>${I.plus}</span><span>${I.trash}</span></div>
-    <div class="abs" style="left:0;top:40px;bottom:0;width:168px;border-right:1px solid var(--line);padding:10px 8px">
-      <div class="pill" style="background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);height:26px">${I.clock} Recent<span style="margin-left:auto;color:var(--accent)">${I.chev}</span></div>
+    <div class="abs" style="left:0;top:40px;bottom:0;width:176px;border-right:1px solid var(--line);padding:10px 8px">
+      <div class="pill" style="background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);height:26px">${I.folder} Mammoth<span style="margin-left:auto;color:var(--accent)">${I.chev}</span></div>
       <div class="search" style="margin:8px 0 6px;height:24px;font-size:12px">${I.search} Search</div>${libRows}
       <div class="abs" style="left:10px;bottom:10px;font-size:10px;color:var(--ink3)">Drag in · double-click adds · Space looks</div></div>
-    <div class="abs" id="canvas" style="left:168px;top:40px;right:0;bottom:0;background-color:#E4E4E3;background-image:radial-gradient(rgba(0,0,0,.16) 1px, transparent 1.2px);background-size:20px 20px;overflow:hidden">
-      <div class="abs" style="left:28px;top:30px;width:190px;padding:12px 14px;border-radius:9px;background:var(--note);font-size:13px;line-height:1.35;box-shadow:0 1px 3px rgba(0,0,0,.08)">Opening: slow push on the blue poster.</div>
-      <div class="abs" id="video" style="left:52px;top:150px;width:320px;height:180px;border-radius:8px;overflow:hidden;background:#111;box-shadow:0 2px 10px rgba(0,0,0,.2)">
-        <div id="vframe" class="abs" style="inset:0;background:linear-gradient(120deg,#20304f,#6b4a8a 40%,#e27a5a 70%,#20304f);background-size:300% 100%"></div>
-        <div class="abs" id="vshape" style="left:120px;top:44px;width:80px;height:80px;border-radius:50%;background:rgba(255,243,227,.9)"></div>
-        <div class="abs" style="left:12px;top:10px;font-size:12px;color:#fff;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.4)">Swiss type in motion · youtube.com</div>
-        <div class="abs" id="vplay" style="left:132px;top:62px;width:56px;height:40px;border-radius:10px;background:rgba(20,20,20,.75);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center">${I.play}</div>
-        <div class="abs" id="vbar" style="left:12px;right:12px;bottom:10px;height:3px;border-radius:2px;background:rgba(255,255,255,.3);opacity:0"><div id="vprog" style="height:100%;width:8%;background:#fff;border-radius:2px"></div></div>
+    <div class="abs" id="canvas" style="left:176px;top:40px;right:0;bottom:0;background-color:#E4E4E3;background-image:radial-gradient(rgba(0,0,0,.16) 1px, transparent 1.2px);background-size:20px 20px;overflow:hidden">
+      <div class="abs" style="left:24px;top:22px;width:200px;padding:12px 14px;border-radius:9px;background:var(--note);font-size:13px;line-height:1.35;box-shadow:0 1px 3px rgba(0,0,0,.08)">Print #3 and #4 at 120 cm. Matte.</div>
+      <div class="abs" id="video" style="left:30px;top:112px;width:360px;height:180px;border-radius:8px;overflow:hidden;background:#111;box-shadow:0 2px 10px rgba(0,0,0,.2)">${frames}
+        <div class="abs" id="vctl" style="left:10px;right:10px;bottom:10px;height:30px;border-radius:9px;background:rgba(40,40,42,.62);display:flex;align-items:center;gap:10px;padding:0 10px;color:#fff;font-size:13px">
+          <span id="vbtn" style="width:16px;display:flex;justify-content:center">${I.play}</span>
+          <div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.3)"><div id="vprog" style="height:100%;width:2%;background:#fff;border-radius:2px"></div></div>
+          <span id="vtime" style="font-size:11px;font-variant-numeric:tabular-nums">0:00</span></div>
       </div>
-      <div class="abs" id="dropped" style="left:222px;top:350px;width:150px;height:150px;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.18)">${poster(1, 150, 150)}</div>
+      <div class="abs" id="dropped" style="left:200px;top:318px;width:210px;height:136px;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('mammoth3.jpg', 210, 136)}</div>
     </div>
   </div>
-  <div class="abs" id="ghost" style="width:60px;height:60px;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90">${poster(1, 60, 60)}</div>`;
-  const DROP = 2.75, PLAY = 3.75, BACK = 5.2;
-    scene(21.0, 28.6, `${menubar('Swiss')}${design}${frame}`, (t, el) => {
-    // Drag "Poster 03" from the library onto the canvas.
-    const dragging = t > 1.3 && t < DROP;
-    $(el, '#lib-p').style.background = t > 1.3 && t < DROP + 0.4 ? 'rgba(10,122,255,.16)' : 'transparent';
+  <div class="abs" id="ghost" style="width:72px;height:47px;border-radius:5px;overflow:hidden;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90">${img('mammoth3.jpg', 72, 47)}</div>`;
+  const GRAB = 0.75, DROP = 1.6, PLAY = 2.35, BACK = 4.25;
+  const pause = '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  scene(15.8, 22.2, `${menubar('Swiss')}${chrome(0, 24, 1280, 696, 'c4', { s: 1, ox: 0, oy: 0, active: false })}${frame}`, (t, el) => {
+    const sc = scenes[3];
+    const dragging = t > GRAB && t < DROP;
+    $(el, '#lib-p').style.background = t > GRAB && t < DROP + 0.4 ? 'rgba(10,122,255,.16)' : 'transparent';
     const g = $(el, '#ghost');
     if (dragging) {
-      const sc = scenes[scenes.length - 1];
       const m = /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(sc.cursor.style.transform);
-      if (m) Object.assign(g.style, { left: (+m[1] + 10) + 'px', top: (+m[2] + 14) + 'px' });
+      if (m) Object.assign(g.style, { left: (+m[1] + 8) + 'px', top: (+m[2] + 12) + 'px' });
     }
-    g.style.opacity = dragging ? 0.92 * eo(seg(t, 1.3, 1.5)) : 0;
-    const dp = $(el, '#dropped'), di = eo(seg(t, DROP, DROP + 0.35));
+    g.style.opacity = dragging ? 0.92 * eo(seg(t, GRAB, GRAB + 0.15)) : 0;
+    const dp = $(el, '#dropped'), di = eo(seg(t, DROP, DROP + 0.3));
     dp.style.opacity = di; dp.style.transform = `scale(${0.94 + 0.06 * di})`;
-    // Play the YouTube video on the canvas.
-    const playing = seg(t, PLAY + 0.05, PLAY + 0.4);
-    $(el, '#vplay').style.opacity = 1 - playing;
-    $(el, '#vbar').style.opacity = playing;
-    const vt = Math.max(0, t - PLAY);
-    $(el, '#vprog').style.width = (8 + vt * 4.2) + '%';
-    $(el, '#vframe').style.backgroundPosition = `${(vt * 9) % 300}% 0`;
-    $(el, '#vshape').style.transform = `translate(${Math.sin(vt * 0.9) * 70}px, ${Math.cos(vt * 0.7) * 14}px) scale(${1 + Math.sin(vt * 1.3) * .12})`;
-    // Click back into the design app: it becomes the active app, the Frame stays in front.
+    // The local video plays on the canvas with the Mac's own controls (AVPlayerView); frames are from the real film at 10 fps.
+    const vt = Math.max(0, t - PLAY), playing = t > PLAY;
+    const fi = playing ? Math.min(149, Math.floor(vt * 10)) : 0;
+    el.querySelectorAll('.vf').forEach((f, i) => f.style.display = i === fi ? 'block' : 'none');
+    $(el, '#vbtn').innerHTML = playing ? pause : I.play;
+    $(el, '#vprog').style.width = (2 + vt * 1.2) + '%';
+    $(el, '#vtime').textContent = '0:0' + Math.floor(vt);
+    $(el, '#vctl').style.opacity = playing ? 1 - seg(t, PLAY + 1.4, PLAY + 1.8) : 1;
+    // Click back into Chrome: Chrome becomes active, the Frame stays in front.
     const back = t > BACK;
-    $(el, '#dlights').classList.toggle('off', !back);
+    $(el, '#c4 .lights').classList.toggle('off', !back);
     $(el, '#flights').classList.toggle('off', back);
-    $(el, '#dtitle').style.color = back ? '#3a3a3c' : 'var(--ink3)';
-  }, [[0, 1.0, 640, 360], [0.9, 1.0, 640, 360], [1.9, 1.12, 900, 380], [4.3, 1.12, 900, 380], [5.2, 1.0, 640, 360]]);
-  { const sc = scenes[scenes.length - 1], lib = at(sc, '#lib-p', -30), dp = at(sc, '#dropped', -60, -58), pl = at(sc, '#vplay', 4, 6);
-    sc.cursorKeys = [[0, 420, 610], [1.15, lib.x, lib.y], [1.3, lib.x, lib.y, 1], [DROP, dp.x, dp.y], [3.55, pl.x, pl.y], [PLAY, pl.x, pl.y, 1],
-      [BACK - 0.2, 480, 400], [BACK, 480, 400, 1], [7.6, 480, 400]]; }
+  }, [[0, 1.0, 640, 360], [0.35, 1.0, 640, 360], [1.15, 1.16, 930, 380], [3.75, 1.16, 930, 380], [4.6, 1.0, 640, 360]]);
+  const sc = scenes[scenes.length - 1], lib = at(sc, '#lib-p', -40), dp = at(sc, '#dropped', -40, -30), pl = at(sc, '#vbtn');
+  sc.cursorKeys = [[0, 420, 620], [0.6, lib.x, lib.y], [GRAB, lib.x, lib.y, 1], [DROP, dp.x, dp.y], [PLAY - 0.15, pl.x, pl.y], [PLAY, pl.x, pl.y, 1],
+    [BACK - 0.2, 360, 430], [BACK, 360, 430, 1], [6.4, 360, 430]];
+  rings(sc, [[BACK + 0.2, 6.3, '#frame', 8, 18]]);
 }
 
-// ================= Scene 6 — a connected folder, edited in place (28.6–34.6) =================
+// ================= Scene 5 — a connected folder, edited in place (22.2–27.4) =================
 {
-  const files = ['brief (1).pdf', 'Invoice 0921.pdf', 'logo.svg', 'Photos', 'Reference.webloc'];
-  const finder = `<div class="window" style="left:28px;top:130px;width:530px;height:410px;background:#fff">
+  const NEW = 'Mammoth #3 – print.jpg';
+  const finder = `<div class="window" id="fwin" style="left:24px;top:104px;width:580px;height:420px;background:#fff">
     <div style="height:46px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 14px;font-size:13px">
-      <div class="lights"><i></i><i></i><i></i></div><span style="font-weight:600;margin-left:70px">Client Files</span></div>
-    <div class="abs" style="left:0;top:46px;bottom:0;width:132px;background:#F0F0EF;border-right:1px solid var(--line);padding:10px;font-size:12px;line-height:2.1;color:#444">
-      <div style="font-size:10.5px;color:var(--ink3);font-weight:600">Favourites</div><div>Desktop</div><div>Documents</div><div>Downloads</div><div style="background:rgba(0,0,0,.07);border-radius:5px;padding-left:4px">Client Files</div></div>
-    <div class="abs" style="left:132px;right:0;top:46px">
-      <div class="frow" style="font-size:11px;color:var(--ink3);background:#fff;border-bottom:1px solid var(--line)">Name<span class="d">Date Modified</span></div>
-      ${files.map((f, i) => `<div class="frow" ${i === 0 ? 'id="frow0"' : ''}><span style="font-size:13px;color:${f === 'Photos' ? 'var(--folder-back)' : 'var(--ink3)'}">${f === 'Photos' ? I.folder : I.doc}</span><span class="fn">${f}</span><span class="d">${i === 0 ? '<span id="fdate">Yesterday 16:20</span>' : ['', '12 Oct 2026', '9 Oct 2026', '2 Oct 2026', '28 Sep 2026'][i]}</span></div>`).join('')}
+      <div class="lights off"><i></i><i></i><i></i></div><span style="font-weight:600;margin-left:40px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${he(PROJECT_DIR)}</span></div>
+    <div class="abs" style="left:0;top:46px;bottom:0;width:120px;background:#F0F0EF;border-right:1px solid var(--line);padding:10px;font-size:12px;line-height:2.1;color:#444">
+      <div style="font-size:10.5px;color:var(--ink3);font-weight:600">Favourites</div><div>Desktop</div><div>Documents</div><div>Downloads</div></div>
+    <div class="abs" style="left:120px;right:0;top:46px">
+      <div class="frow" style="font-size:11px;color:var(--ink3);background:#fff;border-bottom:1px solid var(--line)">Name<span class="d" style="width:118px">Date Modified</span></div>
+      ${Array.from({ length: 10 }, (_, i) => `<div class="frow" id="frow${i + 1}"><span style="color:var(--k-photos);font-size:13px">${I.photo}</span><span class="fn" style="white-space:nowrap">${he(ART(i + 1))}</span><span class="d" style="width:118px">${i === 2 ? '<span id="fdate">12 Oct 2026</span>' : '12 Oct 2026'}</span></div>`).join('')}
     </div></div>`;
-  const tile = (f, x, y, i) => {
-    const icon = f === 'Photos' ? `<div style="padding-top:8px">${folderIcon('photos', 64)}</div>`
-      : `<div style="width:50px;height:62px;margin:0 auto;background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.22);display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px;font:700 9px Inter;color:${f.endsWith('pdf') ? '#D33' : f.endsWith('svg') ? '#E8862A' : '#1C9E75'}">${f.split('.').pop().toUpperCase()}</div>`;
-    return `<div class="abs" style="left:${x}px;top:${y}px;width:110px;text-align:center" ${i === 0 ? 'id="t0"' : ''}>${icon}
-      <div class="tn" style="margin:7px auto 0;font-size:12.5px;font-weight:500;display:inline-block;padding:1px 5px;border-radius:4px;max-width:108px">${f}</div></div>`;
-  };
-  const swiss = `<div class="window" style="left:574px;top:110px;width:682px;height:470px">
-    <div class="sidebar" style="width:178px">
-      <div class="lights abs" style="left:16px;top:16px"><i></i><i></i><i></i></div>
-      <div class="srow"><span class="ic">${I.clock}</span>Recent<span class="n">5</span></div>
-      <div class="srow"><span class="ic">${I.stack}</span>All Items<span class="n">214</span></div>
-      <div class="shead">Projects<span>${I.plus}</span></div>
-      <div class="srow"><span class="ic">${I.folder}</span>Poster Series <span class="dotc" style="background:#7aa7e0"></span><span class="n">24</span></div>
-      <div class="srow"><span class="ic">${I.folder}</span>Music Video <span class="dotc" style="background:#8cc78c"></span><span class="n">12</span></div>
-      <div class="srow"><span class="ic">${I.folder}</span>Thesis <span class="dotc" style="background:#e0b46a"></span><span class="n">31</span></div>
-      <div class="shead">Connected<span>${I.plus}</span></div>
-      <div class="srow sel"><span class="ic">${I.drive}</span>Client Files</div>
-    </div>
-    <div class="abs" style="left:178px;right:0;top:0;bottom:0">
-      <div class="toolbar" style="left:14px;right:14px;top:10px"><div class="search" style="width:210px">${I.search} Search Client Files</div>
-        <div class="pill">${I.drive} Client Files</div><span style="margin-left:auto">${I.arrange}</span><span style="background:rgba(0,0,0,.07);border-radius:5px;padding:3px 5px">${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
-      ${files.map((f, i) => tile(f, 20 + (i % 4) * 118, 70 + Math.floor(i / 4) * 130, i)).join('')}
+  const pics = ['mammoth1.jpg', 'mammoth2.jpg', 'mammoth3.jpg', 'mammoth4.jpg', 'mammoth5.jpg', 'mammoth6.jpg'];
+  const tiles = pics.map((p, i) => `<div class="abs" id="t${i + 1}" style="left:${10 + (i % 3) * 150}px;top:${62 + Math.floor(i / 3) * 172}px;width:146px;text-align:center">
+      <div style="width:132px;height:88px;margin:0 auto;border-radius:4px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.2)">${img(p, 132, 88)}</div>
+      <div class="tn" dir="auto" style="margin:8px auto 0;font:500 11.5px/1.3 Inter,'Liberation Sans',sans-serif;padding:1px 5px;border-radius:4px;max-width:146px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${ART(i + 1)}</div></div>`).join('');
+  const swiss = `<div class="window" style="left:620px;top:90px;width:636px;height:490px">
+    ${swissSidebar('connected', 5, 170)}
+    <div class="abs" style="left:170px;right:0;top:0;bottom:0">
+      <div class="toolbar" style="left:14px;right:14px;top:10px"><div class="search" style="width:200px">${I.search} Search</div>
+        <div class="pill">${I.drive} Connected</div><span style="margin-left:auto">${I.arrange}</span><span style="background:rgba(0,0,0,.07);border-radius:5px;padding:3px 5px">${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
+      ${tiles}
     </div></div>
-  <div class="key" id="kr1" style="left:940px;top:500px">↩</div><div class="key" id="kr2" style="left:940px;top:500px">↩</div>`;
-  const NEW = 'Brief.pdf';
-  scene(28.6, 34.6, `${menubar('Swiss', ['File', 'Edit', 'View', 'Go', 'Window', 'Help'])}${finder}${swiss}`, (t, el) => {
-    const tn = $(el, '#t0 .tn');
-    const selected = t > 1.3, editing = t > 1.75 && t < 3.15;
-    const typed = Math.floor(clamp((t - 2.0) / 0.9) * NEW.length);
-    let name = 'brief (1).pdf';
-    if (editing) name = t < 2.0 ? 'brief (1).pdf' : NEW.slice(0, typed) + (Math.floor(t * 2.2) % 2 ? '|' : '');
-    if (t >= 3.15) name = NEW;
-    tn.textContent = name;
-    if (editing) Object.assign(tn.style, { background: '#fff', color: '#1d1d1f', boxShadow: '0 0 0 2px rgba(10,122,255,.6)' });
-    else if (selected) Object.assign(tn.style, { background: 'var(--accent)', color: '#fff', boxShadow: 'none' });
+  <div class="key" id="kr1" style="left:1000px;top:520px">↩</div><div class="key" id="kr2" style="left:1000px;top:520px">↩</div>`;
+  const SELT = 0.95, EDIT = 1.35, TYPE = 1.55, DONE = 2.55;
+  scene(22.2, 27.4, `${menubar('Swiss', ['File', 'Edit', 'View', 'Go', 'Window', 'Help'])}${finder}${swiss}`, (t, el) => {
+    const tn = $(el, '#t3 .tn');
+    const editing = t > EDIT && t < DONE;
+    const typed = Math.floor(clamp((t - TYPE) / 0.75) * NEW.length);
+    if (t >= DONE) { tn.textContent = NEW; tn.dir = 'ltr'; }
+    else if (editing && t >= TYPE) { tn.textContent = NEW.slice(0, typed) + (Math.floor(t * 2.2) % 2 ? '|' : ''); tn.dir = 'ltr'; }
+    else { tn.textContent = ART(3); tn.dir = 'auto'; }
+    if (editing) Object.assign(tn.style, { background: t < TYPE ? 'rgba(10,122,255,.25)' : '#fff', color: '#1d1d1f', boxShadow: '0 0 0 2px rgba(10,122,255,.6)' });
+    else if (t > SELT) Object.assign(tn.style, { background: 'var(--accent)', color: '#fff', boxShadow: 'none' });
     else Object.assign(tn.style, { background: 'transparent', color: '#2a2a2c', boxShadow: 'none' });
-    if (editing && t < 2.0) Object.assign(tn.style, { background: 'rgba(10,122,255,.25)' });
-    show($(el, '#kr1'), fadeIO(t, 1.5, 2.2, 0.2)); show($(el, '#kr2'), fadeIO(t, 3.0, 3.7, 0.2));
-    // Finder shows the same file renamed.
-    const done = t > 3.35;
-    $(el, '#frow0 .fn').textContent = done ? NEW : 'brief (1).pdf';
-    $(el, '#fdate').textContent = done ? 'Today 09:42' : 'Yesterday 16:20';
-    const hl = done ? 1 - seg(t, 4.0, 5.2) : 0;
-    $(el, '#frow0').style.background = `rgba(10,122,255,${0.16 * hl})`;
-  }, [[0, 1.0, 640, 360], [6, 1.0, 640, 360]]);
-  { const sc = scenes[scenes.length - 1], n = at(sc, '#t0 .tn', 18, 4);
-    sc.cursorKeys = [[0, 1000, 640], [1.15, n.x, n.y], [1.3, n.x, n.y, 1], [3.6, 1080, 540], [6, 1080, 540]]; }
+    show($(el, '#kr1'), fadeIO(t, EDIT - 0.15, EDIT + 0.45, 0.15)); show($(el, '#kr2'), fadeIO(t, DONE - 0.15, DONE + 0.5, 0.15));
+    // Finder shows the same file renamed, a moment later.
+    const done = t > DONE + 0.2;
+    $(el, '#frow3 .fn').innerHTML = done ? NEW : he(ART(3));
+    $(el, '#fdate').textContent = done ? 'Today 10:44' : '12 Oct 2026';
+    $(el, '#frow3').style.background = `rgba(10,122,255,${0.18 * (done ? 1 - seg(t, 4.2, 5.0) : 0)})`;
+  }, [[0, 1.0, 640, 360], [5.2, 1.0, 640, 360]]);
+  const sc = scenes[scenes.length - 1], n = at(sc, '#t3 .tn', 10, 2);
+  sc.cursorKeys = [[0, 1040, 650], [SELT - 0.15, n.x, n.y], [SELT, n.x, n.y, 1], [DONE + 0.4, 1120, 560], [5.2, 1120, 560]];
+  rings(sc, [[DONE + 0.3, 4.9, '#frow3', 3, 8]]);
 }
 
-// ================= Scene 7 — the organized workspace (34.6–37.4) =================
+// ================= Scene 6 — organized, and private (27.4–30.6) =================
 {
-  const cards = `<div class="card" style="left:24px;top:176px;width:250px;height:180px">${poster(0, 250, 180)}</div>
-    <div class="card notecard" style="left:290px;top:176px;width:270px;height:118px"><div class="q">“</div>Opening: start on the blue poster, slow push in.<div class="ago">10 minutes ago</div></div>
-    <div class="card" style="left:576px;top:176px;width:250px;height:104px"><div style="height:44px;${posters[5]}"></div><div class="meta"><div class="t">Swiss Poster Archive</div><div class="h">${I.link} are.na</div></div></div>
-    <div class="card" style="left:842px;top:176px;width:220px;height:150px">${poster(1, 220, 150)}</div>`;
+  const cards = `<div class="card" style="left:24px;top:176px;width:260px;height:198px">${img('wiki-skeleton.jpg', 260, 198)}</div>
+    <div class="card notecard" style="left:300px;top:176px;width:270px;height:112px"><div class="q">“</div>Exhibition opens 4 Nov. Hang #1 first.<div class="ago">just now</div></div>
+    <div class="card" style="left:586px;top:176px;width:280px;height:182px">${img('mammoth2.jpg', 280, 182)}</div>
+    <div class="card" style="left:300px;top:304px;width:270px;height:74px"><div class="meta" style="display:flex;gap:10px;align-items:center;padding:12px"><div style="width:30px;height:36px;border-radius:3px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);font:700 8px Inter;color:#D33;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;flex:none">PDF</div><div><div class="t">Print quote – 120 cm.pdf</div><div class="h">184 KB</div></div></div></div>`;
   const html = `${menubar('Swiss', ['File', 'Edit', 'View', 'Go', 'Window', 'Help'])}
   <div class="window" style="left:24px;top:40px;width:1232px;height:664px">
-    <div class="sidebar" style="width:178px">
-      <div class="lights abs" style="left:16px;top:16px"><i></i><i></i><i></i></div>
-      <div class="srow"><span class="ic">${I.clock}</span>Recent<span class="n">5</span></div>
-      <div class="srow"><span class="ic">${I.stack}</span>All Items<span class="n">214</span></div>
-      <div class="shead">Projects<span>${I.plus}</span></div>
-      <div class="srow sel"><span class="ic">${I.folder}</span>Poster Series <span class="dotc" style="background:#7aa7e0"></span><span class="n" style="display:flex;gap:6px;align-items:center"><span style="font-size:8px">${I.pin}</span>24</span></div>
-      <div class="srow"><span class="ic">${I.folder}</span>Music Video <span class="dotc" style="background:#8cc78c"></span><span class="n">12</span></div>
-      <div class="srow"><span class="ic">${I.folder}</span>Thesis <span class="dotc" style="background:#e0b46a"></span><span class="n">31</span></div>
-      <div class="shead">Connected<span>${I.plus}</span></div>
-      <div class="srow"><span class="ic">${I.drive}</span>Client Files</div>
-    </div>
+    ${swissSidebar('mammoth', 5, 178)}
     <div class="abs" style="left:178px;right:0;top:0;bottom:0">
-      <div class="toolbar" style="left:14px;right:14px;top:10px"><span>${I.lock}</span><span>${I.frame}</span><span>${I.sidebar}</span><div class="search" style="width:280px">${I.search} Search Poster Series</div>
-        <div class="pill">${I.tray} Poster Series</div><span style="margin-left:auto">${I.arrange}</span><span style="background:rgba(0,0,0,.07);border-radius:5px;padding:3px 5px">${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
+      <div class="toolbar" style="left:14px;right:14px;top:10px"><span>${I.lock}</span><span>${I.frame}</span><span>${I.sidebar}</span><div class="search" style="width:280px">${I.search} Search Mammoth</div>
+        <div class="pill">${I.tray} Mammoth</div><span style="margin-left:auto">${I.arrange}</span><span style="background:rgba(0,0,0,.07);border-radius:5px;padding:3px 5px">${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
       <div class="abs" style="left:0;right:0;top:44px;bottom:30px">
-        ${folderTile('classic', 'Print shop', 20, 40, { num: 1, count: 6, tag: '#F09E26' })}${folderTile('photos', 'PhotoBook', 140, 40, { num: 2, count: 4 })}
-        ${folderTile('linker', 'Linker', 260, 40, { num: 3, count: 2 })}${folderTile('notes', 'Notepad', 380, 40, { num: 4, count: 2 })}
-        ${folderTile('files', 'Files', 500, 40, { num: 5, count: 3 })}${cards}</div>
-      <div class="quickbar"><span><small>⌘1</small>Note</span><span><small>⌘2</small>Folder</span><span><small>⌘3</small>Linker</span><span><small>⌘4</small>PhotoBook</span><span><small>⌘5</small>Notepad</span><span><small>⌘6</small>Files</span>
-        <span style="margin-left:auto;color:var(--ink3)">1–9 open · ⌃Tab tabs</span><span>?</span></div>
+        ${folderTile('classic', 'Print shop', 20, 40, { num: 1, count: 6, tag: '#F09E26' })}${folderTile('photos', 'PhotoBook', 140, 40, { num: 2, count: 5 })}
+        ${folderTile('linker', 'Linker', 260, 40, { num: 3, count: 1 })}${folderTile('notes', 'Notepad', 380, 40, { num: 4, count: 1 })}
+        ${folderTile('files', 'Files', 500, 40, { num: 5, count: 2 })}${cards}</div>
+      ${quickbar}
     </div></div>`;
-  scene(34.6, 37.4, html, () => {}, [[0, 1.07, 600, 336], [2.8, 1.0, 640, 360]]);
+  scene(27.4, 30.6, html, () => {}, [[0, 1.08, 600, 330], [3.2, 1.0, 640, 360]]);
 }
 
-// ================= End card (37.4–40.0) =================
+// ================= End card, after a red diagonal wipe (30.6–34.0) =================
+const wipe = document.createElement('div');
+Object.assign(wipe.style, { position: 'absolute', top: '-20%', height: '140%', width: (SW * 1.6) + 'px', left: 0, background: 'var(--red)', zIndex: 20 });
+stage.appendChild(wipe);
 const endEl = document.createElement('div');
 endEl.className = 'abs';
-Object.assign(endEl.style, { left: 0, top: 0, width: SW + 'px', height: SH + 'px', background: 'var(--paper)', opacity: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' });
+Object.assign(endEl.style, { left: 0, top: 0, width: SW + 'px', height: SH + 'px', background: 'var(--paper)', opacity: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 });
 const iconPx = VERTICAL ? 260 : 200;
 endEl.innerHTML = `<img id="endicon" src="icon.png" style="width:${iconPx}px;height:${iconPx}px;border-radius:${iconPx * .225}px;box-shadow:0 2px 4px rgba(0,0,0,.06),0 16px 40px rgba(76,46,33,.16)">
   <div id="endword" style="margin-top:${VERTICAL ? 54 : 40}px;font:700 ${VERTICAL ? 96 : 80}px Inter;letter-spacing:-0.035em;color:#3B3B3D">Swiss</div>
@@ -637,29 +647,34 @@ endEl.innerHTML = `<img id="endicon" src="icon.png" style="width:${iconPx}px;hei
   <div id="endsmall" style="margin-top:${VERTICAL ? 44 : 34}px;font:500 ${VERTICAL ? 24 : 19}px Inter;color:#A1A1A6;letter-spacing:.01em">For Mac · macOS 14 or later</div>`;
 stage.appendChild(endEl);
 
-// ================= Captions =================
+// ================= Captions: a red eyebrow, a headline, a few chips =================
 const CAPS = [
-  [0.5, 4.4, 'Project material ends up everywhere.'],
-  [5.0, 9.4, 'Copy it. Swiss keeps it in Recent.', 'Capture is opt-in · Settings → Capture'],
-  [9.9, 13.4, 'Keep what matters in a project.'],
-  [14.0, 20.8, 'One click sorts the board by kind.'],
-  [21.4, 28.4, 'The Frame stays on top while you work.'],
-  [29.0, 34.4, 'Connect a Finder folder. Edit the real files.'],
-  [35.0, 37.2, 'Everything for the project, in one place.'],
+  { a: 0.2, b: 3.4, pre: 'Your project lives in', cycle: [['browser tabs.', 0.2], ['Downloads.', 1.3], ['screenshots.', 2.4]] },
+  { a: 3.85, b: 7.25, eye: '01 · Recent', h: 'Copy it once. It lands in Recent.', chips: [['Link captured', 5.0], ['Screenshot captured', 6.3], ['Opt-in · Settings → Capture', 6.55, 1]] },
+  { a: 7.35, b: 9.6, eye: '02 · Keep', h: 'Keep what matters in a project.', chips: [['Moved into Mammoth', 8.05], ['Recent clears after 3 days', 8.35, 1]] },
+  { a: 10.0, b: 15.6, eye: '03 · The wand', h: 'One click sorts the board by kind.', chips: [['Pictures → PhotoBook', 11.7], ['Links → Linker', 11.9], ['Notes → Notepad', 12.1], ['Files & docs → Files', 12.3]] },
+  { a: 16.0, b: 22.0, eye: '04 · The Frame', h: 'A canvas that stays on top.', chips: [['Drag in from your library', 17.45], ['Videos play in place', 18.25]] },
+  { a: 22.4, b: 27.2, eye: '05 · Connected folders', h: 'Work right inside any Finder folder.', chips: [['Rename, move, tag', 23.3], ['Finder follows along', 25.1]] },
+  { a: 27.6, b: 30.25, eye: '06 · On your Mac', h: 'Everything in one place.', chips: [['No account', 28.2], ['No cloud', 28.4]] },
 ];
-const capEls = CAPS.map(([a, b, main, sub]) => {
+const capEls = CAPS.map(c => {
   const d = document.createElement('div'); d.className = 'cap';
-  d.innerHTML = `<div class="main" style="font-size:${L.capSize}px">${main}</div>${sub ? `<div class="sub" style="font-size:${L.subSize}px">${sub}</div>` : ''}`;
+  const eye = c.eye ? `<div class="eye" style="font-size:${L.eye}px">${c.eye}</div>` : '';
+  const head = c.cycle
+    ? `<div class="h1" style="font-size:${L.h1}px"><span class="cyc-wrap">${c.pre} <span class="cyc">${c.cycle.map(([w]) => `<span class="w">${w}</span>`).join('')}<span class="sizer">${c.cycle.map(([w]) => w).sort((x, y) => y.length - x.length)[0]}</span></span></span></div>`
+    : `<div class="h1" style="font-size:${L.h1}px">${c.h}</div>`;
+  const chips = c.chips ? `<div class="chips">${c.chips.map(([n, , muted]) => `<span class="chip ${muted ? 'muted' : ''}" style="font-size:${L.chip}px">${muted ? '' : '<b>+</b>'}${n}</span>`).join('')}</div>` : '';
+  d.innerHTML = eye + head + chips;
   caps.appendChild(d); return d;
 });
 
 // ================= seek =================
-const DIP = 0.35; // each scene fades out to the desktop, the next fades in
-window.DURATION = 40.0;
+const DIP = 0.3;
+const WIPE_IN = [30.15, 30.55], WIPE_OUT = [30.55, 31.0];
+window.DURATION = 34.0;
 window.seek = function (t) {
   for (const sc of scenes) {
-    const first = sc === scenes[0];
-    const last = sc === scenes[scenes.length - 1];
+    const first = sc === scenes[0], last = sc === scenes[scenes.length - 1];
     const op = Math.min(first ? 1 : io(seg(t, sc.a, sc.a + DIP)), last ? 1 : 1 - io(seg(t, sc.b - DIP, sc.b)));
     sc.el.style.opacity = op;
     sc.el.style.display = op > 0 ? 'block' : 'none';
@@ -668,39 +683,52 @@ window.seek = function (t) {
     sc.el.style.transform = cam(VERTICAL && sc.vcam ? sc.vcam : sc.camera, lt);
     moveCursor(sc, sc.cursorKeys, lt);
     sc.update(lt, sc.el);
+    drawRings(sc, lt);
   }
-  screenEl.style.opacity = io(seg(t, 0, 0.6));
-  // Captions: fade with a small rise.
-  CAPS.forEach(([a, b], i) => {
-    const o = fadeIO(t, a, b, 0.45);
-    capEls[i].style.opacity = o;
-    capEls[i].style.transform = `translateY(${(1 - eo(seg(t, a, a + 0.6))) * 10}px)`;
+  screenEl.style.opacity = io(seg(t, 0, 0.4));
+  CAPS.forEach((c, i) => {
+    const el = capEls[i], o = fadeIO(t, c.a, c.b, 0.3);
+    el.style.opacity = o;
+    el.style.display = o > 0 ? 'block' : 'none';
+    const e = $(el, '.eye'), h = $(el, '.h1');
+    if (e) { const u = eo(seg(t, c.a, c.a + 0.45)); e.style.transform = `translateY(${(1 - u) * 8}px)`; }
+    const uh = eo(seg(t, c.a + 0.06, c.a + 0.55)); h.style.transform = `translateY(${(1 - uh) * 12}px)`;
+    if (c.cycle) el.querySelectorAll('.cyc .w').forEach((w, j) => {
+      const a = c.cycle[j][1], b = j + 1 < c.cycle.length ? c.cycle[j + 1][1] : c.b + 1;
+      const inn = j === 0 ? 1 : eo(seg(t, a, a + 0.32)), out = eo(seg(t, b, b + 0.32));
+      w.style.opacity = Math.min(inn, 1 - out);
+      w.style.transform = `translateY(${(1 - inn) * 0.6 - out * 0.6}em)`;
+    });
+    if (c.chips) el.querySelectorAll('.chip').forEach((ch, j) => {
+      const u = eo(seg(t, c.chips[j][1], c.chips[j][1] + 0.35));
+      ch.style.opacity = u; ch.style.transform = `translateY(${(1 - u) * 8}px) scale(${0.96 + 0.04 * u})`;
+    });
   });
-  // The screen gives way to the end card.
-  const e = io(seg(t, 37.2, 37.9));
-  endEl.style.opacity = e;
-  const ic = eo(seg(t, 37.5, 38.4)), wd = eo(seg(t, 37.8, 38.6)), ln = eo(seg(t, 38.1, 38.9)), sm = eo(seg(t, 38.4, 39.2));
+  // A red diagonal wipe crosses the stage and leaves the end card behind it.
+  const wi = io(seg(t, ...WIPE_IN)), wo = io(seg(t, ...WIPE_OUT));
+  const W0 = -SW * 1.75, W1 = -SW * 0.3, W2 = SW * 1.2;
+  wipe.style.transform = `translateX(${t < WIPE_OUT[0] ? lerp(W0, W1, wi) : lerp(W1, W2, wo)}px) skewX(-18deg)`;
+  wipe.style.display = t > WIPE_IN[0] && t < WIPE_OUT[1] ? 'block' : 'none';
+  endEl.style.opacity = t >= WIPE_OUT[0] ? 1 : 0;
+  const ic = eo(seg(t, 30.75, 31.5)), wd = eo(seg(t, 31.0, 31.7)), ln = eo(seg(t, 31.25, 31.95)), sm = eo(seg(t, 31.5, 32.2));
   const ei = document.getElementById('endicon');
-  ei.style.opacity = ic; ei.style.transform = `scale(${0.96 + 0.04 * ic})`;
+  ei.style.opacity = ic; ei.style.transform = `scale(${0.94 + 0.06 * ic})`;
   for (const [id, v] of [['endword', wd], ['endline', ln], ['endsmall', sm]]) {
     const n = document.getElementById(id); n.style.opacity = v; n.style.transform = `translateY(${(1 - v) * 10}px)`;
   }
 };
-// Scene 1 has no cursor; scenes 2–3's path:
 scenes[0].cursorKeys = null;
-const KEEP = at(scenes[1], '#keepbtn span'), SHOT = at(scenes[1], '#r-shot .tt', -40, 4);
-scenes[1].cursorKeys = [[0, 470, 650], [0.9, 330, 160], [1.0, 330, 160, 1], [2.6, 380, 356], [3.15, 92, 252], [3.25, 92, 252, 1], [3.95, 392, 422], [5.2, 560, 476],
-  [6.0, SHOT.x, SHOT.y], [6.1, SHOT.x, SHOT.y, 1], [7.05, KEEP.x, KEEP.y], [7.2, KEEP.x, KEEP.y, 1], [9.0, KEEP.x - 70, KEEP.y - 60]];
-// Vertical framing: one calm move per scene, following the action.
+// Vertical framing (a 680-point-wide crop): one calm move per scene, following the action.
 [
-  [[0, 1, 420, 360], [4.6, 1, 600, 360]],
-  [[0, 1, 330, 360], [4.0, 1, 330, 360], [4.9, 1, 940, 360], [5.3, 1, 940, 360], [6.0, 1.12, 948, 352], [9, 1.12, 948, 352]],
-  [[0, 1, 900, 360], [2.0, 1, 900, 360], [3.0, 1, 420, 360], [7.4, 1, 420, 360]],
-  [[0, 1, 940, 360], [4.4, 1, 940, 360], [5.2, 1, 700, 360], [7.6, 1, 700, 360]],
-  [[0, 1, 530, 360], [6, 1, 530, 360]],
-  [[0, 1.04, 520, 360], [2.8, 1, 520, 360]],
+  [[0, 1, 400, 360], [1.2, 1, 400, 360], [1.8, 1, 880, 360], [2.4, 1, 880, 360], [3.0, 1, 940, 360], [3.6, 1, 940, 360]],
+  [[0, 1, 330, 360], [2.5, 1, 330, 360], [3.1, 1, 950, 360], [3.5, 1.12, 950, 340], [6.2, 1.12, 950, 340]],
+  [[0, 1, 900, 360], [1.5, 1, 900, 360], [2.3, 1, 420, 360], [6, 1, 420, 360]],
+  [[0, 1, 940, 360], [6.4, 1, 940, 360]],
+  [[0, 1, 940, 360], [2.75, 1, 940, 360], [3.35, 1, 340, 360], [5.2, 1, 340, 360]],
+  [[0, 1.04, 520, 360], [3.2, 1, 520, 360]],
 ].forEach((k, i) => scenes[i].vcam = k);
 window.seek(params.has('t') ? +params.get('t') : 0);
+
 </script>
 </body>
 </html>

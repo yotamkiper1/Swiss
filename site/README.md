@@ -39,6 +39,14 @@ Source: the v8 film, `~/Downloads/swiss-film-v8-1920x1080.mp4` (40 s, with sound
 There's no notarized build yet, so the page shows "Build it on your Mac". As soon as a GitHub release with a
 `.dmg` or `.zip` asset is published (not a draft or pre-release), the page shows its download, version and size by itself.
 
+## Selling (off for now)
+
+Sales go through Lemon Squeezy's hosted checkout, linked from this site (not the Mac App Store). To switch it on:
+1. Create a Lemon Squeezy store and a product "Swiss" at $2, upload the zipped Swiss.app as its file.
+2. Paste the product's checkout link into `CHECKOUT_URL` in `js/purchase.js` (only `https://*.lemonsqueezy.com/buy/…`
+   links are accepted), then deploy. Empty link = no Buy button.
+No card data or keys ever touch this site; Lemon Squeezy emails the receipt and the download.
+
 ## Deploy (Vercel)
 
 Live at https://swiss-kohl.vercel.app (Vercel project "swiss"). From `site/`: `npx vercel deploy` (preview, behind

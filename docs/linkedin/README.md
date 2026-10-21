@@ -17,7 +17,7 @@ The cover leaves its left third quiet because LinkedIn puts the logo over the bo
 
 - **Name:** Swiss
 - **LinkedIn public URL:** linkedin.com/company/swiss-app (plain `swiss` is almost certainly taken; `swissformac` also works)
-- **Website:** the site's address once it's live (for now: https://github.com/yotamkiper1/Swiss)
+- **Website:** https://swiss-kohl.vercel.app
 - **Industry:** Software Development
 - **Organization size:** 0–1 employees
 - **Organization type:** Self-Owned (or Privately Held)
@@ -55,8 +55,8 @@ macOS, Mac apps, Productivity, Menu bar apps, Note taking, Reference management,
 >
 > No account. No cloud. Everything stays on your Mac.
 >
-> Watch the 80-second film and get Swiss: [website link]
+> See it in 36 seconds: https://swiss-kohl.vercel.app
 >
 > #macOS #MacApps #Productivity #Design
 
-Attach `swiss-linkedin-post-1200x627.png`, or better, the film itself (LinkedIn accepts MP4 up to 5 GB; the web copy at `site/media/swiss-commercial.mp4` is 6 MB). If you upload the film, also add its captions file `site/media/swiss-commercial.en.vtt` (LinkedIn calls it "SRT/captions"; convert to .srt if it insists).
+Attach the film: `~/Desktop/Swiss Social/linkedin/swiss-film-1920x1080.mp4` (the v8 film, 36 s, with sound, no end card), or the image `swiss-linkedin-post-1200x627.png`. Instagram texts and files: `~/Desktop/Swiss Social/README.md`.

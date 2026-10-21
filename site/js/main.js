@@ -1,5 +1,6 @@
 import { setupClips } from "./videos.js";
 import { resolveRelease } from "./release.js";
+import { checkoutLink, PRICE } from "./purchase.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -64,6 +65,18 @@ function setupSound() {
 async function setupDownload() {
   const status = $("#release-status");
   if (!status) return;
+  // Selling: a valid Lemon Squeezy checkout link turns on the Buy button (purchase.js). No link, no button.
+  const buy = checkoutLink();
+  if (buy) {
+    $$("[data-price]").forEach(el => { el.textContent = PRICE; });
+    $("[data-buy-link]").href = buy;
+    $("#download-buy").hidden = false;
+    $("#download-none").hidden = true;
+    status.dataset.status = "ready";
+    $("[data-release-text]").textContent = `Swiss 1.0 is available for ${PRICE}.`;
+    $$("[data-download-cta]").forEach(a => { a.textContent = `Buy · ${PRICE}`; });
+    return;
+  }
   status.dataset.status = "checking";
   const info = await resolveRelease();
   const ready = $("#download-ready"), none = $("#download-none");

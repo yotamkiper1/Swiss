@@ -1,0 +1,5 @@
+out/
+stills/
+*.mp4
+*.png
+!icon.png

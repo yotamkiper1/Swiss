@@ -1,0 +1,221 @@
+{
+ "master_gain_db": 2.87,
+ "placed": [
+  {
+   "id": "01",
+   "clip": "SFX01_app-open-pop_00.22s.wav",
+   "track": 1,
+   "start": 0.2102,
+   "sync_at": 0.22,
+   "length": 0.1426
+  },
+  {
+   "id": "02",
+   "clip": "SFX02_icon-grows-into-window_03.00s.wav",
+   "track": 2,
+   "start": 2.281,
+   "sync_at": 3.0,
+   "length": 2.05
+  },
+  {
+   "id": "03",
+   "clip": "SFX03_item-arrives-picture_05.38s.wav",
+   "track": 1,
+   "start": 5.361,
+   "sync_at": 5.38,
+   "length": 0.14
+  },
+  {
+   "id": "04",
+   "clip": "SFX04_item-arrives-link_06.48s.wav",
+   "track": 1,
+   "start": 6.4578,
+   "sync_at": 6.48,
+   "length": 0.1272
+  },
+  {
+   "id": "05",
+   "clip": "SFX05_copy-tick_07.30s.wav",
+   "track": 1,
+   "start": 7.284,
+   "sync_at": 7.3,
+   "length": 0.12
+  },
+  {
+   "id": "06",
+   "clip": "SFX06_item-arrives-note_07.92s.wav",
+   "track": 1,
+   "start": 7.909,
+   "sync_at": 7.92,
+   "length": 0.14
+  },
+  {
+   "id": "07",
+   "clip": "SFX07_copy-tick-recent_09.55s.wav",
+   "track": 1,
+   "start": 9.533,
+   "sync_at": 9.55,
+   "length": 0.1271
+  },
+  {
+   "id": "08",
+   "clip": "SFX08_item-arrives-recent-link_09.72s.wav",
+   "track": 1,
+   "start": 9.7162,
+   "sync_at": 9.72,
+   "length": 0.1086
+  },
+  {
+   "id": "09",
+   "clip": "SFX09_screenshot-capture_10.86s.wav",
+   "track": 1,
+   "start": 10.65,
+   "sync_at": 10.86,
+   "length": 0.58
+  },
+  {
+   "id": "10",
+   "clip": "SFX10_item-arrives-screenshot_11.52s.wav",
+   "track": 1,
+   "start": 11.5176,
+   "sync_at": 11.52,
+   "length": 0.0953
+  },
+  {
+   "id": "11",
+   "clip": "SFX11_keep-click_12.65s.wav",
+   "track": 1,
+   "start": 12.632,
+   "sync_at": 12.65,
+   "length": 0.095
+  },
+  {
+   "id": "12",
+   "clip": "SFX12_wand-click_14.90s.wav",
+   "track": 1,
+   "start": 14.89,
+   "sync_at": 14.9,
+   "length": 0.2
+  },
+  {
+   "id": "13",
+   "clip": "SFX13_wand-rise_15.08s.wav",
+   "track": 3,
+   "start": 15.062,
+   "sync_at": 15.08,
+   "length": 0.95
+  },
+  {
+   "id": "14",
+   "clip": "SFX14_wand-settle_16.40s.wav",
+   "track": 3,
+   "start": 16.3893,
+   "sync_at": 16.4,
+   "length": 0.4638
+  },
+  {
+   "id": "15",
+   "clip": "SFX15_folder-open-photobook_17.80s.wav",
+   "track": 1,
+   "start": 17.683,
+   "sync_at": 17.8,
+   "length": 0.42
+  },
+  {
+   "id": "16",
+   "clip": "SFX16_folder-open-connected_19.74s.wav",
+   "track": 1,
+   "start": 19.6437,
+   "sync_at": 19.74,
+   "length": 0.2265
+  },
+  {
+   "id": "17",
+   "clip": "SFX17_rename-confirm_21.50s.wav",
+   "track": 1,
+   "start": 21.4798,
+   "sync_at": 21.5,
+   "length": 0.1066
+  },
+  {
+   "id": "18",
+   "clip": "SFX18_frame-expands_24.64s.wav",
+   "track": 2,
+   "start": 24.512,
+   "sync_at": 24.64,
+   "length": 0.52
+  },
+  {
+   "id": "19",
+   "clip": "SFX19_item-arrives-frame-picture_25.73s.wav",
+   "track": 1,
+   "start": 25.7205,
+   "sync_at": 25.73,
+   "length": 0.0329
+  },
+  {
+   "id": "20",
+   "clip": "SFX20_item-arrives-frame-note_26.18s.wav",
+   "track": 1,
+   "start": 26.1708,
+   "sync_at": 26.18,
+   "length": 0.1177
+  },
+  {
+   "id": "21",
+   "clip": "SFX21_item-arrives-frame-video_27.08s.wav",
+   "track": 1,
+   "start": 27.0773,
+   "sync_at": 27.08,
+   "length": 0.1069
+  },
+  {
+   "id": "22",
+   "clip": "SFX22_play-click_27.45s.wav",
+   "track": 1,
+   "start": 27.4406,
+   "sync_at": 27.45,
+   "length": 0.1888
+  },
+  {
+   "id": "23",
+   "clip": "SFX23_green-light-click-1_33.05s.wav",
+   "track": 1,
+   "start": 33.0411,
+   "sync_at": 33.05,
+   "length": 0.1782
+  },
+  {
+   "id": "24",
+   "clip": "SFX24_window-grows-1_33.24s.wav",
+   "track": 2,
+   "start": 33.1551,
+   "sync_at": 33.24,
+   "length": 0.2832
+  },
+  {
+   "id": "25",
+   "clip": "SFX25_green-light-click-2_34.05s.wav",
+   "track": 1,
+   "start": 34.04,
+   "sync_at": 34.05,
+   "length": 0.2
+  },
+  {
+   "id": "26",
+   "clip": "SFX26_window-grows-2_34.27s.wav",
+   "track": 2,
+   "start": 34.169,
+   "sync_at": 34.27,
+   "length": 0.3816
+  },
+  {
+   "id": "27",
+   "clip": "SFX27_logo-accent_36.50s.wav",
+   "track": 3,
+   "start": 36.4857,
+   "sync_at": 36.5,
+   "length": 3.027
+  }
+ ]
+}

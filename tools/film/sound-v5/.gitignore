@@ -1,0 +1,7 @@
+# Third-party audio stays out of git (Sonniss licence: no redistribution as raw sounds)
+sources/
+clips/
+stems/
+*.wav
+*.mp4
+reports/

@@ -42,6 +42,9 @@
             </dict>
             <key>NSMessage</key>
             <string>addToRecent</string>
+            <!-- An empty required context: macOS shows the service right away (without one, new services start switched off). -->
+            <key>NSRequiredContext</key>
+            <dict/>
             <key>NSPortName</key>
             <string>Swiss</string>
             <key>NSSendTypes</key>

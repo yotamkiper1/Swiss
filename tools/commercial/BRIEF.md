@@ -30,10 +30,10 @@ The owner's script, word for word. Each scene has a small red label and a big wh
 |---|---|---|---|
 | 0–4 | SWISS | A pocket knife for your ideas. | — |
 | 4–9 | COLLECT | Found something worth keeping? | — |
-| 9–14 | RECENT | Copied. Captured. Within reach. | Optional clipboard and screenshot capture. |
+| 9–14 | RECENT | Copied. Captured. Within reach. | Optional clipboard and screenshot capture. Chip: *Screenshots land in Recent on their own* |
 | 14–19 | MAGIC WAND | A little order. In one click. | — |
 | 19–24 | CONNECTED FOLDERS | Your folders. A faster way in. | — |
-| 24–32 | THE FRAME | Keep your references beside your work. | — |
+| 24–32 | THE FRAME | Keep your references beside your work. | Chip: *Watch videos right on the canvas* |
 | 32–36 | THREE SIZES | Just the space you need. | — |
 | 36–40 | Swiss logo | Keep your ideas moving. | Collect. Organize. Keep working. |
 
@@ -47,10 +47,10 @@ The film follows one project, **Mammoth**, an exhibition being put together.
 |---|---|---|
 | 0–4 | Opening | The icon pops in with a red ring pulse, SWISS and the title rise, then the icon grows into the Swiss window (the Mammoth board) as the stage turns dark |
 | 4–9 | Collect | A browser on Wikipedia's woolly mammoth page beside Swiss. Drag the infobox photo in, drag the address in (a link card), select two lines, ⌘C, click the board, ⌘V: a note |
-| 9–14 | Recent | Copies and Screenshots are already on. ⌘C on a link and ⇧⌘4 for a screenshot: both arrive in Recent. Select the screenshot, Keep → “Kept in Mammoth” |
+| 9–14 | Recent | Copies and Screenshots are already on. ⌘C on a link: it arrives in Recent. A picture is open; ⇧⌘4, drag out an area, flash, and the shot flies into Recent with no further click (Swiss watches the screenshot folder, checking every 2 s, `RecentStore.swift:153, 218`). Select it, Keep → “Kept in Mammoth” |
 | 14–19 | Magic wand | One click: PhotoBook, Linker, Notepad and Files appear, the seven loose things fly into them, the flash holds, then a double-click opens PhotoBook (breadcrumb Mammoth › PhotoBook, three pictures) |
 | 19–24 | Connected folders | Click Exhibit images under Connected; its files show. Rename “lyuba-baby-mammoth.jpg” → “Lyuba – hero print.jpg”, then a Finder window of the same folder slides in with the renamed row highlighted |
-| 24–32 | The Frame | Someone is typing exhibit labels in an editor. The Frame comes up above it; drag the hero print in from its library, ⌘N for a note (“Under 60 words. Big type.”), ⌘V a tutorial link and play it, then click back into the editor and keep typing while it plays |
+| 24–32 | The Frame | Someone is typing exhibit labels in an editor. The Frame comes up above it; drag the hero print in from its library, ⌘N for a note (“Under 60 words. Big type.”), ⌘V a tutorial link and play it on the canvas (the vertical version pushes in on it), then click back into the editor and keep typing while it plays |
 | 32–36 | Three sizes | The cursor clicks the green light twice: pop-up → window → full screen, the same Mammoth board throughout; the size pills follow |
 | 36–40 | Closing | Off-white with drifting red crosses: icon and wordmark, “Keep your ideas moving.”, then Collect. Organize. Keep working. one by one |
 

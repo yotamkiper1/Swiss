@@ -297,7 +297,8 @@ function scene(o) {
   el.style.display = 'block'; // laid out until the first seek, so at() can measure
   if (o.title) { // a long line shrinks the title until it fits its column
     const h = $(el, '.title .h1'); let fs = T.h1;
-    while (fs > 40 && [...h.querySelectorAll('.ln span')].some(s => s.offsetWidth > T.w)) h.style.fontSize = (fs -= 2) + 'px';
+    const tw = (!VERTICAL && o.title.w) || T.w;
+    while (fs > 40 && [...h.querySelectorAll('.ln span')].some(s => s.offsetWidth > tw)) h.style.fontSize = (fs -= 2) + 'px';
   }
   const sc = Object.assign({ el, enter: 'wipe' }, o);
   sc.vp = $(el, '.vp'); sc.world = sc.vp && $(el, '.world'); sc.cursor = sc.world && $(sc.world, '.cursor');
@@ -486,7 +487,7 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
 
 // ================= Recent: copy a link, take a screenshot, keep one (9–14) =================
 {
-  const sw = { x: 500, y: 108, w: 740, h: 500 }, SIDE = 176;
+  const sw = { x: 500, y: 108, w: 740, h: 500 }, SIDE = 176, P = { x: 880, y: 330, w: 340, h: 260 };
   const th = (inner, bg = '#fff') => `<div class="th" style="background:${bg}">${inner}</div>`;
   const rows = [
     { id: 'r-shot', th: `<div class="th">${img('lyuba.jpg', 38, 38)}</div>`, t: 'Screenshot 2026-10-21 at 10.42.07', s: `<span style="font-size:12px">${I.camera}</span> Screenshot · now` },
@@ -508,10 +509,17 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
           <span style="padding:0 11px;display:flex;gap:6px;align-items:center">${I.tray} Keep</span><span style="padding:0 8px;border-left:1px solid rgba(255,255,255,.3);height:100%;display:flex;align-items:center;font-size:10px">${I.chev}</span></span></div>
       <div class="flash" id="keptflash" style="left:50%;bottom:64px"><span style="color:#5BD27A">${I.check}</span>Kept in Mammoth</div>
     </div></div>
-  <div class="key" id="k-c" style="left:${sw.x + 400}px;top:${sw.y + 330}px">⌘C</div><div class="key" id="k-s" style="left:${sw.x + 400}px;top:${sw.y + 330}px">⇧⌘4</div>`;
-  const LINK = 0.75, SHOT = 1.65, SEL = 2.5, KEEP = 3.15, ROW = 56;
+  <div class="window" id="pwin" style="left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;background:#222;opacity:0">
+    <div style="height:30px;background:#F4F4F3;display:flex;align-items:center;gap:12px;padding:0 12px;font-size:12px"><div class="lights off"><i></i><i></i><i></i></div><span style="font-weight:600;margin-left:60px">lyuba.jpg</span></div>
+    ${img('lyuba.jpg', P.w, P.h - 30)}
+    <div class="abs" id="shotsel" style="left:60px;top:70px;width:0;height:0;border:1px solid #fff;background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(0,0,0,.4)"></div>
+    <div class="abs" id="shotflash" style="inset:0;background:#fff;opacity:0"></div></div>
+  <div class="abs" id="shotthumb" style="width:120px;height:80px;border:3px solid #fff;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:90;transform-origin:0 0"><img src="${A}lyuba.jpg" style="width:330px;height:220px;margin:-60px 0 0 -70px;display:block"></div>
+  <div class="key" id="k-c" style="left:${sw.x + 400}px;top:${sw.y + 330}px">⌘C</div><div class="key" id="k-s" style="left:${P.x + 120}px;top:${P.y + 110}px">⇧⌘4</div>`;
+  const LINK = 0.6, PIC = 0.95, SKEY = 1.25, DRAG0 = 1.4, DRAG1 = 1.8, SNAP = 1.85, FLY = 2.15, SHOT = 2.5, SEL = 3.1, KEEP = 3.65, ROW = 56;
+  const slot = { x: sw.x + SIDE + 8, y: sw.y + 54, w: sw.w - SIDE - 16, h: 54 };
   const sc = scene({ a: 9, b: 14, bg: 'dark', html,
-    title: { eye: 'Recent', lines: ['Copied.', 'Captured.', 'Within reach.'], sub: 'Optional clipboard and<br>screenshot capture.' },
+    title: { eye: 'Recent', lines: ['Copied.', 'Captured.', 'Within reach.'], sub: 'Optional clipboard and<br>screenshot capture.', chips: [['Screenshots land in Recent on their own', SHOT + 0.05, '#B75CC4']] },
     update(t, el) {
       const ins = { 'r-link': eo(seg(t, LINK, LINK + 0.4)), 'r-shot': eo(seg(t, SHOT, SHOT + 0.4)) };
       let y = 0;
@@ -525,14 +533,24 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
       $(el, '#r-shot .st').innerHTML = t > KEEP + 0.1 ? `<span style="font-size:12px">${I.check}</span> Kept in Mammoth` : `<span style="font-size:12px">${I.camera}</span> Screenshot · now`;
       $(el, '#keepbtn').style.filter = t > KEEP - 0.04 && t < KEEP + 0.12 ? 'brightness(.85)' : 'none';
       const f = $(el, '#keptflash'); f.style.opacity = fadeIO(t, KEEP + 0.15, 5.4, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, KEEP + 0.15, KEEP + 0.45))) * 8}px)`;
-      keyAt($(el, '#k-c'), t, LINK - 0.05); keyAt($(el, '#k-s'), t, SHOT - 0.05);
+      keyAt($(el, '#k-c'), t, LINK - 0.05); keyAt($(el, '#k-s'), t, SKEY);
+      // A picture is open; ⇧⌘4, drag out an area, and the shot flies into Recent by itself.
+      const pw = $(el, '#pwin'), po = eo(seg(t, PIC, PIC + 0.3)) * (1 - seg(t, FLY + 0.1, FLY + 0.4));
+      pw.style.opacity = po; pw.style.transform = `translateY(${(1 - eo(seg(t, PIC, PIC + 0.3))) * 20}px)`;
+      const d = eo(seg(t, DRAG0, DRAG1)), ss = $(el, '#shotsel');
+      Object.assign(ss.style, { width: 210 * d + 'px', height: 140 * d + 'px', opacity: t > DRAG0 && t < SNAP ? 1 : 0 });
+      $(el, '#shotflash').style.opacity = t > SNAP ? 0.85 * (1 - seg(t, SNAP, SNAP + 0.25)) : 0;
+      const th = $(el, '#shotthumb'), fl = io(seg(t, FLY, SHOT));
+      const from = { x: P.x + 60, y: P.y + 70, s: 1.75 }, to = { x: slot.x + 14, y: slot.y + 8, s: 0.32 };
+      th.style.left = lerp(from.x, to.x, fl) + 'px'; th.style.top = lerp(from.y, to.y, fl) + 'px';
+      th.style.transform = `scale(${lerp(from.s, to.s, fl)})`;
+      th.style.opacity = t > SNAP && t < SHOT + 0.05 ? 1 : 0;
     },
     camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
     vcam: [[0, 1, 870, 360], [2.0, 1, 870, 360], [2.7, 1.1, 900, 380]] });
-  const slot = { x: sw.x + SIDE + 8, y: sw.y + 54, w: sw.w - SIDE - 16, h: 54 };
-  rings(sc, [[0.2, 1.4, '#cchips', 4, 14], [LINK + 0.15, SHOT - 0.05, slot, 4, 12], [SHOT + 0.15, SEL - 0.1, slot, 4, 12], [KEEP - 0.35, KEEP + 0.6, '#keepbtn', 5, 10]]);
+  rings(sc, [[0.2, 1.4, '#cchips', 4, 14], [LINK + 0.15, SHOT - 0.05, slot, 4, 12], [SHOT + 0.05, SEL - 0.1, slot, 4, 12], [KEEP - 0.35, KEEP + 0.6, '#keepbtn', 5, 10]]);
   const kp = at(sc, '#keepbtn span'), sh = at(sc, '#r-shot .tt', -60, 4);
-  sc.cursorKeys = [[0, 1100, 660], [1.6, 1100, 600], [SEL - 0.12, sh.x, sh.y], [SEL, sh.x, sh.y, 1], [KEEP - 0.15, kp.x, kp.y], [KEEP, kp.x, kp.y, 1], [5.5, kp.x - 50, kp.y - 40]];
+  sc.cursorKeys = [[0, 1100, 660], [DRAG0 - 0.15, P.x + 60, P.y + 100], [DRAG0, P.x + 60, P.y + 100, 1], [DRAG1, P.x + 270, P.y + 240], [SEL - 0.6, P.x + 250, P.y + 200], [SEL - 0.12, sh.x, sh.y], [SEL, sh.x, sh.y, 1], [KEEP - 0.15, kp.x, kp.y], [KEEP, kp.x, kp.y, 1], [5.5, kp.x - 50, kp.y - 40]];
 }
 
 // ================= Magic wand: the mix sorts itself into folders, then one opens (14–19) =================
@@ -644,7 +662,7 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
 
 // ================= The Frame: references beside the work (24–32) =================
 {
-  const E = { x: 470, y: 60, w: 740, h: 600 }, FR = { x: 790, y: 96, w: 420, h: 540 }, LIB = 130;
+  const E = { x: 470, y: 60, w: 740, h: 600 }, FR = { x: 750, y: 90, w: 460, h: 550 }, LIB = 120;
   const T0 = 'Found in 2007 on the Yamal Peninsula in Siberia, ', T1 = 'Lyuba is the best-preserved ', T2 = 'mammoth calf ever found. She was about a month old. Hang her photo at eye level.';
   const libRows = [
     ['lib-p', img('lyuba.jpg', 30, 30), 'Lyuba – hero print.jpg'],
@@ -656,7 +674,7 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
   const html = `<div class="window" id="editor" style="left:${E.x}px;top:${E.y}px;width:${E.w}px;height:${E.h}px;background:#fff;${DIM}">
     <div style="height:38px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;font-size:13px">
       <div class="lights" id="elights"><i></i><i></i><i></i></div><span style="margin-left:70px;font-weight:600">Exhibit labels</span><span style="color:var(--ink3);margin-left:8px">— Edited</span></div>
-    <div class="abs" style="left:34px;top:70px;width:270px;font:400 15px/1.55 'DejaVu Serif', Georgia, serif;color:#222">
+    <div class="abs" style="left:30px;top:70px;width:226px;font:400 14px/1.55 'DejaVu Serif', Georgia, serif;color:#222">
       <div style="font:700 26px/1.2 Inter;letter-spacing:-0.02em;margin-bottom:14px">Lyuba</div>
       <div style="font:600 11px Inter;letter-spacing:.14em;color:#999;text-transform:uppercase;margin-bottom:10px">Baby woolly mammoth · about 42,000 years old</div>
       <span id="etext"></span><span id="caret" style="display:inline-block;width:1.5px;height:17px;background:#222;vertical-align:-3px"></span></div></div>
@@ -668,10 +686,10 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
       <div class="pill" style="background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);height:24px;font-size:11.5px">${I.folder} Mammoth<span style="margin-left:auto;color:var(--accent)">${I.chev}</span></div>
       <div style="height:6px"></div>${libRows}</div>
     <div class="abs" id="canvas" style="left:${LIB}px;top:38px;right:0;bottom:0;background-color:#E4E4E3;background-image:radial-gradient(rgba(0,0,0,.16) 1px, transparent 1.2px);background-size:20px 20px;overflow:hidden">
-      <div class="abs" id="fimg" style="left:14px;top:14px;width:150px;height:104px;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('lyuba.jpg', 150, 104)}</div>
-      <div class="abs" id="fnote" style="left:176px;top:14px;width:100px;min-height:96px;padding:10px 11px;border-radius:8px;background:var(--note);font-size:12.5px;line-height:1.35;opacity:0;box-shadow:0 1px 3px rgba(0,0,0,.08)"><span id="fnt"></span></div>
-      <div class="abs" id="video" style="left:14px;top:134px;width:262px;height:170px;border-radius:8px;overflow:hidden;background:#111;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.2)">
-        <img id="vimg" src="${A}adams.jpg" style="position:absolute;left:0;top:0;width:400px;height:285px;transform-origin:0 0">
+      <div class="abs" id="fimg" style="left:14px;top:12px;width:150px;height:100px;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('lyuba.jpg', 150, 100)}</div>
+      <div class="abs" id="fnote" style="left:176px;top:12px;width:150px;min-height:100px;padding:10px 11px;border-radius:8px;background:var(--note);font-size:12.5px;line-height:1.35;opacity:0;box-shadow:0 1px 3px rgba(0,0,0,.08)"><span id="fnt"></span></div>
+      <div class="abs" id="video" style="left:14px;top:126px;width:312px;height:196px;border-radius:8px;overflow:hidden;background:#111;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.2)">
+        <img id="vimg" src="${A}adams.jpg" style="position:absolute;left:0;top:0;width:470px;height:335px;transform-origin:0 0">
         <div class="abs" style="left:0;right:0;top:0;height:34px;background:linear-gradient(rgba(0,0,0,.55),transparent);color:#fff;font:600 11px Inter;padding:8px 10px">Tutorial: writing museum labels</div>
         <div class="abs" id="vbig" style="left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;padding-left:3px">${I.play}</div>
         <div class="abs" id="vctl" style="left:8px;right:8px;bottom:8px;height:26px;border-radius:8px;background:rgba(40,40,42,.62);display:flex;align-items:center;gap:8px;padding:0 9px;color:#fff;font-size:12px;opacity:0">
@@ -681,10 +699,10 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
     </div></div>
   <div class="abs" id="ghost" style="width:72px;height:50px;border-radius:5px;overflow:hidden;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90">${img('lyuba.jpg', 72, 50)}</div>
   <div class="key" id="k-n" style="left:${FR.x + 150}px;top:${FR.y + 380}px">⌘N</div><div class="key" id="k-v" style="left:${FR.x + 150}px;top:${FR.y + 380}px">⌘V</div>`;
-  const UP = 0.55, GRAB = 1.25, DROP = 2.0, NEWN = 2.4, PASTE = 3.6, PLAY = 4.25, BACK = 5.05;
+  const UP = 0.5, GRAB = 1.05, DROP = 1.7, NEWN = 2.05, PASTE = 2.95, PLAY = 3.45, BACK = 5.1;
   const NT = 'Under 60 words. Big type.';
   const sc = scene({ a: 24, b: 32, bg: 'desk', html,
-    title: { eye: 'The Frame', lines: ['Keep your', 'references beside', 'your work.'] },
+    title: { eye: 'The Frame', w: 510, lines: ['Keep your', 'references beside', 'your work.'], chips: [['Watch videos right on the canvas', PLAY + 0.15, 'var(--accent)']] },
     update(t, el) {
       // The work: typing goes on underneath, before and after the Frame is used.
       const typed = T0 + T1.slice(0, Math.floor(clamp(t / 1.0) * T1.length)) + T2.slice(0, Math.floor(clamp((t - BACK - 0.15) / 3.0) * T2.length));
@@ -698,23 +716,23 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
       dragGhost(sc, $(el, '#ghost'), GRAB, DROP, t);
       land($(el, '#fimg'), t, DROP);
       land($(el, '#fnote'), t, NEWN + 0.1);
-      $(el, '#fnt').textContent = NT.slice(0, Math.floor(clamp((t - NEWN - 0.3) / 0.8) * NT.length));
+      $(el, '#fnt').textContent = NT.slice(0, Math.floor(clamp((t - NEWN - 0.25) / 0.6) * NT.length));
       land($(el, '#video'), t, PASTE + 0.1);
       keyAt($(el, '#k-n'), t, NEWN); keyAt($(el, '#k-v'), t, PASTE);
       // The tutorial plays (a slow move through a museum hall photo).
       const vt = Math.max(0, t - PLAY), playing = t > PLAY;
       $(el, '#vimg').style.transform = `translate(${-vt * 16}px, ${-vt * 6}px) scale(${1 + vt * 0.03})`;
       $(el, '#vbig').style.opacity = playing ? 0 : 1;
-      $(el, '#vctl').style.opacity = playing ? 1 - seg(t, PLAY + 1.4, PLAY + 1.8) : 0;
-      $(el, '#vprog').style.width = (2 + vt * 3) + '%';
+      $(el, '#vctl').style.opacity = playing ? 1 - seg(t, PLAY + 1.6, PLAY + 2.0) : 0;
+      $(el, '#vprog').style.width = (2 + vt * 2) + '%';
       $(el, '#vtime').textContent = '0:0' + Math.floor(vt);
     },
     camera: [[0, 1, 640, 360], [8.5, 1.03, 660, 360]],
-    vcam: [[0, 0.95, 850, 360], [8.5, 0.95, 850, 360]] });
-  const lib = at(sc, '#lib-p', -30), dp = at(sc, '#fimg'), pl = at(sc, '#vbig'), et = { x: E.x + 34 + 200, y: E.y + 70 + 150 };
+    vcam: [[0, 0.95, 850, 360], [PLAY + 0.1, 0.95, 850, 360], [PLAY + 0.6, 1.3, 1040, 350], [BACK - 0.2, 1.3, 1040, 350], [BACK + 0.4, 0.95, 850, 360]] });
+  const lib = at(sc, '#lib-p', -30), dp = at(sc, '#fimg'), pl = at(sc, '#vbig'), et = { x: E.x + 30 + 180, y: E.y + 70 + 170 };
   sc.cursorKeys = [[0, 600, 560], [GRAB - 0.2, lib.x, lib.y], [GRAB, lib.x, lib.y, 1], [DROP, dp.x, dp.y], [PASTE - 0.25, dp.x + 60, dp.y + 160], [PLAY - 0.2, pl.x, pl.y], [PLAY, pl.x, pl.y, 1],
     [BACK - 0.15, et.x, et.y], [BACK, et.x, et.y, 1], [8.5, et.x - 30, et.y + 80]];
-  rings(sc, [[UP + 0.2, UP + 0.9, '#frame', 4, 14], [DROP + 0.05, DROP + 0.7, '#fimg', 3, 10], [PLAY + 0.1, PLAY + 0.8, '#video', 4, 12]]);
+  rings(sc, [[UP + 0.2, UP + 0.9, '#frame', 4, 14], [DROP + 0.05, DROP + 0.7, '#fimg', 3, 10], [PLAY + 0.1, BACK - 0.1, '#video', 4, 12]]);
 }
 
 // ================= Three sizes: pop-up, window, full screen (32–36) =================

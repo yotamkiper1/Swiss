@@ -25,12 +25,12 @@ cd site && npm test                       # Node 18+; no packages to install
 
 ## Media
 
-Source: the v8 film, `~/Downloads/swiss-film-v8-1920x1080.mp4` (40 s, with sound).
+Source: the v10 film, `swiss-film-v10-1920x1080.mp4` (40 s, with sound, near-black #181612 backdrop; the page uses the same colour so the clips sit on it edge to edge).
 
-- `media/swiss-film.mp4`: the only video on the page, 3.3–36.0 s of v8 (the logo intro and the end card are cut),
+- `media/swiss-film.mp4`: the only video on the page, 3.3–36.1 s of v10 (the logo intro and the end card are cut),
   1600 px, H.264 CRF 23, AAC 160 kb/s. Muted autoplay; Sound turns the sound on.
-  `ffmpeg -ss 3.3 -i swiss-film-v8-1920x1080.mp4 -t 32.7 -vf scale=1600:-2 -c:v libx264 -crf 23 -preset slow -pix_fmt yuv420p -c:a aac -b:a 160k -movflags +faststart media/swiss-film.mp4`
-- `media/clip-*.mp4`: one short muted loop per feature, cut from v8 and cropped to the app windows
+  `ffmpeg -ss 3.3 -i swiss-film-v10-1920x1080.mp4 -t 32.8 -vf scale=1600:-2 -c:v libx264 -crf 23 -preset slow -pix_fmt yuv420p -c:a aac -b:a 160k -movflags +faststart media/swiss-film.mp4`
+- `media/clip-*.mp4`: one short muted loop per feature, cut from v10 and cropped to the app windows
   (collect 4.0–9.0 s, recent 9.6–14.0, wand 14.5–19.0, connected 19.6–24.0, frame 24.6–31.8, sizes 32.4–36.0),
   H.264 CRF 26, no sound, each with a poster `.jpg`. They load only when scrolled to, and one plays at a time.
 

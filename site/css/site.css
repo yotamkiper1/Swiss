@@ -10,7 +10,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 img, video, svg { display: block; max-width: 100%; height: auto; }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--accent-text); text-decoration: none; }
 a:hover { text-decoration: underline; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
 h1, h2, h3 { margin: 0; color: var(--ink); font-weight: 600; text-wrap: balance; }
@@ -22,7 +22,7 @@ code, kbd { font-family: var(--mono); font-size: .88em; letter-spacing: 0; }
 kbd { font-family: var(--font); font-size: .9em; font-weight: 500; }
 .combo { white-space: nowrap; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.skip { position: absolute; left: var(--s4); top: -100px; z-index: 100; background: var(--ink); color: #fff; padding: var(--s2) var(--s4); border-radius: 10px; }
+.skip { position: absolute; left: var(--s4); top: -100px; z-index: 100; background: var(--ink); color: var(--bg); padding: var(--s2) var(--s4); border-radius: 10px; }
 .skip:focus { top: var(--s2); color: #fff; }
 
 .wrap { width: 100%; max-width: calc(var(--wrap) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
@@ -47,10 +47,10 @@ kbd { font-family: var(--font); font-size: .9em; font-weight: 500; }
 /* ---------- nav ---------- */
 .nav-bar {
   position: sticky; top: 0; z-index: 50; height: var(--nav-h);
-  background: rgba(251, 251, 253, .8);
+  background: rgba(24, 22, 18, .9);
   transition: background-color var(--t-fast) var(--ease);
 }
-.nav-bar.is-scrolled { background: #fff; }
+.nav-bar.is-scrolled { background: var(--bg); }
 .nav-bar .wrap { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--s5); }
 .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-size: var(--t-body); font-weight: 600; letter-spacing: -0.01em; }
 .brand:hover { color: var(--ink); text-decoration: none; }
@@ -86,7 +86,7 @@ kbd { font-family: var(--font); font-size: .9em; font-weight: 500; }
 /* the one video */
 .film {
   position: relative; margin: 0; overflow: hidden; aspect-ratio: 16 / 9;
-  border-radius: var(--r-tile); background: #2a1d18;
+  border-radius: var(--r-tile); background: var(--bg);
 }
 .film video { width: 100%; height: 100%; object-fit: cover; }
 .film-controls { position: absolute; right: var(--s4); bottom: var(--s4); display: flex; gap: var(--s2); }
@@ -113,7 +113,7 @@ kbd { font-family: var(--font); font-size: .9em; font-weight: 500; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- feature clips: short muted loops cut from the film ---------- */
-.clip { aspect-ratio: auto; margin: 0; border-radius: var(--r-tile); overflow: hidden; background: #24170F; }
+.clip { aspect-ratio: auto; margin: 0; border-radius: var(--r-tile); overflow: hidden; background: var(--bg); }
 .clip video { height: auto; object-fit: contain; }
 .clip-wide { max-width: 940px; margin: 0 auto; }
 #clip-sizes { max-width: 1100px; }
@@ -181,7 +181,7 @@ kbd { font-family: var(--font); font-size: .9em; font-weight: 500; }
 .steps li { margin: var(--s4) 0; padding-left: var(--s1); }
 .steps li::marker { color: var(--ink); font-weight: 600; }
 .steps strong { color: var(--ink); font-weight: 600; }
-pre.cmd { margin: var(--s3) 0 0; /* taste-skill-ignore: real code */ padding: var(--s4) var(--s5); overflow-x: auto; border-radius: 12px; background: var(--ink); color: #F5F5F7; font: .875rem/1.6 var(--mono); letter-spacing: 0; }
+pre.cmd { margin: var(--s3) 0 0; /* taste-skill-ignore: real code */ padding: var(--s4) var(--s5); overflow-x: auto; border-radius: 12px; background: var(--bg-alt); color: var(--ink); font: .875rem/1.6 var(--mono); letter-spacing: 0; }
 .reqs { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4); margin: var(--s7) 0 0; padding: var(--s5); border-radius: var(--r-tile-sm); background: var(--bg); }
 .reqs dt { font-size: var(--t-micro); color: var(--ink-2); }
 .reqs dd { margin: 2px 0 0; font-weight: 600; }

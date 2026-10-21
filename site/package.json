@@ -1,0 +1,10 @@
+{
+  "name": "swiss-site",
+  "private": true,
+  "type": "module",
+  "description": "The Swiss website: plain HTML, CSS and JS modules, no build step.",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\"",
+    "preview": "python3 -m http.server 8765"
+  }
+}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Swiss</title>
+<meta name="description" content="What Swiss and this website do with your data.">
+<meta name="theme-color" content="#F5F2EC">
+<link rel="canonical" href="https://swiss-kohl.vercel.app/privacy">
+<link rel="icon" type="image/png" sizes="64x64" href="/img/icon-64.png">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header is-scrolled">
+  <div class="wrap wrap-wide">
+    <a class="brand" href="/"><img src="/img/icon-64.png" width="32" height="32" alt=""> Swiss</a>
+    <a class="btn btn-small btn-secondary" href="/">Back to Swiss</a>
+  </div>
+</header>
+<main id="main" class="page">
+  <div class="wrap">
+    <h1>Privacy</h1>
+    <p class="lede">Short version: Swiss keeps your things on your Mac, and this website doesn't track you.</p>
+
+    <h2>The Swiss app</h2>
+    <ul>
+      <li>No account and no Swiss servers. Nothing you save is sent to the developer.</li>
+      <li>Your library is stored as files on your Mac, in <code>~/Documents/.Stash</code>, and settings in <code>~/Library/Application Support/Stash</code>. If iCloud syncs your Documents folder, Apple syncs this folder as part of it.</li>
+      <li>Swiss goes online only for things you start: fetching a saved link's title and preview picture, a picture you drag in from a web page, a YouTube video you play on the Frame, a download you ask for, and updating its downloader tool. Those requests go to the sites involved.</li>
+      <li>Capture of the clipboard, screenshots and downloads is off until you turn it on. Items that apps mark as private (like passwords) are never kept, and password managers are excluded.</li>
+      <li>Report a Problem and Send Feedback open an email that you read and send yourself. Diagnostics are optional and hold versions, switches and counts, never library contents or file names.</li>
+    </ul>
+
+    <h2>This website</h2>
+    <ul>
+      <li>No cookies, no analytics, no ads, no third-party fonts.</li>
+      <li>To show a download when one exists, your browser asks GitHub's public API (<code>api.github.com</code>) for Swiss's latest release. GitHub receives that request like any web request.</li>
+      <li>The hosting provider keeps standard server logs.</li>
+    </ul>
+
+    <h2>Questions</h2>
+    <p>Email <a href="mailto:kipery20@gmail.com">kipery20@gmail.com</a>. The full technical checklist is in the <a href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">security report</a>.</p>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="wrap wrap-wide footer-base fine" style="margin-top:0;border-top:0;padding-top:0">
+    <span>© 2026 Yotam Kiper</span>
+    <span><a href="/">Home</a> · <a href="https://github.com/yotamkiper1/Swiss">GitHub</a> · <a href="mailto:kipery20@gmail.com">kipery20@gmail.com</a></span>
+  </div>
+</footer>
+</body>
+</html>

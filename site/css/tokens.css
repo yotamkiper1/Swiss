@@ -1,43 +1,49 @@
-/* Swiss design tokens.
-   Direction: "the name as a monument" (taste-skill draw, seed 236517809). Palette proportions from the
-   draw (cool pale grey ground, near-black ink, one accent); the accent is the knife red of the app icon
-   (#E04837), moved to the Swiss flag's red so white text on it passes. */
+/* Swiss design tokens. Apple-like structure and type, warmed toward the knife: blush sections and Swiss red. */
 :root {
-  /* colour */
-  --bg: #EEF0F3;
-  --surface: #E2E5EA;        /* one tone off the ground */
-  --ink: #0B0C0E;            /* 17.1:1 on bg */
-  --muted: #555B66;          /* 6.0:1 on bg, 5.4:1 on surface */
-  --accent: #C8231A;         /* Swiss red, close to the knife; white on it 5.7:1, on bg 5.0:1 */
-  --accent-press: #A71C14;
-  --accent-ink: #FFFFFF;
-  --field: #C8231A;          /* the one coloured section */
-  --field-ink: #FFFFFF;
-  --field-soft: #FFF2EF;     /* secondary text on the field: 5.2:1 */
-  --inverse: #0B0C0E;        /* footer */
-  --inverse-ink: #EEF0F3;
-  --inverse-soft: #A9AFBA;   /* 8.9:1 on inverse */
-  --focus: #1F6FEB;
+  /* color */
+  --bg: #FFFBFA;            /* white with a breath of red */
+  --bg-alt: #FBEDEA;         /* blush sections */
+  --tile: #F8EBE8;
+  --tile-on-alt: #FFFBFA;
+  --ink: #1D1A1A;            /* 16.8:1 on bg */
+  --ink-2: #6E6264;          /* secondary text: 5.7:1 on bg, 5.1:1 on bg-alt, 5.0:1 on tiles */
+  --line: #EBD9D5;
+  --knife: #E04837;          /* the logo red: marks only */
+  --accent: #C8231A;         /* Swiss red: white on it 5.7:1; on bg 5.5:1, on bg-alt 5.0:1 */
+  --red-field: #C8231A;      /* full red sections */
+  --red-field-soft: #FFE4DF; /* secondary text on red: 4.7:1 */
+  --accent-hover: #A71C14;
+  --focus: #0071E3;
 
-  /* type: one family. The Mac's own serif first (no font is downloaded), then close system serifs. */
-  --serif: "New York", ui-serif, "Iowan Old Style", Charter, "Charter BT", Georgia, serif;
-  --mono: ui-monospace, "SF Mono", Menlo, monospace;   /* real code blocks only (the three build commands) */ /* taste-skill-ignore */
-  --step-monument: clamp(150px, 17.5vw, 330px);
-  --step-head: clamp(2rem, 1.3rem + 3.2vw, 4rem);         /* 32–64 */
-  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);  /* 20–26 */
-  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem); /* 17–19 */
-  --step-small: 0.875rem;                                  /* 14 */
-  /* Five sizes on the page: monument, head, lead, body, small. */
+  /* type: the Mac's own San Francisco */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --t-hero: clamp(3rem, 1.9rem + 4.6vw, 5rem);       /* 48–80 */
+  --t-h2: clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem);    /* 36–56 */
+  --t-h3: 1.5rem;                                     /* 24 */
+  --t-lead: clamp(1.1875rem, 1.05rem + 0.55vw, 1.5rem); /* 19–24 */
+  --t-copy: 1.125rem;   /* 18: lead-in paragraphs */
+  --t-body: 1.0625rem;  /* 17 */
+  --t-small: 0.875rem;  /* 14 */
+  --t-micro: 0.75rem;   /* 12 */
 
   /* space */
-  --margin: clamp(20px, 2.2vw, 32px);
-  --gap-section: clamp(120px, 14vw, 220px);
+  --s1: .25rem; --s2: .5rem; --s3: .75rem; --s4: 1rem; --s5: 1.5rem; --s6: 2rem;
+  --s7: 3rem; --s8: 4rem; --s9: 6rem; --s10: 8.5rem;
+  --gutter: clamp(1rem, .4rem + 2.6vw, 2.5rem);
+  --wrap: 980px;
+  --wrap-wide: 1200px;
+
+  /* shape */
+  --r-tile: 22px;
+  --r-tile-sm: 16px;
+  --r-pill: 980px;
+  --shadow-window: 0 2px 6px rgba(90, 20, 15, .06), 0 24px 48px -20px rgba(90, 20, 15, .28);
 
   /* motion */
-  --ease: cubic-bezier(.2, .7, .2, 1);
+  --ease: cubic-bezier(.25, .1, .25, 1);
   --t-fast: 160ms;
-  --t-enter: 700ms;
-  --rise: 24px;
+  --t-med: 600ms;
 
-  --bar-h: 60px;
+  --nav-h: 52px;
 }

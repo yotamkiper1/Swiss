@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Swiss: a pocket knife for your ideas</title>
 <meta name="description" content="Swiss is a Mac menu bar app for keeping links, pictures, files and notes close while you work, and finding them again in a second. No account, no cloud.">
-<meta name="theme-color" content="#EEF0F3">
+<meta name="theme-color" content="#F7F4EF">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Swiss">
 <meta property="og:title" content="Swiss: a pocket knife for your ideas">
@@ -22,355 +22,395 @@
 <link rel="apple-touch-icon" href="img/icon-256.png">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/site.css">
+<link rel="preload" as="image" href="media/swiss-film-poster.jpg">
 <script type="module" src="js/main.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="nav-bar">
-  <a class="brand" href="#top" aria-label="Swiss, back to top"><img src="img/icon-64.png" width="28" height="28" alt=""> Swiss</a>
-  <nav class="nav" aria-label="Main">
-    <ul class="nav-links" id="nav-links">
-      <li><a href="#collect">Collect</a></li>
-      <li><a href="#wand">The wand</a></li>
-      <li><a href="#frame">The Frame</a></li>
-      <li><a href="#privacy">Privacy</a></li>
-      <li><a href="#questions">Questions</a></li>
-    </ul>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu</button>
-    <a class="btn btn-small btn-paper" href="#get" data-download-cta>Get Swiss</a>
-  </nav>
+  <div class="wrap wrap-wide">
+    <a class="brand" href="#top" aria-label="Swiss, back to top"><img src="img/icon-64.png" width="26" height="26" alt=""> Swiss</a>
+    <nav class="nav" aria-label="Main">
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#collect">Collect</a></li>
+        <li><a href="#organize">Organize</a></li>
+        <li><a href="#folders">Folders</a></li>
+        <li><a href="#frame">The Frame</a></li>
+        <li><a href="#privacy">Privacy</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <a class="btn btn-small" href="#download" data-download-cta>Get Swiss</a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
+        <svg class="i-open" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2 6h14M2 12h14"/></svg>
+        <svg class="i-close" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M4 4l10 10M14 4L4 14"/></svg>
+      </button>
+    </nav>
+  </div>
 </header>
 
 <main id="main">
 
 <section class="hero" id="top" aria-labelledby="hero-title">
-  <figure class="hero-film film" id="film" data-clip data-state="idle" data-sound="off">
-    <video playsinline muted loop preload="metadata" poster="media/swiss-film-poster.jpg" width="1600" height="900"
-           data-tall-src="media/swiss-film-tall.mp4" data-tall-poster="media/swiss-film-tall-poster.jpg" aria-describedby="film-desc">
-      <source src="media/swiss-film.mp4" type="video/mp4">
-    </video>
-    <div class="film-controls">
-      <button class="film-btn sound-btn" type="button" aria-pressed="false">
-        <svg class="i-sound-off" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path d="M11 6l4 4M15 6l-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        <svg class="i-sound-on" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path d="M11.5 5.5a3.5 3.5 0 010 5M13 3.5a6 6 0 010 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        <span class="label">Sound</span>
-      </button>
-      <button class="film-btn play-btn media-control" type="button" aria-pressed="false">
-        <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
-        <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
-        <span class="label">Play</span>
-      </button>
+  <div class="wrap">
+    <p class="product"><img src="img/icon-256.png" width="40" height="40" alt=""> Swiss</p>
+    <h1 id="hero-title">A pocket knife for your ideas.</h1>
+    <p class="lead">Keep links, pictures, files and notes close while you work. Swiss lives in your Mac's menu bar and opens with <span class="combo">⌥ Space</span>.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#download" data-download-cta>Get Swiss</a>
+      <a class="more" href="#collect">See how it works</a>
     </div>
-    <div class="film-error" role="status"><p>The film couldn't load.</p></div>
-    <figcaption id="film-desc" class="visually-hidden">A 33-second tour of Swiss with sound effects and no voice. A picture, a Wikipedia link and a quote are dragged from a browser into a project. A copied link and a screenshot appear in Recent and one is kept. The magic wand sorts the board into four folders. A connected Finder folder is renamed in Swiss and Finder shows the change. The Frame floats beside a text editor with a picture, a note and a video tutorial that plays on the canvas. The window grows from pop-up to window to full screen.</figcaption>
-  </figure>
-  <div class="hero-text">
-    <div class="hero-row">
-      <p class="hero-line">A pocket knife for your ideas: a Mac menu bar app that keeps links, pictures, files and notes close while you work.</p>
-      <a class="btn btn-paper" href="#get" data-download-cta>Get Swiss</a>
-    </div>
-    <h1 class="monument" id="hero-title">Swiss</h1>
+    <p class="hero-meta fine">macOS 14 or later · Apple silicon · No account, no cloud</p>
   </div>
-</section>
 
-<section class="plate" id="collect" aria-labelledby="collect-title">
-  <div class="plate-picture">
-    <div class="plate-square" data-tab-pictures>
-      <img src="img/shot-collect.webp" width="614" height="894" alt="A Swiss project called Mammoth: two museum photos, a Wikipedia link, a PDF and a quote about the woolly mammoth, dragged in from a browser." data-for="tab-drag">
-      <img src="img/shot-recent.webp" width="1170" height="800" loading="lazy" alt="Swiss's Recent list: a screenshot kept in Mammoth, a Wikipedia link copied just now, a picture and a PDF from Finder." data-for="tab-recent" hidden>
-    </div>
-  </div>
-  <div class="plate-text reveal">
-    <div class="tabs" role="tablist" aria-label="Ways in">
-      <button type="button" role="tab" id="tab-drag" aria-controls="copy-drag" aria-selected="true">Drag it in</button>
-      <button type="button" role="tab" id="tab-recent" aria-controls="copy-recent" aria-selected="false" tabindex="-1">From Recent</button>
-      <button type="button" role="tab" id="tab-save" aria-controls="copy-save" aria-selected="false" tabindex="-1">Quick save</button>
-    </div>
-    <div class="plate-body">
-      <h2 id="collect-title">Found something worth keeping?</h2>
-      <div role="tabpanel" id="copy-drag" aria-labelledby="tab-drag">
-        <p>Drag a picture, a link, a file or a quote from any app onto a project. It lands on the board, right where you left off.</p>
-      </div>
-      <div role="tabpanel" id="copy-recent" aria-labelledby="tab-recent" hidden>
-        <p>Turn on capture and what you copy and every screenshot waits in Recent for three days. One click keeps it in a project. Capture is off until you switch it on, and passwords are never kept.</p>
-      </div>
-      <div role="tabpanel" id="copy-save" aria-labelledby="tab-save" hidden>
-        <p>Copied something in another app? Press <span class="combo">⌥⌘V</span> and it's saved, without opening Swiss. <span class="combo">⌥ Space</span> opens Swiss from anywhere.</p>
-      </div>
-    </div>
-    <div class="plate-actions">
-      <a class="btn btn-ink" href="#get">Get Swiss</a>
-      <a class="btn btn-paper" href="#wand">Try the wand</a>
-    </div>
-  </div>
-</section>
-
-<section class="section field" id="wand" aria-labelledby="wand-title">
-  <div class="field-grid">
-    <div class="field-copy reveal">
-      <h2 id="wand-title">A little order. In one click.</h2>
-      <p>Every project is a tab, and a board fills up fast. The magic wand puts each thing in a folder for its kind: links in Linker, pictures in PhotoBook, notes in Notepad, the rest in Files.</p>
-      <p class="soft">Try it on this board. Paste a link, type a note or a file name, then wave the wand. Nothing you type leaves this page.</p>
-    </div>
-    <div class="board" data-ui data-wand-board>
-      <div class="board-bar">
-        <span class="board-lights" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span class="board-tab">Mammoth</span>
-        <button class="board-wand" type="button" aria-pressed="false">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14L10 6M11 2v2M14 5h-2M13.5 2.5l-1.4 1.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          Wave the wand
+  <div class="wrap wrap-wide hero-film">
+    <figure class="film" id="film" data-clip data-state="idle" data-sound="off">
+      <video playsinline muted loop preload="metadata" poster="media/swiss-film-poster.jpg" width="1600" height="900" aria-describedby="film-desc">
+        <source src="media/swiss-film.mp4" type="video/mp4">
+      </video>
+      <div class="film-controls">
+        <button class="film-btn sound-btn" type="button" aria-pressed="false">
+          <svg class="i-sound-off" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path d="M11 6l4 4M15 6l-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <svg class="i-sound-on" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path d="M11.5 5.5a3.5 3.5 0 010 5M13 3.5a6 6 0 010 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span class="label">Sound</span>
+        </button>
+        <button class="film-btn play-btn media-control" type="button" aria-pressed="false">
+          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
+          <span class="label">Play</span>
         </button>
       </div>
-      <form class="board-add">
-        <label class="visually-hidden" for="board-input">Add a link, a note or a file name</label>
-        <input id="board-input" type="text" maxlength="140" autocomplete="off" placeholder="Paste a link, or type a note…">
-        <button type="submit">Add</button>
-      </form>
-      <div class="board-body">
-        <ul class="cards">
-          <li class="card" data-kind="link" data-text="en.wikipedia.org/wiki/Woolly_mammoth"><span class="kind" aria-hidden="true">L</span><div>en.wikipedia.org/wiki/Woolly_mammoth<small>Link</small></div></li>
-          <li class="card" data-kind="picture" data-text="Lyuba – hero print.jpg"><span class="kind" aria-hidden="true">P</span><div>Lyuba – hero print.jpg<small>Picture</small></div></li>
-          <li class="card" data-kind="note" data-text="Under 60 words. Big type."><span class="kind" aria-hidden="true">N</span><div>Under 60 words. Big type.<small>Note</small></div></li>
-          <li class="card" data-kind="file" data-text="Exhibition plan.pdf"><span class="kind" aria-hidden="true">F</span><div>Exhibition plan.pdf<small>File</small></div></li>
-          <li class="card" data-kind="picture" data-text="rouffignac-cave.jpg"><span class="kind" aria-hidden="true">P</span><div>rouffignac-cave.jpg<small>Picture</small></div></li>
-          <li class="card" data-kind="note" data-text="Opening night: 14 November."><span class="kind" aria-hidden="true">N</span><div>Opening night: 14 November.<small>Note</small></div></li>
-        </ul>
-        <ul class="folders" hidden></ul>
-        <p class="board-toast" hidden></p>
-      </div>
-      <p class="board-foot">A working copy of Swiss's board, made for this page.</p>
-      <p class="visually-hidden" aria-live="polite" data-wand-live></p>
+      <div class="film-error" role="status"><p>The video couldn't load.</p><p><a href="#collect">See the features instead</a></p></div>
+      <figcaption id="film-desc" class="visually-hidden">A 33-second tour of Swiss with sound effects and no voice. A picture, a Wikipedia link and a quote are dragged from a browser into a project. A copied link and a screenshot appear in Recent and one is kept. The magic wand sorts the board into four folders. A connected Finder folder is renamed in Swiss and Finder shows the change. The Frame floats beside a text editor with a picture, a note and a video tutorial that plays on the canvas. The window grows from pop-up to window to full screen.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section alt" id="collect" aria-labelledby="collect-title">
+  <div class="wrap wrap-wide">
+    <div class="section-head reveal">
+      <h2 id="collect-title">Found something worth keeping?</h2>
+      <p class="lead">Drag it in from any app. Pictures, links, files and quotes land on your project's board, right where you left off.</p>
+    </div>
+    <div class="tiles tiles-2 reveal">
+      <div><figure class="clip film" id="clip-collect" data-clip data-state="idle">
+        <video playsinline muted loop preload="none" poster="media/clip-collect.jpg" width="1190" height="890" aria-describedby="clip-collect-desc">
+          <source data-src="media/clip-collect.mp4" type="video/mp4">
+        </video>
+        <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
+          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
+          <span class="label">Play</span>
+        </button></div>
+        <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
+        <figcaption id="clip-collect-desc" class="visually-hidden">A picture, a Wikipedia link and a quote are dragged from a browser onto the Mammoth project in Swiss.</figcaption>
+      </figure>
+      <p class="clip-caption">Dragged in from a browser: a picture, a link, a quote.</p></div>
+      <div><figure class="clip film" id="clip-recent" data-clip data-state="idle">
+        <video playsinline muted loop preload="none" poster="media/clip-recent.jpg" width="1170" height="796" aria-describedby="clip-recent-desc">
+          <source data-src="media/clip-recent.mp4" type="video/mp4">
+        </video>
+        <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
+          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
+          <span class="label">Play</span>
+        </button></div>
+        <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
+        <figcaption id="clip-recent-desc" class="visually-hidden">Swiss's Recent list: a screenshot and a copied Wikipedia link arrive, and the screenshot is kept in Mammoth.</figcaption>
+      </figure>
+      <p class="clip-caption">Recent: a screenshot, kept in Mammoth with one click.</p></div>
+    </div>
+    <div class="copy-cols reveal">
+      <p class="copy"><strong>Recent, if you want it.</strong> Turn on capture and what you copy and every screenshot waits in Recent for 3 days. It's off until you switch it on.</p>
+      <p class="copy"><strong>Never your passwords.</strong> Items apps mark as private are skipped, and password managers are left out.</p>
+      <p class="copy"><strong>Quick save, anywhere.</strong> Press <span class="combo">⌥⌘V</span> in any app to save what you just copied.</p>
     </div>
   </div>
 </section>
 
-<section class="plate flip" id="folders" aria-labelledby="folders-title">
-  <div class="plate-picture">
-    <div class="plate-square">
-      <img src="img/shot-connected.webp" width="1244" height="974" loading="lazy" alt="The connected folder Exhibit images in Swiss, with a file just renamed to Lyuba – hero print.jpg, and a Finder window of the same folder showing the new name.">
+<section class="section" id="organize" aria-labelledby="organize-title">
+  <div class="wrap wrap-wide">
+    <div class="section-head reveal">
+      <h2 id="organize-title">A little order. In one click.</h2>
+      <p class="lead">Every project is a tab. When the board gets busy, the magic wand puts each thing in a folder for its kind.</p>
+    </div>
+    <div class="reveal">
+      <figure class="clip film clip-wide" id="clip-wand" data-clip data-state="idle">
+        <video playsinline muted loop preload="none" poster="media/clip-wand.jpg" width="1200" height="862" aria-describedby="clip-wand-desc">
+          <source data-src="media/clip-wand.mp4" type="video/mp4">
+        </video>
+        <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
+          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
+          <span class="label">Play</span>
+        </button></div>
+        <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
+        <figcaption id="clip-wand-desc" class="visually-hidden">A busy Mammoth board. The magic wand is clicked and the photos, links, notes and files fly into four folders: PhotoBook, Linker, Notepad and Files.</figcaption>
+      </figure>
+      <p class="clip-caption">Before and after: one click on the wand.</p>
+    </div>
+    <div class="copy-cols two reveal">
+      <p class="copy"><strong>Folders made for each kind.</strong> Linker for links, PhotoBook for pictures, Notepad for notes and Files for the rest. Add tags, drag between folders, copy whole folders to another project.</p>
+      <p class="copy"><strong>Sorted by kind, not by guesswork.</strong> The wand looks at what something is, not what it's about. If those folders already exist, it asks before adding to them.</p>
     </div>
   </div>
-  <div class="plate-text reveal">
-    <div class="tabs" role="tablist" aria-label="In a connected folder">
-      <button type="button" role="tab" id="tab-rename" aria-controls="copy-rename" aria-selected="true">Rename</button>
-      <button type="button" role="tab" id="tab-move" aria-controls="copy-move" aria-selected="false" tabindex="-1">Move and tag</button>
-      <button type="button" role="tab" id="tab-sort" aria-controls="copy-sort" aria-selected="false" tabindex="-1">Sort</button>
-    </div>
-    <div class="plate-body">
+</section>
+
+<section class="section alt" id="folders" aria-labelledby="folders-title">
+  <div class="wrap wrap-wide">
+    <div class="section-head reveal">
       <h2 id="folders-title">Your folders. A faster way in.</h2>
-      <div role="tabpanel" id="copy-rename" aria-labelledby="tab-rename">
-        <p>Connect any Finder folder and work in it like a project. Rename a file in Swiss and Finder shows the new name straight away. Nothing is copied.</p>
-      </div>
-      <div role="tabpanel" id="copy-move" aria-labelledby="tab-move" hidden>
-        <p>Move things between folders, tag them or delete them in Swiss, and the same happens in the real folder. Changes made in Finder show up in Swiss too.</p>
-      </div>
-      <div role="tabpanel" id="copy-sort" aria-labelledby="tab-sort" hidden>
-        <p>Arrange a connected folder by name, kind, date or tags, the way Finder does, with Swiss's big previews.</p>
-      </div>
+      <p class="lead">Connect any Finder folder and work in it like a project. Nothing is copied: Swiss works on the folder itself.</p>
     </div>
-    <div class="plate-actions">
-      <a class="btn btn-ink" href="#get">Get Swiss</a>
-      <a class="btn btn-paper" href="#frame">See the Frame</a>
+    <div class="reveal">
+      <figure class="clip film clip-wide" id="clip-connected" data-clip data-state="idle">
+        <video playsinline muted loop preload="none" poster="media/clip-connected.jpg" width="1200" height="896" aria-describedby="clip-connected-desc">
+          <source data-src="media/clip-connected.mp4" type="video/mp4">
+        </video>
+        <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
+          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
+          <span class="label">Play</span>
+        </button></div>
+        <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
+        <figcaption id="clip-connected-desc" class="visually-hidden">The connected folder Exhibit images in Swiss. A file is renamed to Lyuba – hero print.jpg, and the Finder window of the same folder shows the new name.</figcaption>
+      </figure>
+      <p class="clip-caption">Renamed in Swiss. Finder shows it straight away.</p>
+    </div>
+    <div class="copy-cols reveal">
+      <p class="copy"><strong>Changes are real.</strong> Rename, move, tag or delete in Swiss and the same happens in Finder.</p>
+      <p class="copy"><strong>Both ways.</strong> What you change in Finder shows up in Swiss.</p>
+      <p class="copy"><strong>Sorted your way.</strong> Arrange by name, kind, date or tags.</p>
     </div>
   </div>
 </section>
 
 <section class="section" id="frame" aria-labelledby="frame-title">
-  <div class="frame-split">
-    <div class="runin">
+  <div class="wrap wrap-wide">
+    <div class="section-head reveal">
       <h2 id="frame-title">Keep your references beside your work.</h2>
-      <div class="stage reveal">
-        <p><strong>To begin,</strong> open the Frame: a canvas that floats above every app. Its library lists your projects and Recent, so you drag a picture or a note straight onto it, or double-click to add.</p>
-        <figure><img src="img/shot-frame-library.webp" width="700" height="260" loading="lazy" alt="The Frame's library with the Mammoth project, next to a photo of the baby mammoth Lyuba and a sticky note: Under 60 words. Big type."></figure>
-      </div>
-      <div class="stage reveal">
-        <p><strong>While you work,</strong> a tutorial plays right on the canvas. YouTube links and video files both play there, above the app you're writing in.</p>
-        <figure><img src="img/shot-frame-video.webp" width="500" height="320" loading="lazy" alt="A video tutorial on writing museum labels, playing on the Frame with its controls showing."></figure>
-      </div>
-      <div class="stage reveal">
-        <p><strong>From then on,</strong> it's your desk: zoom, pan and move things around, and <span class="combo">⌘Z</span> undoes any step. Close it and it comes back just as you left it.</p>
-      </div>
+      <p class="lead">The Frame is a canvas that floats above every app. Drag in pictures, notes and links, play a tutorial, and keep working underneath.</p>
     </div>
-    <figure class="frame-pin">
-      <img src="img/shot-frame.webp" width="1260" height="1000" loading="lazy" alt="The whole Frame floating over a text editor where a museum label about Lyuba is being written: a photo, a sticky note and a tutorial video on the canvas.">
-    </figure>
+    <div class="reveal" id="frame-shot">
+      <figure class="clip film clip-wide" id="clip-frame" data-clip data-state="idle">
+        <video playsinline muted loop preload="none" poster="media/clip-frame.jpg" width="1200" height="950" aria-describedby="clip-frame-desc">
+          <source data-src="media/clip-frame.mp4" type="video/mp4">
+        </video>
+        <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
+          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
+          <span class="label">Play</span>
+        </button></div>
+        <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
+        <figcaption id="clip-frame-desc" class="visually-hidden">The Frame opens beside a text editor where a museum label is being written. A photo of Lyuba and a note are dragged on from the library, and a video tutorial plays on the canvas.</figcaption>
+      </figure>
+    </div>
+    <div class="copy-cols reveal">
+      <p class="copy"><strong>Drag stuff in.</strong> From your projects and Recent in the library beside the canvas, or from any app.</p>
+      <p class="copy"><strong>Watch while you work.</strong> YouTube links and video files play right on the canvas, above the app you're in.</p>
+      <p class="copy"><strong>Arrange freely.</strong> Zoom, pan and move things around. Made a mistake? <span class="combo">⌘Z</span>.</p>
+    </div>
   </div>
 </section>
 
-<section class="section" id="sizes" aria-labelledby="sizes-title">
-  <h2 class="section-title" id="sizes-title">Just the space you need.</h2>
-  <div class="sizes-row reveal">
-    <figure class="size">
-      <div class="size-panel"><img src="img/shot-size-popup.webp" width="478" height="658" loading="lazy" alt="Swiss as a small pop-up under the menu bar."></div>
-      <figcaption><h3>Pop-up</h3><p>Drops down from the menu bar, or opens anywhere with <span class="combo">⌥ Space</span>.</p></figcaption>
-    </figure>
-    <figure class="size">
-      <div class="size-panel"><img src="img/shot-size-window.webp" width="1202" height="808" loading="lazy" alt="Swiss as a regular window with its folders and pictures."></div>
-      <figcaption><h3>Window</h3><p>The green button steps up to a window with the sidebar, projects and connected folders.</p></figcaption>
-    </figure>
-    <figure class="size">
-      <div class="size-panel"><img src="img/shot-size-full.webp" width="1400" height="696" loading="lazy" alt="Swiss filling the whole screen."></div>
-      <figcaption><h3>Full screen</h3><p>All the room there is, for a big project. Orange steps back down.</p></figcaption>
-    </figure>
+<section class="section alt" id="sizes" aria-labelledby="sizes-title">
+  <div class="wrap wrap-wide">
+    <div class="section-head reveal">
+      <h2 id="sizes-title">Just the space you need.</h2>
+      <p class="lead">Start small from the menu bar and step up when you need room. Green steps up a size, orange steps back down.</p>
+    </div>
+    <div class="reveal">
+      <figure class="clip film clip-wide" id="clip-sizes" data-clip data-state="idle">
+        <video playsinline muted loop preload="none" poster="media/clip-sizes.jpg" width="1280" height="640" aria-describedby="clip-sizes-desc">
+          <source data-src="media/clip-sizes.mp4" type="video/mp4">
+        </video>
+        <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
+          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
+          <span class="label">Play</span>
+        </button></div>
+        <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
+        <figcaption id="clip-sizes-desc" class="visually-hidden">The same Swiss board grows from a pop-up under the menu bar to a window, then to full screen, as the green button is clicked.</figcaption>
+      </figure>
+    </div>
+    <div class="copy-cols reveal">
+      <p class="copy"><strong>Pop-up.</strong> Drops down from the menu bar, or opens anywhere with <span class="combo">⌥ Space</span>.</p>
+      <p class="copy"><strong>Window.</strong> The green button steps up to a window with the sidebar, projects and connected folders.</p>
+      <p class="copy"><strong>Full screen.</strong> All the room there is, for a big project. Orange steps back down.</p>
+    </div>
   </div>
 </section>
 
-<section class="section index" id="details" aria-labelledby="details-title">
-  <h2 class="section-title" id="details-title" data-size="small">And the small blades.</h2>
-  <div class="index-grid" data-index>
-    <div class="index-group">
-      <h3>Convert</h3>
-      <ul>
-        <li tabindex="0" data-note="Right-click a picture ▸ Convert: JPG, PNG, HEIC or TIFF.">Pictures to JPG, PNG, HEIC</li>
-        <li tabindex="0" data-note="Pictures become a PDF too, one page each.">Pictures to PDF</li>
-        <li tabindex="0" data-note="A smaller copy at 2048 or 1024 pixels, next to the original.">Smaller pictures</li>
-        <li tabindex="0" data-note="Videos to MP4, MOV or M4V, at 1080p, 720p or HEVC.">Videos to MP4, MOV</li>
-        <li tabindex="0" data-note="Keep only the sound of a video, as M4A.">Sound only</li>
-        <li tabindex="0" data-note="Word, text, RTF, Markdown and web pages become PDFs.">Documents to PDF</li>
-        <li tabindex="0" data-note="Save a video or a YouTube link as MP3 or MP4.">YouTube to MP3, MP4</li>
-      </ul>
-      <p class="index-sum">Right-click anything ▸ Convert.</p>
+<section class="section" id="details" aria-labelledby="details-title">
+  <div class="wrap wrap-wide">
+    <div class="section-head reveal">
+      <h2 id="details-title">And the small blades.</h2>
     </div>
-    <div class="index-group">
-      <h3>Keep it safe</h3>
-      <ul>
-        <li tabindex="0" data-note="Deleted things stay in Recently Deleted for 30 days.">Recently Deleted</li>
-        <li tabindex="0" data-note="Every save is checked before it replaces the last good copy.">Checked saves</li>
-        <li tabindex="0" data-note="An hourly backup of your library, kept on your Mac.">Hourly backups</li>
-        <li tabindex="0" data-note="Optional, in Settings ▸ Privacy. Locks again when your Mac sleeps.">Touch ID lock</li>
-        <li tabindex="0" data-note="Files over 250 MB are linked, not copied, so your disk doesn't fill.">Big files linked</li>
-        <li tabindex="0" data-note="Files that can run code ask before they open.">Careful with code</li>
-      </ul>
-      <p class="index-sum">Nothing you keep is lost by accident.</p>
-    </div>
-    <div class="index-group">
-      <h3>Keys</h3>
-      <ul>
-        <li tabindex="0" data-note="⌥ Space opens or closes Swiss from any app.">Open Swiss</li>
-        <li tabindex="0" data-note="⌥⌘V saves what you just copied, from any app.">Quick save</li>
-        <li tabindex="0" data-note="⌘1 to ⌘6: a new note, folder, Linker, PhotoBook, Notepad or Files.">New folder or note</li>
-        <li tabindex="0" data-note="⌃Tab moves to the next project tab.">Next project</li>
-        <li tabindex="0" data-note="Space previews anything with Quick Look, like in Finder.">Quick Look</li>
-        <li tabindex="0" data-note="? at the bottom right lists every button and key.">Every key, listed</li>
-      </ul>
-      <p class="index-sum">⌥ Space opens Swiss. ? lists every key.</p>
-    </div>
-    <p class="index-note" data-index-note aria-live="polite">Point at a blade to see what it does.</p>
-  </div>
-</section>
-
-<section class="section" id="privacy" aria-labelledby="privacy-title">
-  <h2 class="visually-hidden" id="privacy-title">Privacy</h2>
-  <div class="facts-row reveal">
-    <dl class="facts-list">
-      <div><dt>Account</dt><dd>None</dd></div>
-      <div><dt>Servers</dt><dd>None</dd></div>
-      <div><dt>Analytics</dt><dd>None</dd></div>
-    </dl>
-    <p class="facts-para">Everything stays on your Mac. Your library is saved as ordinary files in a hidden folder in Documents, so it takes disk space like any file and syncs with iCloud only if your Documents folder does. Capture of the clipboard, screenshots and downloads is off until you turn it on.</p>
-  </div>
-  <div class="facts-row reveal">
-    <p class="facts-label">The record</p>
-    <div class="facts-cols">
-      <div>
-        <h3>Swiss goes online only to</h3>
-        <ul>
-          <li>fetch a saved link's title and picture</li>
-          <li>get a picture you drag in from the web</li>
-          <li>play a YouTube video on the Frame</li>
-          <li>run a download you asked for</li>
-          <li>update its downloader tool</li>
-        </ul>
-      </div>
-      <div>
-        <h3>Swiss never</h3>
-        <ul>
-          <li>keeps passwords or private clipboard items</li>
-          <li>reads password managers</li>
-          <li>sends your library anywhere</li>
-          <li>runs code files without asking</li>
-          <li><a href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">Read the security report</a></li>
+    <div class="facts reveal">
+      <div class="fact"><h3>Convert</h3><p>Right-click ▸ Convert. Pictures to JPG, PNG, HEIC, TIFF, PDF or smaller. Videos to MP4, MOV, M4V, smaller or sound only. Documents to PDF. Videos and YouTube links to MP3 or MP4.</p></div>
+      <div class="fact"><h3>Share</h3><p>AirDrop, Mail, Messages and WhatsApp, from a right-click.</p></div>
+      <div class="fact"><h3>Recover</h3><p>Deleted things stay in Recently Deleted for 30 days. Saves are checked, with hourly backups.</p></div>
+      <div class="fact"><h3>Touch ID lock</h3><p>Optional. Swiss locks again when your Mac locks or sleeps.</p></div>
+      <div class="fact"><h3>Big files stay put</h3><p>Files over 250 MB are linked, not copied, so your library doesn't fill your disk.</p></div>
+      <div class="fact">
+        <h3>Keys</h3>
+        <ul class="keys">
+          <li><span>Open Swiss</span><span>⌥ Space</span></li>
+          <li><span>Save what you copied</span><span>⌥⌘V</span></li>
+          <li><span>Quick Look</span><span>Space</span></li>
+          <li><span>Every key, listed</span><span>?</span></li>
         </ul>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section get" id="get" aria-labelledby="get-title">
-  <h2 id="get-title">Build it on your Mac in three commands.</h2>
-  <div class="get-row">
-    <div class="get-main reveal">
+<section class="section red center" id="privacy" aria-labelledby="privacy-title">
+  <div class="wrap wrap-wide">
+    <div class="reveal">
+      <h2 id="privacy-title">Everything stays on your Mac.</h2>
+      <p class="lead" style="margin-top: var(--s5)">No account. No servers. No analytics. Swiss only goes online for things you start, like fetching a saved link's title or playing a video.</p>
+    </div>
+    <div class="privacy-points reveal">
+      <p class="copy"><strong>Ordinary files.</strong> Your library is saved as real files in a hidden folder in Documents, so it takes disk space like any file, and syncs with iCloud only if your Documents folder does.</p>
+      <p class="copy"><strong>Off by default.</strong> Clipboard, screenshot and download capture start only when you turn them on.</p>
+      <p class="copy"><strong>Careful with files.</strong> Files that can run code ask before they open, and downloads are marked the way Safari marks them.</p>
+    </div>
+    <p style="margin-top: var(--s7)"><a class="more" href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">Read the security report</a></p>
+  </div>
+</section>
+
+<section class="section center" id="download" aria-labelledby="download-title">
+  <div class="wrap">
+    <img class="download-icon" src="img/icon-256.png" width="96" height="96" alt="" loading="lazy">
+    <h2 id="download-title">Get Swiss.</h2>
+    <p class="lead" style="margin-top: var(--s4)">Version 1.0, for Macs with Apple silicon running macOS 14 Sonoma or later.</p>
+
+    <div class="download-card">
       <p class="status-line" id="release-status" data-status="checking" role="status" aria-live="polite">
         <span class="status-dot" aria-hidden="true"></span>
         <span data-release-text>Checking GitHub for the latest release…</span>
       </p>
 
       <div class="download-state" id="download-buy" hidden>
-        <p>Swiss 1.0 for <span data-price></span>. One payment, yours to keep. Checkout is on Lemon Squeezy's secure page: your card details never reach this site, and the receipt and the download arrive by email.</p>
-        <div class="get-actions"><a class="btn" href="#get" data-buy-link rel="noopener">Buy Swiss for <span data-price></span></a></div>
+        <h3>Swiss 1.0 · <span data-price></span></h3>
+        <p>One payment, yours to keep. Checkout is on Lemon Squeezy's secure page: your card details never reach this site. The receipt and the download arrive by email right after.</p>
+        <div class="download-actions">
+          <a class="btn" href="#download" data-buy-link rel="noopener">Buy Swiss for <span data-price></span></a>
+        </div>
+        <ol class="steps">
+          <li>Open the download and drag <strong>Swiss</strong> into Applications.</li>
+          <li>Open it from Applications. It appears in the menu bar with a short tour.</li>
+          <li>Press <span class="combo">⌥ Space</span> any time to open it.</li>
+        </ol>
       </div>
 
       <div class="download-state" id="download-ready" hidden>
-        <p>Swiss <span data-release-version></span> is ready. <span class="muted" data-release-meta></span></p>
-        <div class="get-actions">
+        <h3>Swiss <span data-release-version></span></h3>
+        <p class="fine" data-release-meta></p>
+        <div class="download-actions">
           <a class="btn" href="https://github.com/yotamkiper1/Swiss/releases" data-release-link>Download for Mac</a>
-          <a class="link-more" href="https://github.com/yotamkiper1/Swiss/releases" data-release-page>Release notes</a>
+          <a class="more" href="https://github.com/yotamkiper1/Swiss/releases" data-release-page>Release notes</a>
         </div>
+        <ol class="steps">
+          <li>Open the download and drag <strong>Swiss</strong> into Applications.</li>
+          <li>Open it from Applications. It appears in the menu bar with a short tour.</li>
+          <li>Press <span class="combo">⌥ Space</span> any time to open it.</li>
+        </ol>
       </div>
 
       <div class="download-state" id="download-none">
-        <p>Swiss isn't signed by Apple yet, so there's no download here for now. Its source is public and builds in a couple of minutes with Xcode, free from the App Store.</p>
+        <h3>Build it on your Mac.</h3>
+        <p>Swiss isn't signed and notarized by Apple yet, so there's no download here for now. Its source is public, and it builds in a couple of minutes.</p>
         <ol class="steps">
-          <li>Get the source:<pre class="cmd"><code>git clone https://github.com/yotamkiper1/Swiss.git</code></pre></li>
-          <li>Go into it:<pre class="cmd"><code>cd Swiss</code></pre></li>
-          <li>Build and install:<pre class="cmd"><code>./build.sh install</code></pre></li>
+          <li>Install <a href="https://apps.apple.com/app/xcode/id497799835">Xcode</a> from the App Store and open it once.</li>
+          <li>In Terminal, get the source:
+            <pre class="cmd"><code>git clone https://github.com/yotamkiper1/Swiss.git
+cd Swiss</code></pre></li>
+          <li>Build and install:
+            <pre class="cmd"><code>./build.sh install</code></pre>
+            Swiss lands in Applications and opens. Look for the knife in the menu bar.</li>
         </ol>
-        <div class="get-actions">
+        <div class="download-actions">
           <a class="btn" href="https://github.com/yotamkiper1/Swiss">View on GitHub</a>
-          <a class="link-more" href="mailto:kipery20@gmail.com?subject=Tell%20me%20when%20Swiss%20is%20ready%20to%20download">Tell me when it's ready</a>
+          <a class="more" href="mailto:kipery20@gmail.com?subject=Tell%20me%20when%20Swiss%20is%20ready%20to%20download">Tell me when it's ready</a>
         </div>
       </div>
+
+      <dl class="reqs">
+        <div><dt>macOS</dt><dd>14 Sonoma or later</dd></div>
+        <div><dt>Mac</dt><dd>Apple silicon</dd></div>
+        <div><dt>Intel Macs</dt><dd>Not yet</dd></div>
+      </dl>
+      <p class="fine" style="margin-top: var(--s5)">Something not working? Email <a href="mailto:kipery20@gmail.com?subject=Swiss%3A%20install%20problem">kipery20@gmail.com</a> or use Help ▸ Report a Problem in Swiss.</p>
     </div>
-    <dl class="reqs get-side reveal">
-      <div><dt>macOS</dt><dd>14 Sonoma or later</dd></div>
-      <div><dt>Mac</dt><dd>Apple silicon (M1 or newer). Intel Macs not yet.</dd></div>
-      <div><dt>Needs</dt><dd><a href="https://apps.apple.com/app/xcode/id497799835">Xcode</a>, opened once, to build from source</dd></div>
-      <div><dt>Help</dt><dd><a href="mailto:kipery20@gmail.com?subject=Swiss%3A%20install%20problem">kipery20@gmail.com</a>, or Help ▸ Report a Problem in Swiss</dd></div>
-    </dl>
   </div>
 </section>
 
-<section class="section" id="questions" aria-labelledby="questions-title">
-  <div class="qa"><h2 class="qa-head" id="questions-title">Questions</h2></div>
-  <div class="qa"><h3>What can I keep in Swiss?</h3><p class="qa-answer">Links, pictures, files, notes and folders, dropped, pasted or dragged in from any app. YouTube links and video files also play on the Frame.</p></div>
-  <div class="qa"><h3>Does it capture my clipboard by itself?</h3><p class="qa-answer">No. Clipboard, screenshot and download capture is off until you turn it on in Settings ▸ Capture. Then new items wait in Recent for three days and you keep what you want. Passwords and private items are never captured.</p></div>
-  <div class="qa"><h3>Where are my files stored?</h3><p class="qa-answer">On your Mac, as ordinary files in <code>~/Documents/.Stash</code>, so they use disk space like any file. Very large files are linked instead of copied. If iCloud syncs your Documents folder, it syncs these too.</p></div>
-  <div class="qa"><h3>How do connected folders work?</h3><p class="qa-answer">Pick a folder in Finder and it appears in Swiss's sidebar. Renaming, moving, tagging and deleting in Swiss change the real folder, and Finder's changes show up in Swiss.</p></div>
-  <div class="qa"><h3>Which Macs does it run on?</h3><p class="qa-answer">Macs with Apple silicon running macOS 14 Sonoma or later. Intel Macs aren't supported yet.</p></div>
-  <div class="qa"><h3>How do I report a problem?</h3><p class="qa-answer">In Swiss, choose Help ▸ Report a Problem. It opens an email you read and send yourself. Or write to <a href="mailto:kipery20@gmail.com">kipery20@gmail.com</a>.</p></div>
+<section class="section alt" id="faq" aria-labelledby="faq-title">
+  <div class="wrap">
+    <div class="section-head reveal"><h2 id="faq-title">Questions.</h2></div>
+    <div class="faq-list">
+      <details>
+        <summary>What can I keep in Swiss?</summary>
+        <div class="faq-answer"><p>Links, pictures, files, notes and folders. Drop, paste or drag them in from any app. YouTube links and video files can also play on the Frame.</p></div>
+      </details>
+      <details>
+        <summary>Does clipboard capture happen automatically?</summary>
+        <div class="faq-answer"><p>No. Capture of the clipboard, screenshots and downloads is off until you turn it on (Settings ▸ Capture, or the switches at the top of Recent). Once it's on, new items wait in Recent for 3 days by default and you keep the ones you want. Passwords and items apps mark as private are never captured.</p></div>
+      </details>
+      <details>
+        <summary>Where are my files stored?</summary>
+        <div class="faq-answer"><p>On your Mac, as ordinary files in a hidden folder inside Documents (<code>~/Documents/.Stash</code>), so they use disk space like any other file. Very large files are linked instead of copied. If iCloud syncs your Documents folder, it syncs this folder too.</p></div>
+      </details>
+      <details>
+        <summary>How do connected folders work?</summary>
+        <div class="faq-answer"><p>Pick a folder in Finder and Swiss shows it in the sidebar. Renaming, moving, tagging and deleting in Swiss change the real folder, and changes made in Finder show up in Swiss. Nothing is copied.</p></div>
+      </details>
+      <details>
+        <summary>Can I watch a tutorial while working?</summary>
+        <div class="faq-answer"><p>Yes. Put a YouTube link or a video file on the Frame. It floats above your other apps, so the video stays in view while you work underneath.</p></div>
+      </details>
+      <details>
+        <summary>Which Macs are supported?</summary>
+        <div class="faq-answer"><p>Macs with Apple silicon running macOS 14 Sonoma or later. Intel Macs aren't supported yet.</p></div>
+      </details>
+      <details>
+        <summary>How do I install Swiss?</summary>
+        <div class="faq-answer"><p>Until a signed download is ready, you build it from the source with Xcode: the steps are in <a href="#download">Get Swiss</a>. When a release is published on GitHub, the download appears there by itself.</p></div>
+      </details>
+      <details>
+        <summary>Do I need an account?</summary>
+        <div class="faq-answer"><p>No. There's no sign-in and no server.</p></div>
+      </details>
+      <details>
+        <summary>How do I report a problem or send an idea?</summary>
+        <div class="faq-answer"><p>In Swiss, choose Help ▸ Report a Problem or Send Feedback. It opens an email you read and send yourself. Or write to <a href="mailto:kipery20@gmail.com">kipery20@gmail.com</a>.</p></div>
+      </details>
+    </div>
+  </div>
 </section>
 
 </main>
 
 <footer class="site-footer">
-  <div class="foot-top">
-    <div class="foot-invite">
-      <h2>Keep what you find.</h2>
-      <a class="btn" href="#get" data-download-cta>Get Swiss</a>
+  <div class="wrap wrap-wide">
+    <div class="footer-top">
+      <ul class="footer-links">
+        <li><a href="#collect">Features</a></li>
+        <li><a href="#download">Get Swiss</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="https://github.com/yotamkiper1/Swiss">GitHub</a></li>
+        <li><a href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">Security</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="mailto:kipery20@gmail.com?subject=Swiss%20feedback">Feedback</a></li>
+      </ul>
     </div>
-    <ul class="foot-links">
-      <li><a href="https://github.com/yotamkiper1/Swiss">GitHub</a></li>
-      <li><a href="mailto:kipery20@gmail.com?subject=Swiss%20feedback">Feedback</a></li>
-      <li><a href="privacy.html">Privacy</a></li>
-      <li><a href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">Security</a></li>
-    </ul>
+    <div class="footer-base">
+      <span>© 2026 Yotam Kiper. Swiss is made by one person.</span>
+      <span>No cookies or analytics. This page asks GitHub whether a release exists.</span>
+    </div>
   </div>
-  <div class="foot-legal">
-    <span>© 2026 Yotam Kiper. Swiss is made by one person.</span>
-    <span>No cookies or analytics. This page asks GitHub whether a release exists.</span>
-  </div>
-  <p class="foot-name" aria-hidden="true">Swiss</p>
 </footer>
 
 </body>

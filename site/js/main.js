@@ -1,15 +1,14 @@
 import { setupClips } from "./videos.js";
 import { resolveRelease } from "./release.js";
 import { checkoutLink, PRICE } from "./purchase.js";
-import { setupWand } from "./wand.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-/* Header: white over the film, solid after it; mobile menu; current section in the nav. */
+/* Header: border once scrolled, mobile menu, current section in the nav. */
 function setupHeader() {
-  const header = $(".nav-bar"), hero = $(".hero");
-  const onScroll = () => header.classList.toggle("is-scrolled", !hero || scrollY > hero.offsetHeight - header.offsetHeight);
+  const header = $(".nav-bar");
+  const onScroll = () => header.classList.toggle("is-scrolled", scrollY > 8);
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
@@ -17,16 +16,14 @@ function setupHeader() {
   const close = (focusToggle) => {
     links.classList.remove("is-open");
     toggle.setAttribute("aria-expanded", "false");
-    toggle.textContent = "Menu";
-    header.classList.remove("is-solid");
+    toggle.setAttribute("aria-label", "Open menu");
     if (focusToggle) toggle.focus();
   };
   toggle.addEventListener("click", () => {
     const open = toggle.getAttribute("aria-expanded") !== "true";
     links.classList.toggle("is-open", open);
     toggle.setAttribute("aria-expanded", String(open));
-    toggle.textContent = open ? "Close" : "Menu";
-    header.classList.toggle("is-solid", open);
+    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
     if (open) links.querySelector("a")?.focus();
   });
   links.addEventListener("click", e => { if (e.target.closest("a")) close(false); });
@@ -62,55 +59,6 @@ function setupSound() {
     $(".label", btn).textContent = on ? "Sound on" : "Sound";
     if (on && video.paused) $(".play-btn", fig)?.click(); // a click is a user gesture: sound may start
   });
-}
-
-/* Tabs (WAI-ARIA pattern): each switches its panel, and a picture when one is marked for it. */
-function setupTabs() {
-  for (const list of $$("[role='tablist']")) {
-    const tabs = $$("[role='tab']", list);
-    const section = list.closest("section");
-    const select = (tab, focus) => {
-      for (const t of tabs) {
-        const on = t === tab;
-        t.setAttribute("aria-selected", String(on));
-        t.tabIndex = on ? 0 : -1;
-        document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
-      }
-      const pics = $$("[data-for]", section);
-      if (pics.some(p => p.dataset.for === tab.id)) pics.forEach(p => { p.hidden = p.dataset.for !== tab.id; });
-      if (focus) tab.focus();
-    };
-    tabs.forEach((t, i) => {
-      t.addEventListener("click", () => select(t));
-      t.addEventListener("keydown", e => {
-        const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-        if (e.key === "Home") { e.preventDefault(); select(tabs[0], true); }
-        else if (e.key === "End") { e.preventDefault(); select(tabs.at(-1), true); }
-        else if (step) { e.preventDefault(); select(tabs[(i + step + tabs.length) % tabs.length], true); }
-      });
-    });
-  }
-}
-
-/* The small blades: pointing at (or focusing) a name shows what it does in the empty columns. */
-function setupIndex() {
-  const note = $("[data-index-note]");
-  if (!note) return;
-  const show = li => { note.textContent = li.dataset.note; };
-  for (const li of $$("[data-index] li[data-note]")) {
-    li.addEventListener("mouseenter", () => show(li));
-    li.addEventListener("focus", () => show(li));
-  }
-}
-
-/* Phones held upright get the vertical cut of the film. */
-function chooseFilm() {
-  const video = $("#film video");
-  if (!video || !matchMedia("(max-width: 47.9375em) and (orientation: portrait)").matches) return;
-  const source = $("source", video);
-  source.src = video.dataset.tallSrc;
-  video.poster = video.dataset.tallPoster;
-  video.load();
 }
 
 /* Download: show a real release if GitHub has one; otherwise the honest "build it" path. */
@@ -165,11 +113,7 @@ function setupReveal() {
 }
 
 setupHeader();
-chooseFilm();
 setupClips();
-setupTabs();
-setupIndex();
-setupWand();
 setupSound();
 setupReveal();
 setupDownload();

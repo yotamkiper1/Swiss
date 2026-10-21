@@ -1,0 +1,15 @@
+{
+  "fps": 30,
+  "transition": 15,
+  "scenes": [
+    {"id": "mess",    "lead": 0.4,  "tail": 0.7, "min": 0,   "line": "That link. That screenshot. That file called final, final, two. You saved them. Somewhere."},
+    {"id": "intro",   "lead": 0.5,  "tail": 1.0, "min": 4.6, "line": "Meet Swiss. A pocket knife for your ideas."},
+    {"id": "menubar", "lead": 0.35, "tail": 1.0, "min": 0,   "line": "It lives in your menu bar. Press Option Space, and it's right there."},
+    {"id": "capture", "lead": 0.35, "tail": 0.9, "min": 0,   "line": "Drop in links, pictures, files and notes. Copy something anywhere, and Swiss can keep it."},
+    {"id": "tabs",    "lead": 0.35, "tail": 0.9, "min": 0,   "line": "Every project gets its own tab. Folders, notes and links, living together like a very tidy family."},
+    {"id": "wand",    "lead": 0.5,  "tail": 1.1, "min": 5.2, "line": "Total mess? Wave the wand. Poof. Sorted."},
+    {"id": "frame",   "lead": 0.35, "tail": 1.0, "min": 0,   "line": "Need room to think? The Frame is a free canvas, floating above every app."},
+    {"id": "private", "lead": 0.35, "tail": 1.0, "min": 4.8, "line": "No account. No cloud. Everything stays on your Mac."},
+    {"id": "outro",   "lead": 0.5,  "tail": 2.8, "min": 5.5, "line": "Swiss. Now go save something."}
+  ]
+}

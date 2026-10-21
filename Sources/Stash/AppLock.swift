@@ -12,6 +12,9 @@ import SwiftUI
 enum AppLock {
     static let enabledKey = "lock.enabled"
     static let graceKey = "lock.graceMinutes" // 0 = every time Swiss opens
+    /// "Ask again after Swiss has been in the background for", in minutes.
+    static let graceChoices: [(minutes: Int, label: String)] = [(0, "Every time"), (60, "1 hour"), (180, "3 hours"),
+                                                                (1440, "1 day"), (4320, "3 days")]
 
     static var enabled: Bool { UserDefaults.standard.bool(forKey: enabledKey) }
     private static var grace: TimeInterval { TimeInterval(UserDefaults.standard.integer(forKey: graceKey)) * 60 }
@@ -23,7 +26,11 @@ enum AppLock {
     private static var waiting: (() -> Void)?
 
     static func start() {
-        UserDefaults.standard.register(defaults: [enabledKey: false, graceKey: 5])
+        UserDefaults.standard.register(defaults: [enabledKey: false, graceKey: 60])
+        // An earlier choice that's no longer on the list (1, 5 or 15 minutes) becomes 1 hour.
+        if !graceChoices.contains(where: { $0.minutes == UserDefaults.standard.integer(forKey: graceKey) }) {
+            UserDefaults.standard.set(60, forKey: graceKey)
+        }
         NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { awaySince = Date() }
         }
@@ -110,7 +117,7 @@ enum AppLock {
 /// Settings → Privacy.
 struct PrivacySettings: View {
     @AppStorage(AppLock.enabledKey) private var enabled = false
-    @AppStorage(AppLock.graceKey) private var grace = 5
+    @AppStorage(AppLock.graceKey) private var grace = 60
 
     var body: some View {
         Section {
@@ -118,11 +125,7 @@ struct PrivacySettings: View {
                 AppLock.set(on) { _ in } // @AppStorage follows the setting once macOS says yes
             }))
             Picker("Ask again after Swiss has been in the background for", selection: $grace) {
-                Text("Any time").tag(0)
-                Text("1 minute").tag(1)
-                Text("5 minutes").tag(5)
-                Text("15 minutes").tag(15)
-                Text("1 hour").tag(60)
+                ForEach(AppLock.graceChoices, id: \.minutes) { Text($0.label).tag($0.minutes) }
             }
             .disabled(!enabled)
         } header: {

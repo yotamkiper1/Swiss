@@ -214,7 +214,7 @@ struct QuickBar: View {
                 // Store.shared, not the environment: the bar is also measured off-screen (see `fit`).
                 .disabled(!Store.shared.canCreateHere)
                 .opacity(Store.shared.canCreateHere ? 1 : 0.35)
-                .help("⌘\(action.key) · \(action.title) — \(action.help)")
+                .help("⌘\(String(action.key)) · \(action.title) — \(action.help)")
                 .accessibilityLabel(action.title)
                 .accessibilityHint(action.help)
             }

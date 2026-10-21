@@ -35,7 +35,19 @@ fi
 # Built-in tools: the LAME MP3 encoder and the yt-dlp downloader.
 [ -d Resources/tools ] && cp -R Resources/tools "$APP/Contents/Resources/"
 xattr -cr "$APP"
-codesign --force --options runtime --entitlements Resources/Swiss.entitlements --sign - "$APP" >/dev/null # Hardened Runtime: nothing can inject code into Swiss
+# Signing. Without SIGN_ID it's signed for this Mac only ("-"). For other Macs, set SIGN_ID to your Developer ID, e.g.
+#   SIGN_ID="Developer ID Application: Yotam Kiper (TEAMID)" ./build.sh notarize
+# Hardened Runtime everywhere: nothing can inject code into Swiss or its tools.
+SIGN="${SIGN_ID:--}"
+STAMP=""; [[ "$SIGN" != "-" ]] && STAMP="--timestamp"
+for tool in "$APP/Contents/Resources/tools/"*; do
+    [[ -x "$tool" && ! -d "$tool" ]] || continue
+    # yt-dlp unpacks its own Python libraries when it runs, so it alone may load libraries it signed itself.
+    ENT=(); [[ "$(basename "$tool")" == "yt-dlp" ]] && ENT=(--entitlements Resources/tools.entitlements)
+    codesign --force --options runtime $STAMP ${ENT[@]+"${ENT[@]}"} --sign "$SIGN" "$tool" >/dev/null
+done
+codesign --force --options runtime $STAMP --entitlements Resources/Swiss.entitlements --sign "$SIGN" "$APP" >/dev/null
+codesign --verify --strict --deep "$APP"
 rm -rf "build/$NAME.app"
 mkdir -p build
 ditto --noextattr "$APP" "build/$NAME.app"
@@ -49,5 +61,19 @@ if [[ "${1:-}" == "install" ]]; then
     ditto --noextattr "$APP" /Applications/Swiss.app
     open /Applications/Swiss.app || { sleep 1; open /Applications/Swiss.app; }
     echo "Installed to /Applications/Swiss.app"
+fi
+if [[ "${1:-}" == "notarize" ]]; then
+    # Once: xcrun notarytool store-credentials swiss-notary --apple-id YOU@EXAMPLE.COM --team-id TEAMID
+    # (it asks for an app-specific password from appleid.apple.com and keeps it in your keychain).
+    [[ "$SIGN" != "-" ]] || { echo "Set SIGN_ID to your Developer ID Application certificate first"; exit 1; }
+    VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+    ZIP="build/Swiss-$VERSION.zip"
+    ditto -c -k --keepParent "$APP" "$ZIP"
+    xcrun notarytool submit "$ZIP" --keychain-profile "${NOTARY_PROFILE:-swiss-notary}" --wait
+    xcrun stapler staple "$APP"
+    rm -rf "build/$NAME.app" && ditto --noextattr "$APP" "build/$NAME.app"
+    rm "$ZIP" && ditto -c -k --keepParent "build/$NAME.app" "$ZIP" # the stapled app, ready to put online
+    spctl --assess --type execute -vv "build/$NAME.app"
+    echo "Notarized: $ZIP"
 fi
 rm -rf "$STAGE"

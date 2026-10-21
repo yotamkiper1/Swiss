@@ -12,7 +12,7 @@ final class RichTextController: ObservableObject {
     @Published var fontFamily = "System"
     @Published var fontSize: CGFloat = 14
 
-    nonisolated static let defaultFont = NSFont.systemFont(ofSize: 14)
+    nonisolated(unsafe) static let defaultFont = NSFont.systemFont(ofSize: 14)
 
     /// Sets an attribute on the selection, or on what you type next if nothing's selected.
     private func changeFonts(_ change: (NSFont) -> NSFont) {

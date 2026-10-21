@@ -16,8 +16,8 @@ extension Store {
     var previousLibraryURL: URL { dataDir.appendingPathComponent("library.prev.json") }
     var backupsDir: URL { dataDir.appendingPathComponent("backups", isDirectory: true) }
 
-    static let persistQueue = DispatchQueue(label: "stash.persist", qos: .userInitiated)
-    private static let newest = OSAllocatedUnfairLock(initialState: 0)
+    nonisolated static let persistQueue = DispatchQueue(label: "stash.persist", qos: .userInitiated)
+    private nonisolated static let newest = OSAllocatedUnfairLock(initialState: 0)
 
     nonisolated static func decodeLibrary(at url: URL) -> Library? {
         guard var data = try? Data(contentsOf: url), !data.isEmpty else { return nil }

@@ -186,7 +186,7 @@ extension Store {
     }
 
     private func fetchMetadata(_ id: UUID, _ url: URL) {
-        let provider = LPMetadataProvider()
+        nonisolated(unsafe) let provider = LPMetadataProvider() // only kept alive by the closure, never used from it
         provider.timeout = 15
         provider.startFetchingMetadata(for: url) { metadata, _ in
             _ = provider // keep the provider alive until it finishes

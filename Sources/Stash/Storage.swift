@@ -9,7 +9,7 @@ import UniformTypeIdentifiers
 /// at most 600 px, JPEG — or PNG when they have see-through parts (like file icons). The pictures you add yourself
 /// are never touched.
 extension Store {
-    static let previewMaxSide: CGFloat = 600
+    nonisolated static let previewMaxSide: CGFloat = 600
 
     nonisolated static func previewData(from image: CGImage) -> (data: Data, ext: String)? {
         let w = CGFloat(image.width), h = CGFloat(image.height)

@@ -63,7 +63,7 @@ struct KeyCombo: Codable, Equatable {
 @MainActor
 enum Shortcut: String, CaseIterable, Identifiable {
     case open, quickSave, keep
-    var id: String { rawValue }
+    nonisolated var id: String { rawValue }
     private var key: String { "shortcut." + rawValue }
 
     var title: String {

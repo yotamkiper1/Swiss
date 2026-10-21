@@ -223,7 +223,10 @@ final class MainMenu: NSObject, NSMenuDelegate {
 
     private func helpMenu() -> [NSMenuItem] {
         [item("Welcome Tour") { WelcomeTour.show() },
-         item("What Every Button Does") { self.app.showButtonIndex() }]
+         item("What Every Button Does") { self.app.showButtonIndex() },
+         .separator(),
+         item("Report a Problem…") { Feedback.reportProblem() },
+         item("Send Feedback or a Review…") { Feedback.sendFeedback() }]
     }
 
     // MARK: Helpers

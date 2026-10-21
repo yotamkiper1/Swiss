@@ -49,13 +49,15 @@ enum Sharing {
         return out
     }
 
-    static func shareable(items: [Item], store: Store = .shared) -> Shareable {
+    static func shareable(items: [Item], store: Store? = nil) -> Shareable {
+        let store = store ?? .shared
         var parts = Parts()
         for item in items { add(item, to: &parts, store: store) }
         return finish(parts)
     }
 
-    static func shareable(recent entries: [RecentItem], store: Store = .shared) -> Shareable {
+    static func shareable(recent entries: [RecentItem], store: Store? = nil) -> Shareable {
+        let store = store ?? .shared
         var parts = Parts()
         for entry in entries {
             if let id = entry.itemID, let saved = store.items.first(where: { $0.id == id }) { add(saved, to: &parts, store: store); continue }
@@ -104,7 +106,8 @@ enum Sharing {
 
     // MARK: Showing the share sheet
 
-    static func share(targets: Set<Selectable>, store: Store = .shared) {
+    static func share(targets: Set<Selectable>, store: Store? = nil) {
+        let store = store ?? .shared
         let ids = Set(targets.itemIDs)
         let chosen = store.items.filter { ids.contains($0.id) }
         if chosen.isEmpty, !targets.folderIDs.isEmpty { store.flash("Folders can't be shared yet — pick the things inside") }
@@ -159,7 +162,7 @@ enum Sharing {
 
 /// Makes sure Mail and AirDrop are on the list for whatever is shared.
 @MainActor
-final class ShareDelegate: NSObject, NSSharingServicePickerDelegate {
+final class ShareDelegate: NSObject, @preconcurrency NSSharingServicePickerDelegate {
     var textFile: URL?
 
     func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker, sharingServicesForItems items: [Any],

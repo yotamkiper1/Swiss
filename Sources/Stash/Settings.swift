@@ -89,7 +89,7 @@ struct SettingsView: View {
     @State private var result: String?
 
     enum Tab: String, CaseIterable {
-        case general = "General", capture = "Capture", files = "Files", shortcuts = "Shortcuts", organize = "Organize", tools = "Tools"
+        case general = "General", capture = "Capture", files = "Files", shortcuts = "Shortcuts", organize = "Organize", tools = "Tools", privacy = "Privacy"
         var symbol: String {
             switch self {
             case .general: "gearshape"
@@ -98,6 +98,7 @@ struct SettingsView: View {
             case .shortcuts: "command"
             case .organize: "wand.and.stars"
             case .tools: "wrench.and.screwdriver"
+            case .privacy: "lock.shield"
             }
         }
     }
@@ -114,7 +115,7 @@ struct SettingsView: View {
                             Image(systemName: item.symbol).font(.system(size: 17)).frame(height: 20)
                             Text(item.rawValue).font(.system(size: 10.5))
                         }
-                        .frame(width: 74, height: 46)
+                        .frame(width: 68, height: 46)
                         .foregroundStyle(on ? Color.accentColor : Color.secondary)
                         .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(on ? Color.primary.opacity(0.08) : .clear))
                         .contentShape(Rectangle())
@@ -134,6 +135,7 @@ struct SettingsView: View {
                 case .shortcuts: pane { ShortcutsSettings() }
                 case .organize: pane { organizeSections }
                 case .tools: pane { ToolsSettings() }
+                case .privacy: pane { PrivacySettings() }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

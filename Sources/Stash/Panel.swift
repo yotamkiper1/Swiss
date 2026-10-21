@@ -104,7 +104,7 @@ final class StashPanel: NSPanel {
         if event.type == .leftMouseDown || event.type == .rightMouseDown,
            let editor = firstResponder as? NSTextView, let field = editor.delegate as? NSTextField,
            !field.bounds.contains(field.convert(event.locationInWindow, from: nil)) {
-            makeFirstResponder(nil)
+            _ = makeFirstResponder(nil)
         }
         if isFloating {
             // The Frame is the canvas: no board, no Recent — its keys and scrolling are the canvas's.
@@ -130,7 +130,7 @@ final class StashPanel: NSPanel {
         let flags = event.modifierFlags.intersection([.command, .option, .control])
         let step: Double = event.modifierFlags.contains(.shift) ? 20 : 4
         switch Int(event.keyCode) {
-        case kVK_Delete, kVK_ForwardDelete where flags.isEmpty:
+        case kVK_Delete where flags.isEmpty || flags == .command, kVK_ForwardDelete where flags.isEmpty || flags == .command:
             guard !canvas.selection.isEmpty else { return false }
             canvas.delete(canvas.selection)
         case kVK_ANSI_A where flags == .control || flags == .command:

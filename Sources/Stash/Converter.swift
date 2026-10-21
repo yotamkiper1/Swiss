@@ -54,8 +54,13 @@ enum Converter {
 
     /// The MP3 encoder inside Stash. (STASH_LAME points a test run elsewhere.)
     static var lame: URL? {
-        let path = ProcessInfo.processInfo.environment["STASH_LAME"] ?? bundledTools?.appendingPathComponent("lame").path
+        let path = testOverride("STASH_LAME") ?? bundledTools?.appendingPathComponent("lame").path
         return path.flatMap { FileManager.default.isExecutableFile(atPath: $0) ? URL(fileURLWithPath: $0) : nil }
+    }
+
+    /// A tool from somewhere else, for test runs only: in the real Swiss nothing outside it can choose what it runs.
+    private static func testOverride(_ name: String) -> String? {
+        TestMode.isOn ? ProcessInfo.processInfo.environment[name] : nil
     }
 
     /// yt-dlp: the copy inside Stash, or an updated one in Application Support once you've updated it
@@ -63,7 +68,7 @@ enum Converter {
     static var updatedYtdlp: URL { TestMode.supportDir.appendingPathComponent("tools/yt-dlp") }
 
     static var ytdlp: URL? {
-        if let override = ProcessInfo.processInfo.environment["STASH_YTDLP"] { return URL(fileURLWithPath: override) }
+        if let override = testOverride("STASH_YTDLP") { return URL(fileURLWithPath: override) }
         let fm = FileManager.default
         if fm.isExecutableFile(atPath: updatedYtdlp.path) { return updatedYtdlp }
         let bundled = bundledTools?.appendingPathComponent("yt-dlp")

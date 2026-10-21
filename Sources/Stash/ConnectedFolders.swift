@@ -260,6 +260,7 @@ final class ConnectedThumbnails: ObservableObject {
         if let hit = cache.object(forKey: key) { return hit }
         guard !entry.isFolder, !pending.contains(key as String) else { return nil }
         pending.insert(key as String)
+        let name = key as String
         let request = QLThumbnailGenerator.Request(fileAt: entry.url, size: CGSize(width: size, height: size),
                                                    scale: NSScreen.main?.backingScaleFactor ?? 2, representationTypes: .thumbnail)
         QLThumbnailGenerator.shared.generateBestRepresentation(for: request) { rep, _ in
@@ -267,8 +268,8 @@ final class ConnectedThumbnails: ObservableObject {
             DispatchQueue.main.async {
                 MainActor.assumeIsolated {
                     let image = NSImage(cgImage: cg, size: NSSize(width: cg.width, height: cg.height))
-                    self.cache.setObject(image, forKey: key, cost: cg.width * cg.height * 4)
-                    self.pending.remove(key as String)
+                    self.cache.setObject(image, forKey: name as NSString, cost: cg.width * cg.height * 4)
+                    self.pending.remove(name)
                     self.version += 1
                 }
             }

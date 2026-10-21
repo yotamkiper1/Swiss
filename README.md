@@ -65,10 +65,12 @@ Moving, renaming and deleting in Swiss does the same to the files. Very large fi
 
 ## Privacy and safety
 
-- Nothing of yours is uploaded. Swiss only contacts a site to fetch a saved link's title and picture, or to download something you asked for.
-- Capture of the clipboard, screenshots and downloads is **off** until you enable it (Settings → Capture); Recent keeps items 3 days by default.
-- Files are checked before they run (code-like files ask first), downloads are quarantined like Safari's, and the downloader runs without user config.
-- Saves are written in the background, verified, and swapped in atomically; the last good copy and hourly backups are kept.
+- Everything stays on your Mac. No account, no servers, no analytics. Swiss only goes online for things you start: a saved link's title and picture, a picture dragged in from a web page, a YouTube video played on a canvas, a download you asked for, and updating the downloader.
+- Capture of the clipboard, screenshots and downloads is **off** until you turn it on (Settings → Capture). Passwords and anything apps mark as private are never kept, and password managers are excluded. Recent keeps items 3 days by default.
+- **Settings → Privacy → Require Touch ID** locks Swiss's windows behind Touch ID or your Mac password (macOS's own prompt). It locks again when the Mac locks or sleeps.
+- Files are checked before they run (code-like files ask first), downloads are quarantined like Safari's, and the downloader runs without user config and only for web links. `swiss://` links from web pages are limited (5 per 10 s, text only, invisible characters removed) and never take a password from the clipboard.
+- Saves are written in the background, checked, and swapped in atomically; the last good copy and hourly backups are kept.
+- **Help → Report a Problem / Send Feedback** opens an email to the developer that you read and send yourself. Diagnostics are optional and hold versions, switches and counts, never library contents or file names.
 
 ## Updates
 
@@ -91,3 +93,13 @@ Moving, renaming and deleting in Swiss does the same to the files. Very large fi
 | `docs/` | Screenshots and design notes |
 
 Swiss Test only: `stashtest://debug…` links drive test hooks (`DebugHooks.swift`); the real app ignores them. The bundle id, folder names and `stash://` scheme keep their old "Stash" names so existing libraries carry over; `swiss://` works too.
+
+## Launch checklist
+
+1. **Version**: `CFBundleShortVersionString` in `Resources/Info.plist` (now 1.0); raise `CFBundleVersion` for every build you publish.
+2. **Apple Developer account** ($99/yr, developer.apple.com). In Xcode ▸ Settings ▸ Accounts, create a **Developer ID Application** certificate.
+3. **Notary credentials**, once: `xcrun notarytool store-credentials swiss-notary --apple-id YOU --team-id TEAMID` (it asks for an app-specific password from appleid.apple.com and keeps it in the keychain).
+4. **Sign, notarize, staple**: `SIGN_ID="Developer ID Application: Yotam Kiper (TEAMID)" ./build.sh notarize` → `build/Swiss-1.0.zip`, which opens on any Mac without a Gatekeeper warning.
+5. **Apple silicon only** for now: the app and the bundled MP3 encoder are arm64. For Intel Macs, build with `--arch arm64 --arch x86_64` and bundle a universal `lame`.
+6. **Downloader**: update `Resources/tools/yt-dlp` to the latest release before each launch (sites change often).
+7. **Sign in with Apple / Google**: not in 1.0 (Swiss has no sync, so an account wouldn't do anything yet). It needs the Developer account (Apple), a Google Cloud OAuth client, and a server to check sign-ins. Never collect Apple or Google passwords in Swiss's own form.

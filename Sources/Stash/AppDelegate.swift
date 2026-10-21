@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var hotKeyCombo: KeyCombo?
     var quickSaveCombo: KeyCombo?
     private let savedHUD = SavedHUD()
+    private var linksBeforeLaunch: [URL] = []
     private var iconReset: Task<Void, Never>?
 
     static func main() {
@@ -63,6 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         AppDelegate.shared = self
         if ProcessInfo.processInfo.environment["STASH_COUNTERS"] != nil { Perf.startCounterLog() }
         OrganizerSettings.register()
+        AppLock.start() // Settings ▸ Privacy ▸ Require Touch ID
         MainMenu.shared.install() // Swiss's tools in the Mac menu bar
         NSApp.servicesProvider = self // Finder / browsers: right-click ▸ Services ▸ Add to Swiss Recent
         NSUpdateDynamicServices()
@@ -73,6 +75,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setUpStatusItem()
         registerHotKeys() // ⌥Space and quick save, or whatever you set in Settings → Shortcuts
         reportLibraryProblems()
+        if !linksBeforeLaunch.isEmpty {
+            let links = linksBeforeLaunch
+            linksBeforeLaunch = []
+            DispatchQueue.main.async { AppDelegate.shared.application(NSApp, open: links) }
+        }
         NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { AppDelegate.shared.registerHotKeys() }
         }
@@ -80,7 +87,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             MainActor.assumeIsolated { AppDelegate.shared.flashStatusIcon() }
         }
         // Let the status item settle into the menu bar before anchoring to it.
-        DispatchQueue.main.async { AppDelegate.shared.showCompact() }
+        // (Not when Swiss is locked: it may be opening at login, and Touch ID would ask for nothing.)
+        if !AppLock.enabled { DispatchQueue.main.async { AppDelegate.shared.showCompact() } }
         // The first time: a short tour of the tools.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { MainActor.assumeIsolated { WelcomeTour.showIfFirstLaunch() } }
     }
@@ -92,19 +100,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// stash://clipboard saves the clipboard, stash://add?text=… saves text or a link, stash://open shows the panel.
     func application(_ application: NSApplication, open urls: [URL]) {
+        // A swiss:// link that launched Swiss arrives before its windows exist: handle it once they do.
+        guard compact != nil else { linksBeforeLaunch += urls; return }
         let store = Store.shared
         for url in urls where TestMode.isOn ? url.scheme == "stashtest" : ["swiss", "stash"].contains(url.scheme ?? "") {
+            // Any web page can open these links, so they're limited: a few at a time, text only, cleaned up.
+            if ["clipboard", "recent", "add"].contains(url.host ?? ""), !Safety.allowLink() { continue }
+            let text = (URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "text" }?.value)
+                .map(Safety.cleanText) ?? ""
             switch url.host {
             case "clipboard":
-                if !store.ingest(.general, into: store.currentPlace) { NSSound.beep() }
+                // Never a password or anything private an app put on the clipboard.
+                if Safety.isPrivate(.general) || !store.ingest(.general, into: store.currentPlace) { NSSound.beep() }
             case "recent":
                 // swiss://recent?text=… — a link or words from a browser's right-click, straight into Recent.
-                let text = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "text" }?.value
-                if let text, !text.isEmpty { RecentStore.shared.addExplicit(text: String(text.prefix(20_000)), source: "Browser") }
+                if !text.isEmpty { RecentStore.shared.addExplicit(text: text, source: "Browser") }
             case "add":
-                let text = URLComponents(url: url, resolvingAgainstBaseURL: false)?
-                    .queryItems?.first { $0.name == "text" }?.value
-                if let text { store.addText(String(text.prefix(20_000)), place: store.currentPlace) } // links from web pages can't flood it
+                if !text.isEmpty { store.addText(text, place: store.currentPlace) }
             case let host? where host.hasPrefix("debug") && TestMode.isOn:
                 handleDebug(url, compact: compact, panel: panel) // test hooks exist only in Stash Test
             default:
@@ -175,6 +187,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func showCompact() {
+        guard AppLock.allow({ AppDelegate.shared.showCompact() }) else { return }
         guard let button = statusItem.button else { return }
         // Stash opens in the mode you used last: the pop-up, the window, or the floating frame.
         switch WindowMode.current {
@@ -265,6 +278,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// Organizer options and Deep Organize. Kept out of the main window on purpose.
     func showSettings() {
+        guard AppLock.allow({ AppDelegate.shared.showSettings() }) else { return } // so the lock can't be switched off by someone else
         if settingsWindow == nil {
             let window = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 520, height: 620),
                                  styleMask: [.titled, .closable, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -350,6 +364,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func showFloating() {
+        guard AppLock.allow({ AppDelegate.shared.showFloating() }) else { return }
         if panel.isVisible { panel.orderOut(nil) }
         if compact.isVisible { compact.orderOut(nil) }
         floating.makeKeyAndOrderFront(nil)
@@ -397,6 +412,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func showPanel() {
+        guard AppLock.allow({ AppDelegate.shared.showPanel() }) else { return }
         if compact.isVisible { compact.orderOut(nil) }
         if floating?.isVisible == true, !companion { floating.orderOut(nil) }
         Store.shared.boardZoom = 1
@@ -405,7 +421,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         Store.shared.focusRequest += 1
         // Don't start in the Search box, so 1–5, Delete and the arrows work right away (⌘F goes to search).
         DispatchQueue.main.async { [panel] in
-            if panel?.firstResponder is NSTextView { panel?.makeFirstResponder(nil) }
+            if panel?.firstResponder is NSTextView { _ = panel?.makeFirstResponder(nil) }
         }
     }
 
@@ -578,12 +594,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             warning.isEnabled = false
         }
         menu.addItem(.separator())
+        menu.addItem(withTitle: "Report a Problem…", action: #selector(reportProblem), keyEquivalent: "")
+        menu.addItem(withTitle: "Send Feedback…", action: #selector(sendFeedback), keyEquivalent: "")
+        menu.addItem(.separator())
         menu.addItem(withTitle: "Quit Swiss", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         for item in menu.items where item.action != #selector(NSApplication.terminate(_:)) { item.target = self }
         return menu
     }
 
     @objc private func saveClipboard() { quickSavePressed() }
+    @objc private func reportProblem() { Feedback.reportProblem() }
+    @objc private func sendFeedback() { Feedback.sendFeedback() }
 
     @objc private func toggleLaunchAtLogin() {
         do {

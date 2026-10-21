@@ -1,5 +1,5 @@
 import AppKit
-import LinkPresentation
+@preconcurrency import LinkPresentation
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -375,7 +375,7 @@ final class CanvasStore: ObservableObject {
         }
         let id = add(.link, at: point, size: CGSize(width: 240, height: 58), text: url.host, url: url.absoluteString)
         // The page's title, when it arrives.
-        let provider = LPMetadataProvider()
+        nonisolated(unsafe) let provider = LPMetadataProvider() // only kept alive by the closure, never used from it
         provider.timeout = 10
         provider.startFetchingMetadata(for: url) { metadata, _ in
             _ = provider

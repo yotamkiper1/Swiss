@@ -298,6 +298,10 @@ extension AppDelegate {
         case "debugcopy":
             let pb = NSPasteboard.general
             pb.clearContents(); pb.setString(url.query?.removingPercentEncoding ?? "", forType: .string)
+        case "debugdiag": log("diagnostics=\(Feedback.writeDiagnostics()?.path ?? "-")")
+        case "debuglockstate": log("lock enabled=\(AppLock.enabled) unlocked=\(AppLock.isUnlocked) windows=\(NSApp.windows.filter { $0.isVisible && !$0.className.contains("StatusBar") }.map { "\($0.className):\($0.title)" })")
+        case "debuglocknow": AppLock.lock()
+        case "debugfeedback": Feedback.sendFeedback()
         case "debugrecent": store.showingRecent = url.path != "/off"
         case "debugcapture":
             UserDefaults.standard.set(url.path.contains("clip"), forKey: CaptureSettings.clipboardKey)

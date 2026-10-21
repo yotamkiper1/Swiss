@@ -554,6 +554,8 @@ private struct YouTubePlayer: NSViewRepresentable {
         config.preferences.isElementFullscreenEnabled = true
         let web = WKWebView(frame: .zero, configuration: config)
         web.setValue(false, forKey: "drawsBackground")
+        web.navigationDelegate = context.coordinator
+        web.uiDelegate = context.coordinator
         load(web, context.coordinator)
         return web
     }
@@ -565,7 +567,29 @@ private struct YouTubePlayer: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
-    final class Coordinator { var loaded: String? }
+    /// The player stays a player: a link clicked inside it (the title, "Watch on YouTube") opens in your browser
+    /// instead of turning the canvas into a web page.
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+        var loaded: String?
+
+        @MainActor func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
+                                decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
+            let leaving = action.targetFrame?.isMainFrame == true && action.navigationType == .linkActivated
+            if leaving, let url = action.request.url {
+                if Safety.isWebURL(url) { NSWorkspace.shared.open(url) }
+                decisionHandler(.cancel)
+            } else {
+                decisionHandler(.allow)
+            }
+        }
+
+        // Links that ask for a new window.
+        @MainActor func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
+                                for action: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+            if let url = action.request.url, Safety.isWebURL(url) { NSWorkspace.shared.open(url) }
+            return nil
+        }
+    }
 
     private func load(_ web: WKWebView, _ coordinator: Coordinator) {
         coordinator.loaded = videoID

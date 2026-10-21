@@ -121,6 +121,8 @@ struct BoardPlacement {
         }
 
         let folderColumns = max(1, Int((width + 6) / (folderWidth + 6)))
+        // The row of tiles sits in the middle of the board, not against its left edge.
+        let inset = max(0, (width - (CGFloat(folderColumns) * (folderWidth + 6) - 6)) / 2)
         let unplaced = tiles.indices.filter { tiles[$0].spot == nil }
 
         if placed.isEmpty {
@@ -128,7 +130,7 @@ struct BoardPlacement {
             var y: CGFloat = 0, rowHeight: CGFloat = 0, column = 0
             for index in unplaced where tiles[index].tileSized {
                 if column == folderColumns { column = 0; y += rowHeight + 8; rowHeight = 0 }
-                result[index] = CGRect(origin: CGPoint(x: CGFloat(column) * (folderWidth + 6), y: y), size: sizes[index])
+                result[index] = CGRect(origin: CGPoint(x: inset + CGFloat(column) * (folderWidth + 6), y: y), size: sizes[index])
                 rowHeight = max(rowHeight, sizes[index].height)
                 column += 1
             }
@@ -157,7 +159,7 @@ struct BoardPlacement {
             var (row, firstSlot) = resume[key] ?? (0, 0)
             search: while CGFloat(row) * 8 < 50_000 {
                 for slot in firstSlot..<slots {
-                    let rect = CGRect(origin: CGPoint(x: CGFloat(slot) * step, y: CGFloat(row) * 8), size: sizes[index])
+                    let rect = CGRect(origin: CGPoint(x: (isFolder ? inset : 0) + CGFloat(slot) * step, y: CGFloat(row) * 8), size: sizes[index])
                     if !placed.overlaps(rect) {
                         result[index] = rect
                         resume[key] = (row, slot)

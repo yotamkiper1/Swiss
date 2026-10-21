@@ -50,14 +50,13 @@ struct LibrarySidebar: View {
                         ConnectedRegistry.shared.open(folder.id)
                     }
                     .overlay(alignment: .trailing) {
-                        // × closes it (and its tab); right-click to remove the shortcut altogether.
-                        if selected || connected.openTabs.contains(folder.id) {
-                            Button { ConnectedRegistry.shared.closeTab(folder.id) } label: {
-                                Image(systemName: "xmark").font(.system(size: 8, weight: .bold)).frame(width: 16, height: 16).contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain).foregroundStyle(.secondary).padding(.trailing, 6)
-                            .help("Close (the folder stays connected)").accessibilityLabel("Close \(folder.name)")
+                        // × takes it off Swiss's list (and closes its tab). The real folder in Finder stays as it is;
+                        // + above connects it again.
+                        Button { ConnectedRegistry.shared.remove(folder.id) } label: {
+                            Image(systemName: "xmark").font(.system(size: 8, weight: .bold)).frame(width: 16, height: 16).contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain).foregroundStyle(.secondary).padding(.trailing, 6)
+                        .help("Remove from Swiss (the folder itself stays in Finder)").accessibilityLabel("Remove \(folder.name) from Swiss")
                     }
                     .contextMenu {
                         Button("Reveal in Finder") { if let url = ConnectedRegistry.shared.resolve(folder.id) { NSWorkspace.shared.activateFileViewerSelecting([url]) } }

@@ -257,6 +257,7 @@ private struct CanvasItemView: View {
     @State private var nameDraft = ""
 
     @ObservedObject private var live = CanvasLive.shared
+    @Environment(\.colorScheme) private var colorScheme
     /// While its sizer is dragged: the size it's shown at (view points). The canvas itself changes once, at the end.
     @State private var liveSize: CGSize?
 
@@ -297,7 +298,7 @@ private struct CanvasItemView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 8 * min(1, canvas.zoom), style: .continuous)
                 // A quote shows it's chosen with a quiet grey ring, not the coloured one.
-                .strokeBorder(item.quote == true ? Color.black.opacity(0.28) : Color.accentColor, lineWidth: selected ? (item.quote == true ? 1 : 2) : 0)
+                .strokeBorder(item.quote == true ? Color.primary.opacity(0.3) : Color.accentColor, lineWidth: selected ? (item.quote == true ? 1 : 2) : 0)
         )
         .overlay(alignment: .bottomTrailing) {
             if selected {
@@ -413,15 +414,20 @@ private struct CanvasItemView: View {
 
     private func noteFont(_ size: CGFloat) -> Font { .system(size: size, design: item.quote == true ? .serif : .default) }
 
+    private var dark: Bool { colorScheme == .dark }
+    /// White text in dark mode (on a dark note or quote), black in light mode.
+    private var ink: Color { dark ? Color.white.opacity(0.92) : Color.black.opacity(0.85) }
+
     /// A typed note is a yellow sticky; copied text is a quote: a white, see-through card, readable over anything.
+    /// In dark mode they go dark (a deep amber note, a dark glass quote) with white text.
     @ViewBuilder private var noteFill: some View {
         if item.quote == true {
             ZStack {
-                Rectangle().fill(.ultraThinMaterial).environment(\.colorScheme, .light)
-                Color.white.opacity(0.6)
+                Rectangle().fill(.ultraThinMaterial).environment(\.colorScheme, dark ? .dark : .light)
+                (dark ? Color.black.opacity(0.35) : Color.white.opacity(0.6))
             }
         } else {
-            Color(red: 1.0, green: 0.93, blue: 0.62)
+            dark ? Color(red: 0.42, green: 0.34, blue: 0.1) : Color(red: 1.0, green: 0.93, blue: 0.62)
         }
     }
 
@@ -429,7 +435,7 @@ private struct CanvasItemView: View {
         if item.quote == true {
             Text("\u{201C}")
                 .font(.system(size: textSize * 1.6, weight: .bold, design: .serif))
-                .foregroundStyle(Color.black.opacity(0.32))
+                .foregroundStyle(dark ? Color.white.opacity(0.45) : Color.black.opacity(0.32))
                 .frame(height: textSize * 0.9, alignment: .top)
                 .frame(maxWidth: .infinity, alignment: item.text?.isRightToLeft == true ? .trailing : .leading)
         }
@@ -446,7 +452,7 @@ private struct CanvasItemView: View {
                     .padding(6 * scale)
             }
             .background(noteFill)
-            .foregroundStyle(Color.black.opacity(0.85))
+            .foregroundStyle(ink)
             .onAppear { draft = item.text ?? "" }
             .onChange(of: draft) { canvas.update(item.id) { $0.text = draft } }
             .onDisappear { if draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { canvas.delete([item.id]) } }
@@ -456,7 +462,7 @@ private struct CanvasItemView: View {
                 quoteMark(13)
                 Text(item.text ?? "")
                     .font(noteFont(13))
-                    .foregroundStyle(Color.black.opacity(0.85))
+                    .foregroundStyle(ink)
                     .multilineTextAlignment(item.text?.isRightToLeft == true ? .trailing : .leading)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: item.text?.isRightToLeft == true ? .topTrailing : .topLeading)
             }

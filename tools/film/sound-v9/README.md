@@ -10,7 +10,7 @@ Only the first part of the file is used: file 0.06–0.80 s, the soft opening st
 
 ---
 
-*v8 notes, still true:*
+*v8 notes (section 1 on the wand is replaced by the v9 cut above; the rest still applies):*
 
 | File | What it is |
 |---|---|

@@ -488,10 +488,12 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
 
 // ================= Recent: copy a link, take a screenshot, keep one (9–14) =================
 {
-  const sw = { x: 500, y: 108, w: 740, h: 500 }, SIDE = 176, P = { x: 880, y: 330, w: 340, h: 260 };
+  const sw = { x: 500, y: 108, w: 740, h: 500 }, SIDE = 176, P = { x: 740, y: 236, w: 520, h: 384 };
+  // The page being captured: a real screenshot of a Wikipedia search (assets/wiki-search.jpg, 1100 px wide page)
+  const CAP = { x: 0, y: 0, w: 520, h: 346 }, CH = 34;
   const th = (inner, bg = '#fff') => `<div class="th" style="background:${bg}">${inner}</div>`;
   const rows = [
-    { id: 'r-shot', th: `<div class="th">${img('lyuba.jpg', 38, 38)}</div>`, t: 'Screenshot 2026-10-21 at 10.42.07', s: `<span style="font-size:12px">${I.camera}</span> Screenshot · now` },
+    { id: 'r-shot', th: `<div class="th">${img('wiki-search.jpg', 38, 38, 'object-position:0 0')}</div>`, t: 'Screenshot 2026-10-21 at 10.42.07', s: `<span style="font-size:12px">${I.camera}</span> Screenshot · now` },
     { id: 'r-link', th: th(`<span style="color:#fff;font-size:17px">${I.link}</span>`, 'var(--k-linker)'), t: 'Lyuba – Wikipedia', s: 'en.wikipedia.org · now' },
     { id: 'r-a', th: `<div class="th">${img('cave.jpg', 38, 38)}</div>`, t: 'rouffignac-cave.jpg', s: 'Finder · yesterday' },
     { id: 'r-b', th: th(pdfIcon(0.8)), t: 'Exhibition plan.pdf', s: 'Finder · yesterday' },
@@ -510,12 +512,14 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
           <span style="padding:0 11px;display:flex;gap:6px;align-items:center">${I.tray} Keep</span><span style="padding:0 8px;border-left:1px solid rgba(255,255,255,.3);height:100%;display:flex;align-items:center;font-size:10px">${I.chev}</span></span></div>
       <div class="flash" id="keptflash" style="left:50%;bottom:64px"><span style="color:#5BD27A">${I.check}</span>Kept in Mammoth</div>
     </div></div>
-  <div class="window" id="pwin" style="left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;background:#222;opacity:0">
-    <div style="height:30px;background:#F4F4F3;display:flex;align-items:center;gap:12px;padding:0 12px;font-size:12px"><div class="lights off"><i></i><i></i><i></i></div><span style="font-weight:600;margin-left:60px">lyuba.jpg</span></div>
-    ${img('lyuba.jpg', P.w, P.h - 30)}
-    <div class="abs" id="shotsel" style="left:60px;top:70px;width:0;height:0;border:1px solid #fff;background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(0,0,0,.4)"></div>
+  <div class="window" id="pwin" style="left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;background:#fff;opacity:0">
+    <div style="height:${CH}px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 12px;font-size:12px;color:var(--ink2)">
+      <div class="lights off"><i></i><i></i><i></i></div><span style="letter-spacing:.3em">‹›</span>
+      <div style="flex:1;height:22px;border-radius:7px;background:rgba(0,0,0,.055);display:flex;align-items:center;gap:5px;padding:0 9px;font-size:10.5px;color:#3a3a3c;white-space:nowrap;overflow:hidden"><span style="color:var(--ink3);font-size:10px">${I.lock}</span>en.wikipedia.org/w/index.php?search=woolly+mammoth+calf+Lyuba</div></div>
+    <div class="abs" style="left:0;top:${CH}px;right:0;bottom:0;overflow:hidden"><img src="${A}wiki-search.jpg" style="display:block;width:${P.w}px"></div>
+    <div class="abs" id="shotsel" style="left:${CAP.x}px;top:${CH + CAP.y}px;width:0;height:0;border:1px solid #fff;background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(0,0,0,.4)"></div>
     <div class="abs" id="shotflash" style="inset:0;background:#fff;opacity:0"></div></div>
-  <div class="abs" id="shotthumb" style="width:120px;height:80px;border:3px solid #fff;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:90;transform-origin:0 0"><img src="${A}lyuba.jpg" style="width:330px;height:220px;margin:-60px 0 0 -70px;display:block"></div>
+  <div class="abs" id="shotthumb" style="width:${CAP.w}px;height:${CAP.h}px;border:3px solid #fff;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:90;transform-origin:0 0;background:#fff"><img src="${A}wiki-search.jpg" style="width:${P.w}px;margin:${-CAP.y}px 0 0 ${-CAP.x}px;display:block"></div>
   <div class="key" id="k-c" style="left:${sw.x + 400}px;top:${sw.y + 330}px">⌘C</div><div class="key" id="k-s" style="left:${P.x + 120}px;top:${P.y + 110}px">⇧⌘4</div>`;
   const LINK = 0.6, PIC = 0.95, SKEY = 1.25, DRAG0 = 1.4, DRAG1 = 1.8, SNAP = 1.85, FLY = 2.15, SHOT = 2.5, SEL = 3.1, KEEP = 3.65, ROW = 56;
   const slot = { x: sw.x + SIDE + 8, y: sw.y + 54, w: sw.w - SIDE - 16, h: 54 };
@@ -539,19 +543,19 @@ const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 
       const pw = $(el, '#pwin'), po = eo(seg(t, PIC, PIC + 0.3)) * (1 - seg(t, FLY + 0.1, FLY + 0.4));
       pw.style.opacity = po; pw.style.transform = `translateY(${(1 - eo(seg(t, PIC, PIC + 0.3))) * 20}px)`;
       const d = eo(seg(t, DRAG0, DRAG1)), ss = $(el, '#shotsel');
-      Object.assign(ss.style, { width: 210 * d + 'px', height: 140 * d + 'px', opacity: t > DRAG0 && t < SNAP ? 1 : 0 });
+      Object.assign(ss.style, { width: CAP.w * d + 'px', height: CAP.h * d + 'px', opacity: t > DRAG0 && t < SNAP ? 1 : 0 });
       $(el, '#shotflash').style.opacity = t > SNAP ? 0.85 * (1 - seg(t, SNAP, SNAP + 0.25)) : 0;
       const th = $(el, '#shotthumb'), fl = io(seg(t, FLY, SHOT));
-      const from = { x: P.x + 60, y: P.y + 70, s: 1.75 }, to = { x: slot.x + 14, y: slot.y + 8, s: 0.32 };
+      const from = { x: P.x + CAP.x, y: P.y + CH + CAP.y, s: 1 }, to = { x: slot.x + 14, y: slot.y + 8, s: 38 / CAP.h };
       th.style.left = lerp(from.x, to.x, fl) + 'px'; th.style.top = lerp(from.y, to.y, fl) + 'px';
       th.style.transform = `scale(${lerp(from.s, to.s, fl)})`;
       th.style.opacity = t > SNAP && t < SHOT + 0.05 ? 1 : 0;
     },
     camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
-    vcam: [[0, 1, 870, 360], [2.0, 1, 870, 360], [2.7, 1.1, 900, 380]] });
+    vcam: [[0, 1, 870, 360], [0.85, 1, 870, 360], [1.3, 1, 985, 400], [2.2, 1, 985, 400], [2.75, 1.1, 900, 380]] });
   rings(sc, [[0.2, 1.4, '#cchips', 4, 14], [LINK + 0.15, SHOT - 0.05, slot, 4, 12], [SHOT + 0.05, SEL - 0.1, slot, 4, 12], [KEEP - 0.35, KEEP + 0.6, '#keepbtn', 5, 10]]);
   const kp = at(sc, '#keepbtn span'), sh = at(sc, '#r-shot .tt', -60, 4);
-  sc.cursorKeys = [[0, 1100, 660], [DRAG0 - 0.15, P.x + 60, P.y + 100], [DRAG0, P.x + 60, P.y + 100, 1], [DRAG1, P.x + 270, P.y + 240], [SEL - 0.6, P.x + 250, P.y + 200], [SEL - 0.12, sh.x, sh.y], [SEL, sh.x, sh.y, 1], [KEEP - 0.15, kp.x, kp.y], [KEEP, kp.x, kp.y, 1], [5.5, kp.x - 50, kp.y - 40]];
+  sc.cursorKeys = [[0, 1100, 660], [DRAG0 - 0.15, P.x + CAP.x, P.y + CH + CAP.y], [DRAG0, P.x + CAP.x, P.y + CH + CAP.y, 1], [DRAG1, P.x + CAP.x + CAP.w, P.y + CH + CAP.y + CAP.h], [SEL - 0.6, P.x + CAP.x + CAP.w - 20, P.y + 300], [SEL - 0.12, sh.x, sh.y], [SEL, sh.x, sh.y, 1], [KEEP - 0.15, kp.x, kp.y], [KEEP, kp.x, kp.y, 1], [5.5, kp.x - 50, kp.y - 40]];
 }
 
 // ================= Magic wand: the mix sorts itself into folders, then one opens (14–19) =================

@@ -1,51 +1,48 @@
-/* Swiss design tokens. Colors sampled from Resources/AppIcon-source.png:
-   tile #F3F4F1, knife red #E04837, blade #4C2E21, rivet #FEF6E7. */
+/* Swiss design tokens. The accent comes from the app icon's knife (#E04837), darkened for text contrast. */
 :root {
   /* color */
-  --paper: #F5F2EC;          /* page */
-  --paper-raised: #FBFAF7;   /* surfaces that sit on the page */
-  --paper-sunk: #ECE7DF;     /* quiet bands */
-  --ink: #231C18;            /* text, 15.0:1 on paper */
-  --ink-soft: #5E554E;       /* secondary text, 6.5:1 on paper */
-  --ink-faint: #6F665F;      /* captions, 5.0:1 on paper, 4.6:1 on paper-sunk */
-  --line: #DED7CC;
-  --line-strong: #C9C0B3;
-  --knife: #E04837;          /* the logo red: decoration, large marks only */
-  --accent: #B93A2B;         /* buttons and links: white on it 5.7:1, it on paper 5.1:1 */
+  --bg: #F7F4EF;            /* warm paper, like the icon tile */
+  --bg-alt: #EFEAE2;         /* alternate sections */
+  --tile: #EFEAE2;
+  --tile-on-alt: #FBF9F5;
+  --ink: #2A2420;            /* 14.0:1 on bg */
+  --ink-2: #6B6158;          /* secondary text: 5.5:1 on bg, 5.1:1 on bg-alt */
+  --line: #DDD5CA;
+  --knife: #E04837;          /* the logo red: marks only */
+  --accent: #B93A2B;         /* buttons, links: white on it 5.7:1; on bg 5.2:1, on bg-alt 4.7:1 */
   --accent-hover: #9E2F22;
-  --blade: #4C2E21;          /* dark band */
-  --blade-ink: #F5EDE6;
-  --blade-soft: #D6C6BA;     /* 7.4:1 on blade */
-  --focus: #1F6FEB;
+  --focus: #0071E3;
 
-  /* type */
-  --font-display: "New York", ui-serif, "Iowan Old Style", Charter, "Charter BT", Georgia, serif;
-  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
-  --step--1: 0.875rem;  /* 14 */
-  --step-0: 1.0625rem;  /* 17 */
-  --step-1: 1.25rem;    /* 20 */
-  --step-2: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);     /* 24-30 */
-  --step-3: clamp(2rem, 1.5rem + 2vw, 2.75rem);          /* 32-44 */
-  --step-4: clamp(2.5rem, 1.6rem + 3.6vw, 4.25rem);      /* 40-68 */
+  /* type: a serif for headlines, the Mac's own San Francisco for everything else */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: "New York", ui-serif, "Iowan Old Style", Charter, Georgia, serif; /* headlines: warmer than the UI font */
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --t-hero: clamp(3rem, 1.9rem + 4.6vw, 5rem);       /* 48–80 */
+  --t-h2: clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem);    /* 36–56 */
+  --t-h3: 1.5rem;                                     /* 24 */
+  --t-lead: clamp(1.1875rem, 1.05rem + 0.55vw, 1.5rem); /* 19–24 */
+  --t-copy: 1.125rem;   /* 18: lead-in paragraphs */
+  --t-body: 1.0625rem;  /* 17 */
+  --t-small: 0.875rem;  /* 14 */
+  --t-micro: 0.75rem;   /* 12 */
 
-  /* space (8-pt scale) */
-  --s-1: 0.25rem; --s-2: 0.5rem; --s-3: 0.75rem; --s-4: 1rem; --s-5: 1.5rem;
-  --s-6: 2rem; --s-7: 3rem; --s-8: 4rem; --s-9: 6rem; --s-10: 8rem;
-  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2rem);
-  --measure: 36rem;
-  --wrap: 72rem;
-  --wrap-wide: 80rem;
+  /* space */
+  --s1: .25rem; --s2: .5rem; --s3: .75rem; --s4: 1rem; --s5: 1.5rem; --s6: 2rem;
+  --s7: 3rem; --s8: 4rem; --s9: 6rem; --s10: 8.5rem;
+  --gutter: clamp(1rem, .4rem + 2.6vw, 2.5rem);
+  --wrap: 980px;
+  --wrap-wide: 1200px;
 
   /* shape */
-  --r-s: 8px; --r-m: 14px; --r-l: 22px; --r-pill: 999px;
-  --shadow-window: 0 1px 2px rgba(35, 28, 24, .06), 0 24px 60px -24px rgba(35, 28, 24, .35);
+  --r-tile: 22px;
+  --r-tile-sm: 16px;
+  --r-pill: 980px;
+  --shadow-window: 0 2px 6px rgba(60, 40, 25, .06), 0 24px 48px -20px rgba(60, 40, 25, .3);
 
   /* motion */
-  --ease: cubic-bezier(.2, .7, .2, 1);
-  --t-fast: 140ms;
-  --t-med: 420ms;
-  --rise: 14px;
+  --ease: cubic-bezier(.25, .1, .25, 1);
+  --t-fast: 160ms;
+  --t-med: 600ms;
 
-  --header-h: 64px;
+  --nav-h: 52px;
 }

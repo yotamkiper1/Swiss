@@ -25,25 +25,14 @@ cd site && npm test                       # Node 18+; no packages to install
 
 ## Media
 
-Source quality lives outside the repo (`~/Desktop/Yotam Kiper/Video Projects/Swiss-Commercial.mp4`, 70 MB, 1920×1080).
-The web copies are cut from it with ffmpeg. The scene times come from `tools/film/audio.swift` (`sceneStarts`):
+Source: the v8 film, `~/Downloads/swiss-film-v8-1920x1080.mp4` (40 s, with sound).
 
-| Clip | Film time | Shows |
-|---|---|---|
-| clip-hero | 14.9–34.6 s | menu bar pop-up, Recent, a project |
-| clip-recent | 20.4–26.4 s | Recent, Keep |
-| clip-projects | 27.2–34.6 s | a project board |
-| clip-wand | 35.4–41.8 s | the magic wand |
-| clip-connected | 42.6–50.0 s | a connected Finder folder |
-| clip-frame | 50.8–59.8 s | the Frame and its library |
-| clip-sizes | 60.6–65.8 s | pop-up → window → full screen |
-
-```bash
-ffmpeg -ss 20.4 -i Swiss-Commercial.mp4 -t 6 -an -vf scale=1280:-2 -c:v libx264 -crf 26 -preset slow \
-  -pix_fmt yuv420p -movflags +faststart media/clip-recent.mp4
-```
-
-`media/swiss-commercial.en.vtt` is generated from `tools/film/script/voiceover.txt` and `voiceStarts`.
+- `media/swiss-film.mp4`: the only video on the page, 3.3–36.0 s of v8 (the logo intro and the end card are cut),
+  1600 px, H.264 CRF 23, AAC 160 kb/s. Muted autoplay; Sound turns the sound on.
+  `ffmpeg -ss 3.3 -i swiss-film-v8-1920x1080.mp4 -t 32.7 -vf scale=1600:-2 -c:v libx264 -crf 23 -preset slow -pix_fmt yuv420p -c:a aac -b:a 160k -movflags +faststart media/swiss-film.mp4`
+- `img/shot-*.webp`: stills from v8 (frames at 8.8, 13.6, 14.9, 16.8, 23.8, 27.8, 32.6, 34.1, 35.6 s), cropped to the
+  app windows. The film's dark backdrop is made transparent by a flood fill from the edges, so photos inside the windows
+  keep their dark pixels. `shot-frame.webp` keeps its backdrop (it's the Frame over another app).
 
 ## Download
 

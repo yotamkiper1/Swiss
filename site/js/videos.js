@@ -60,11 +60,11 @@ export function setupClips(root = document) {
     state.set(fig, s);
     video.muted = true; // clips have no sound
     show(fig, "idle");
-    video.addEventListener("playing", () => { fig.classList.remove("media-loading"); show(fig, "playing"); });
+    video.addEventListener("playing", () => { fig.classList.remove("is-loading"); show(fig, "playing"); });
     video.addEventListener("pause", () => show(fig, "paused"));
-    video.addEventListener("waiting", () => fig.classList.add("media-loading"));
-    video.addEventListener("canplay", () => fig.classList.remove("media-loading"));
-    const fail = () => { s.failed = true; fig.classList.remove("media-loading"); show(fig, "error"); update(); };
+    video.addEventListener("waiting", () => fig.classList.add("is-loading"));
+    video.addEventListener("canplay", () => fig.classList.remove("is-loading"));
+    const fail = () => { s.failed = true; fig.classList.remove("is-loading"); show(fig, "error"); update(); };
     video.addEventListener("error", fail);
     fig.querySelector("source")?.addEventListener("error", fail);
     fig.querySelector(".media-control")?.addEventListener("click", () => {

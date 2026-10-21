@@ -6,7 +6,7 @@ const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 /* Header: border once scrolled, mobile menu, current section in the nav. */
 function setupHeader() {
-  const header = $(".site-header");
+  const header = $(".nav-bar");
   const onScroll = () => header.classList.toggle("is-scrolled", scrollY > 8);
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
@@ -28,7 +28,7 @@ function setupHeader() {
   links.addEventListener("click", e => { if (e.target.closest("a")) close(false); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && links.classList.contains("is-open")) close(true); });
   document.addEventListener("click", e => { if (links.classList.contains("is-open") && !e.target.closest(".nav")) close(false); });
-  matchMedia("(min-width: 47.5625em)").addEventListener?.("change", e => { if (e.matches) close(false); });
+  matchMedia("(min-width: 48em)").addEventListener?.("change", e => { if (e.matches) close(false); });
 
   if (!("IntersectionObserver" in window)) return;
   const navLinks = $$("#nav-links a[href^='#']");
@@ -45,70 +45,18 @@ function setupHeader() {
   targets.forEach(t => io.observe(t));
 }
 
-/* Organize: Projects / Magic wand tabs (WAI-ARIA tabs pattern). */
-function setupTabs(clips) {
-  for (const list of $$("[role='tablist']")) {
-    const tabs = $$("[role='tab']", list);
-    const select = (tab, focus) => {
-      for (const t of tabs) {
-        const on = t === tab, panel = document.getElementById(t.getAttribute("aria-controls"));
-        t.setAttribute("aria-selected", String(on));
-        t.tabIndex = on ? 0 : -1;
-        panel.hidden = !on;
-        $$(`[data-tab-copy="${panel.id}"]`).forEach(c => { c.hidden = !on; });
-        const fig = panel.querySelector("[data-clip]");
-        if (fig && !on) clips?.hide(fig);
-      }
-      if (focus) tab.focus();
-      clips?.refresh();
-    };
-    tabs.forEach((t, i) => {
-      t.addEventListener("click", () => select(t));
-      t.addEventListener("keydown", e => {
-        const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-        if (e.key === "Home") { e.preventDefault(); select(tabs[0], true); }
-        else if (e.key === "End") { e.preventDefault(); select(tabs.at(-1), true); }
-        else if (step) { e.preventDefault(); select(tabs[(i + step + tabs.length) % tabs.length], true); }
-      });
-    });
-  }
-}
-
-/* The product film: a native <dialog>, sound only after the visitor presses play. */
-function setupFilm(clips) {
-  const dialog = $("#film-dialog");
-  if (!dialog || typeof dialog.showModal !== "function") return; // links fall back to the MP4 itself
-  const video = $("video", dialog);
-  let opener = null;
-  const sources = $$("source[data-src]", video), track = $("track[data-src]", video);
-
-  video.addEventListener("error", () => dialog.classList.add("has-error"));
-  sources.forEach(s => s.addEventListener("error", () => dialog.classList.add("has-error")));
-
-  for (const btn of $$("[data-open-film]")) {
-    btn.addEventListener("click", e => {
-      e.preventDefault();
-      opener = btn;
-      if (sources.length && sources[0].dataset.src) {
-        sources.forEach(s => { s.src = s.dataset.src; s.removeAttribute("data-src"); });
-        if (track) { track.src = track.dataset.src; track.removeAttribute("data-src"); }
-        video.load();
-      }
-      // Pause the silent clips while the film is open.
-      $$("[data-clip] video").forEach(v => v.pause());
-      dialog.showModal();
-      const p = video.play(); // a click is a user gesture: sound is allowed and expected
-      if (p && p.catch) p.catch(() => {});
-      video.focus();
-    });
-  }
-  const close = () => dialog.close();
-  $(".close", dialog).addEventListener("click", close);
-  dialog.addEventListener("click", e => { if (e.target === dialog) close(); }); // backdrop
-  dialog.addEventListener("close", () => {
-    video.pause();
-    opener?.focus();
-    clips?.refresh();
+/* The hero film: muted until the visitor asks for sound. */
+function setupSound() {
+  const fig = $("#film"), btn = fig && $(".sound-btn", fig);
+  if (!btn) return;
+  const video = $("video", fig);
+  btn.addEventListener("click", () => {
+    const on = video.muted;
+    video.muted = !on;
+    fig.dataset.sound = on ? "on" : "off";
+    btn.setAttribute("aria-pressed", String(on));
+    $(".label", btn).textContent = on ? "Sound on" : "Sound";
+    if (on && video.paused) $(".play-btn", fig)?.click(); // a click is a user gesture: sound may start
   });
 }
 
@@ -152,8 +100,7 @@ function setupReveal() {
 }
 
 setupHeader();
-const clips = setupClips();
-setupTabs(clips);
-setupFilm(clips);
+setupClips();
+setupSound();
 setupReveal();
 setupDownload();

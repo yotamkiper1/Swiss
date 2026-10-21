@@ -1,4 +1,4 @@
-# Swiss: silent product film (40 s, v3) — production brief
+# Swiss: silent product film (40 s, v4) — production brief
 
 Everything here was checked against the source on `main` (commit `9785414`). File references are to `Sources/Stash/`.
 
@@ -17,46 +17,51 @@ Everything here was checked against the source on `main` (commit `9785414`). Fil
 | 5b | Connected folders | **Connected** (sidebar heading, + or drop a folder on it). Work inside any Finder folder like a project: new folders and notes, drop/paste in, **rename**, **move**, **colour-tag**, **Move to Trash**, **the wand**, arrange by name/kind/date/tags. Changes happen **in the real folder**; Finder edits show up in Swiss. Nothing is copied into the library. ⌘Z undoes Swiss’s last change. (The header comment in `ConnectedFolders.swift` still says “read-only”; that is stale — editing is in `ConnectedEdit.swift`.) | Action. | `Views/Sidebar.swift:36–60`; `ConnectedEdit.swift:5–11`; `Views/ConnectedFolderView.swift:35–39`; `ConnectedMoves.swift:128–180` |
 | 5c | The app’s own organization system | Projects (tabs) → folders (Classic, Linker, PhotoBook, Notepad, Files) → items (link, image, text, file), plus notes, colour tags and #tags. Folder icon = Finder-blue folder with a coloured kind dot. | — | `Models.swift:3–60, 266`; `Views/FolderViews.swift:5–88` |
 | 5d | “Priority folders” | **No feature with that name.** The closest real features: the **first nine folders on a board are numbered**; pressing **1–9** opens that folder and **⌥1–⌥9** puts the selection into it. And **pinned projects** (Pin Tab) always keep a tab and sort first. The film shows numbered folders but does not call them “priority folders”. | Automatic numbering; pinning is an action. | `Views/BoardGrid.swift:126`; `Views/FolderViews.swift:135–160`; `Panel.swift:321–355`; `Views/Sidebar.swift:15–17`; `Views/AllProjects.swift:23, 156–165` |
-
-| 5e | Three sizes | The green window button grows Swiss: **pop-up → window → whole screen**; orange steps back, red closes (Window menu: Pop-up ⌥⌘1, Full Screen ⌥⌘2, Frame ⌥⌘3). The pop-up is 300 × 400 pt. | Action. | `Views/WindowLights.swift:13–32`; `Views/WindowMode.swift:5–9`; `MainMenu.swift:211–216`; `Views/CompactView.swift:13`; `Views/WelcomeTour.swift:82–85` |
+| 5e | Collect by drag and paste | Dropping or pasting into a board adds it: pictures (files, file promises or image URLs from a browser), links (a pasted or dropped web address), and text, which becomes a note. One drop or paste is one undo step. | Action. | `Ingest.swift:7–90, 156–186` |
+| 5f | Three sizes | The green window button grows Swiss: **pop-up → window → whole screen**; orange steps back, red closes (Window menu: Pop-up ⌥⌘1, Full Screen ⌥⌘2, Frame ⌥⌘3). The pop-up is 300 × 400 pt. | Action. | `Views/WindowLights.swift:13–32`; `Views/WindowMode.swift:5–9`; `MainMenu.swift:211–216`; `Views/CompactView.swift:13`; `Views/WelcomeTour.swift:82–85` |
 
 Not advertised in the film: Convert, YouTube MP3/MP4 download, Share, Deep Organize. They exist but would crowd the film.
 
-## 2. Final on-screen copy (v3)
+## 2. Final on-screen copy (v4, the owner's script)
 
-The style follows the owner's second reference. Most of it plays on a dark, warm stage, with a red numbered eyebrow, big white lines that rise into place, a grey line and a few chips; the intro and outro sit on the icon's off-white. Scenes are revealed behind a red diagonal slash.
+The owner's script, word for word. Each scene has a small red label and a big white title that rises line by line; the titles are the captions, so there is no separate subtitle line. Opening and closing sit on the icon's off-white, the rest on the dark stage. Scenes are revealed behind a red diagonal slash.
 
-| # | Eyebrow | Headline | Grey line | Chips / extras |
-|---|---|---|---|---|
-| Intro | — | Icon, a red ring pulse, **Swiss** slides out from behind the icon | *A pocket knife for your ideas.* | — |
-| Opener | YOUR IDEAS ARE | **scattered.** → **links.** → **screenshots.** → **files.** (over drifting cards) | — | — |
-| 01 | Menu bar | One click away. | Lives in your menu bar. Always ready. | — |
-| 02 | Recent | Copy. Capture. Keep. | Everything you copy or screenshot lands here, ready to keep. | Link copied · Text copied · Screenshot captured; *Capture is opt-in · Settings → Capture* |
-| 03 | Projects | Tabs for every idea. | Folders, notes, pictures and links. One calm place. | — |
-| 04 | The wand | One tap. No mess. | Links, pictures, notes and files sort themselves into folders. | Linker · PhotoBook · Notepad · Files |
-| 05 | Connected folders | Finder, inside Swiss. | Rename, move, tag and sort. Finder follows along. | — |
-| 06 | The Frame | A canvas above it all. | Pull anything in from your library. Move it, zoom in, undo. | ⌘ Z keycaps · Undo, any time |
-| 07 | One click, three sizes | Make it yours. | Green grows Swiss: the pop-up, the window, then the whole screen. | POP-UP · WINDOW · FULL SCREEN |
-| Outro | — | Icon, **Swiss** | *A pocket knife for your ideas.* | FOR MACOS 14 OR LATER |
+| Time | Small label | Main title | Supporting line |
+|---|---|---|---|
+| 0–4 | SWISS | A pocket knife for your ideas. | — |
+| 4–9 | COLLECT | Found something worth keeping? | — |
+| 9–14 | RECENT | Copied. Captured. Within reach. | Optional clipboard and screenshot capture. |
+| 14–19 | MAGIC WAND | A little order. In one click. | — |
+| 19–24 | CONNECTED FOLDERS | Your folders. A faster way in. | — |
+| 24–32 | THE FRAME | Keep your references beside your work. | — |
+| 32–36 | THREE SIZES | Just the space you need. | — |
+| 36–40 | Swiss logo | Keep your ideas moving. | Collect. Organize. Keep working. |
 
-In-UI strings come from the app: “Recent”, “kept 3 days”, “Copies”, “Screenshots”, “Keep”, “Kept in Mammoth”, “Organized 7 items into 4 new folders” (`Store.swift:1021`), “Linker / PhotoBook / Notepad / Files”, “Connected”, “New”.
+In-UI strings come from the app: “Recent”, “kept 3 days”, “Copies”, “Screenshots”, “Keep”, “Kept in Mammoth” (`RecentStore.swift:422`), “Organized 7 items into 4 new folders” (`Store.swift:1021`), “Linker / PhotoBook / Notepad / Files”, “Connected”.
 
 ## 3. Timed storyboard (30 fps, 40.0 s = 1200 frames)
 
+The film follows one project, **Mammoth**, an exhibition being put together.
+
 | Time | Beat | What happens |
 |---|---|---|
-| 0.0–2.7 | Intro | Icon pops in with a small overshoot, a red ring pulses out, the wordmark slides out from behind the icon, then the line fades up |
-| 2.7–6.4 | Scattered | Red slash. About 30 cards drift at different depths (blurred when far): the Commons pictures, coloured poster cards, ghost cards. The word under “YOUR IDEAS ARE” rolls through four words; the camera flies through the cards into black |
-| 6.4–9.8 | 01 Menu bar | The desktop fades up. The cursor clicks the knife in the menu bar; the pop-up opens with the Mammoth tab, its folders and a few things; rings on the icon, then the pop-up |
-| 9.8–15.0 | 02 Recent | A link, a text and a screenshot arrive in Recent, each with a ring and a chip. Select the screenshot, Keep → “Kept in Mammoth”; push in on the list |
-| 15.0–18.4 | 03 Projects | The cursor clicks through the tabs Mammoth → Showreel → Thesis → Mammoth; each board swaps in |
-| 18.4–23.2 | 04 Wand | One click: PhotoBook, Linker, Notepad and Files appear, seven cards fly in (Google Doc and PDF → Files), flash; push in on the folders |
-| 23.2–27.6 | 05 Connected | Swiss › Connected › Exhibit images, with a Finder window of the same folder. Rename “lyuba-baby-mammoth.jpg” → “Lyuba – hero print.jpg”; the Finder row follows |
-| 27.6–32.4 | 06 Frame | Drag the skull from the library onto the canvas, play a local video with the Mac's controls, then ⌘Z takes the drop back |
-| 32.4–35.8 | 07 Sizes | The cursor clicks the green light twice: the pop-up grows to the window, then to the whole screen; the size pills follow |
-| 35.8–40.0 | Outro | Off-white with drifting red crosses: icon, wordmark, line, FOR MACOS 14 OR LATER |
+| 0–4 | Opening | The icon pops in with a red ring pulse, SWISS and the title rise, then the icon grows into the Swiss window (the Mammoth board) as the stage turns dark |
+| 4–9 | Collect | A browser on Wikipedia's woolly mammoth page beside Swiss. Drag the infobox photo in, drag the address in (a link card), select two lines, ⌘C, click the board, ⌘V: a note |
+| 9–14 | Recent | Copies and Screenshots are already on. ⌘C on a link and ⇧⌘4 for a screenshot: both arrive in Recent. Select the screenshot, Keep → “Kept in Mammoth” |
+| 14–19 | Magic wand | One click: PhotoBook, Linker, Notepad and Files appear, the seven loose things fly into them, the flash holds, then a double-click opens PhotoBook (breadcrumb Mammoth › PhotoBook, three pictures) |
+| 19–24 | Connected folders | Click Exhibit images under Connected; its files show. Rename “lyuba-baby-mammoth.jpg” → “Lyuba – hero print.jpg”, then a Finder window of the same folder slides in with the renamed row highlighted |
+| 24–32 | The Frame | Someone is typing exhibit labels in an editor. The Frame comes up above it; drag the hero print in from its library, ⌘N for a note (“Under 60 words. Big type.”), ⌘V a tutorial link and play it, then click back into the editor and keep typing while it plays |
+| 32–36 | Three sizes | The cursor clicks the green light twice: pop-up → window → full screen, the same Mammoth board throughout; the size pills follow |
+| 36–40 | Closing | Off-white with drifting red crosses: icon and wordmark, “Keep your ideas moving.”, then Collect. Organize. Keep working. one by one |
 
 Easing: cubic in-out for camera, cursor and wipes; ease-out with a light overshoot for icons; titles rise line by line.
+
+### Where the film simplifies
+
+- It is a faithful HTML rebuild, not a screen recording (the container can't run macOS).
+- The Frame's tutorial is drawn as a neutral player. In the app a pasted YouTube link becomes YouTube's own embedded player (`Canvas.swift:334`); its picture here is a slow move across the Vienna museum photo.
+- The Frame appears with an animation; in the app it opens from Window › Frame (⌥⌘3).
+- The wand starts on a board with no kind folders, so it makes new ones. With such folders already there, the app first asks *Add to Existing* or *Make New Folders*.
 
 ## 4. Assets
 
@@ -69,7 +74,7 @@ Easing: cubic in-out for camera, cursor and wipes; ease-out with a light oversho
 ## 5. What was rendered
 
 - `swiss-film-1920x1080.mp4`: 1920×1080, 30 fps, 40.0 s (1200 frames), H.264 High, yuv420p, **no audio stream**.
-- `swiss-film-1080x1920-vertical.mp4`: the same film for 1080×1920. Titles sit above the app (a 680-point-wide crop of each scene), and the menu bar scene runs full height.
-- v1 (40 s) and v2 (34 s) are in git history.
+- `swiss-film-1080x1920-vertical.mp4`: the same film for 1080×1920. Titles sit above the app (a 680-point-wide crop of each scene),.
+- v1 (40 s), v2 (34 s) and v3 (43 s, then 40 s) are in git history.
 
 To rebuild: `node render.mjs video out/swiss-film-1920x1080.mp4` and `node render.mjs video out/swiss-film-1080x1920-vertical.mp4 v`. This needs Node with Playwright, Chromium, ffmpeg and Inter.

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Swiss Film</title>
 <style>
-/* The Swiss product film (v3, 40 s): a faithful rebuild of the app's screens on a dark stage, with kinetic titles,
+/* The Swiss product film (v4, 40 s): a faithful rebuild of the app's screens on a dark stage, with kinetic titles,
    a logo intro and outro, driven frame by frame by seek(t). Pictures are freely licensed (CREDITS.md).
    Colours and strings come from Sources/Stash (FolderViews.swift, RecentView.swift, Store.swift…). */
 :root {
@@ -121,7 +121,7 @@ body { font-family: Inter, -apple-system, sans-serif; color: var(--ink); -webkit
 .title .eye .num { margin-right: 1.1em; }
 .title .h1 { font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
 .title .ln { overflow: hidden; padding-bottom: .06em; }
-.title .ln span { display: inline-block; }
+.title .ln span { display: inline-block; white-space: nowrap; }
 .title .sub { margin-top: 22px; color: #B9AEA8; font-weight: 450; line-height: 1.4; }
 .title .chips { margin-top: 34px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .title .chips.row { flex-direction: row; flex-wrap: wrap; }
@@ -295,6 +295,10 @@ function scene(o) {
   if (o.title) el.appendChild(titleBlock(o.title));
   stage.appendChild(el);
   el.style.display = 'block'; // laid out until the first seek, so at() can measure
+  if (o.title) { // a long line shrinks the title until it fits its column
+    const h = $(el, '.title .h1'); let fs = T.h1;
+    while (fs > 40 && [...h.querySelectorAll('.ln span')].some(s => s.offsetWidth > T.w)) h.style.fontSize = (fs -= 2) + 'px';
+  }
   const sc = Object.assign({ el, enter: 'wipe' }, o);
   sc.vp = $(el, '.vp'); sc.world = sc.vp && $(el, '.world'); sc.cursor = sc.world && $(sc.world, '.cursor');
   scenes.push(sc);
@@ -337,7 +341,7 @@ function cam(keys, t) {
 function titleBlock(o) {
   const d = document.createElement('div'); d.className = 'title';
   Object.assign(d.style, { left: T.x + 'px', top: (o.y != null ? o.y : T.y) + 'px', width: T.w + 'px' });
-  d.innerHTML = `${o.eye ? `<div class="eye" style="font-size:${T.eye}px"><span class="num">${o.num}</span>${o.eye}</div>` : ''}
+  d.innerHTML = `${o.eye ? `<div class="eye" style="font-size:${T.eye}px">${o.num ? `<span class="num">${o.num}</span>` : ''}${o.eye}</div>` : ''}
     <div class="h1" style="font-size:${T.h1}px">${o.lines.map(l => `<div class="ln"><span>${l}</span></div>`).join('')}</div>
     ${o.sub ? `<div class="sub" style="font-size:${T.sub}px">${o.sub}</div>` : ''}
     ${o.keys ? `<div class="keys">${o.keys.map(k => `<span class="kc" style="font-size:${T.chip + 4}px">${k}</span>`).join('')}</div>` : ''}
@@ -361,124 +365,132 @@ const ringsDraw = (sc, t) => { for (const r of sc.rings || []) { const o = fadeI
 // The app shows slightly dimmed on the dark stage, as in the reference.
 const DIM = 'filter:brightness(.94)';
 
-// ================= Intro: the icon, a ring, the wordmark (0–2.7) =================
-const iconPx = VERTICAL ? 190 : 150;
-scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
-  <div class="abs" id="introwrap" style="left:0;top:0;width:${SW}px;height:${SH}px;display:flex;align-items:center;justify-content:center">
-    <div class="abs pulse" style="width:${iconPx}px;height:${iconPx}px;border-radius:50%;border:2px solid var(--red)"></div>
-    <div id="lockup" style="display:flex;align-items:center">
-      <img id="iicon" src="icon.png" style="width:${iconPx}px;height:${iconPx}px;border-radius:${iconPx * .225}px;box-shadow:0 2px 4px rgba(0,0,0,.06),0 14px 36px rgba(76,46,33,.18)">
-      <div id="iword" style="overflow:hidden"><div style="font:800 ${iconPx * 0.92}px/1 Inter;letter-spacing:-0.045em;color:#2B1C16">Swiss</div>
-        <div id="itag" style="font:500 ${iconPx * 0.16}px Inter;color:#8A7F79;margin-top:${iconPx * 0.06}px;letter-spacing:-0.005em">A pocket knife for your ideas.</div></div>
-    </div></div>`,
-  update(t, el) {
-    const ic = $(el, '#iicon'), u = seg(t, 0.1, 0.55);
-    const pop = u < 1 ? eo(u) * (1 + 0.12 * Math.sin(Math.PI * u)) : 1;
-    ic.style.transform = `scale(${0.4 + 0.6 * pop}) rotate(${(1 - eo(u)) * -14}deg)`; ic.style.opacity = eo(seg(t, 0.1, 0.3));
-    const p = $(el, '.pulse'), pu = seg(t, 0.45, 1.35);
-    p.style.opacity = (1 - pu) * 0.8 * (pu > 0); p.style.transform = `scale(${1 + pu * 1.6})`;
-    // The wordmark slides out from behind the icon.
-    const w = $(el, '#iword'), wu = io(seg(t, 0.95, 1.55));
-    if (!w.dataset.full) { w.style.width = 'auto'; w.dataset.full = w.scrollWidth; }
-    const full = +w.dataset.full;
-    w.style.width = (wu * full) + 'px';
-    w.style.marginLeft = (wu * iconPx * 0.2) + 'px';
-    const tg = $(el, '#itag'); tg.style.opacity = eo(seg(t, 1.45, 1.9)); tg.style.transform = `translateY(${(1 - eo(seg(t, 1.45, 1.9))) * 8}px)`;
-  } });
+// The film follows one project, Mammoth: an exhibition being put together.
+// A thing dragged along with the cursor (shown while the drag lasts).
+function dragGhost(sc, el, a, b, t) {
+  const on = t > a && t < b;
+  if (on) { const m = /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(sc.cursor.style.transform); if (m) Object.assign(el.style, { left: (+m[1] + 8) + 'px', top: (+m[2] + 12) + 'px' }); }
+  el.style.opacity = on ? 0.92 * eo(seg(t, a, a + 0.12)) : 0;
+}
+// A card that lands: fades and settles in at t0.
+const land = (el, t, t0) => { const u = eo(seg(t, t0, t0 + 0.3)); el.style.opacity = u; el.style.transform = `scale(${0.9 + 0.1 * u})`; };
+// A key overlay shown around t0.
+const keyAt = (el, t, t0, d = 0.6) => show(el, fadeIO(t, t0 - 0.1, t0 + d, 0.12));
+const swissTabs = (extra = '') => `<div class="tabs"><div class="lights" style="margin-right:12px"><i></i><i></i><i></i></div>
+  <div class="tab sel"><span style="font-size:11px;color:var(--ink2)">${I.pin}</span>Mammoth</div>${extra}
+  <div style="margin-left:auto;color:var(--ink2);font-size:15px">${I.plus}</div></div>`;
+const linkCard = (x, y, w, h, id = '') => `<div class="card" ${id ? `id="${id}"` : ''} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><div style="height:${h - 52}px;overflow:hidden"><img src="${A}wiki.jpg" style="width:${w * 2}px;margin:-${(h - 52) * 0.75}px 0 0 -${w * 0.4}px"></div><div class="meta"><div class="t">Woolly mammoth – Wikipedia</div><div class="h">${I.link} en.wikipedia.org</div></div></div>`;
+const fileCard = (x, y, w, name, size, icon, id = '') => `<div class="card" ${id ? `id="${id}"` : ''} style="left:${x}px;top:${y}px;width:${w}px;height:62px"><div class="meta" style="display:flex;gap:10px;align-items:center;padding:10px 12px">${icon}<div style="min-width:0"><div class="t">${name}</div><div class="h">${size}</div></div></div></div>`;
+const docIcon = `<div style="width:30px;height:36px;border-radius:3px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);font:700 7px Inter;color:#2B5797;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;flex:none">DOCX</div>`;
+const photoCard = (x, y, w, h, src, id = '') => `<div class="card" ${id ? `id="${id}"` : ''} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${img(src, w, h)}</div>`;
+const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 800,000 years ago.';
 
-// ================= "Your ideas are scattered." (2.7–6.4) =================
+// ================= Opening: the icon opens into the app (0–4) =================
 {
-  // Cards drift at different depths; the far ones are blurred.
-  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const pics = ['adams.jpg', 'cave.jpg', 'lyuba.jpg', 'skeleton.jpg', 'skull.jpg', 'tilesius.jpg', 'wiki-skeleton.jpg'];
-  const tiles = [['#DF4637', 'circle'], ['#F0A030', 'tri'], ['#2F9E6E', 'bars'], ['#3B4FB0', 'dot'], ['#B75CC4', 'circle'], ['#E9C46A', 'note'], ['#E07A3F', 'tri'], ['#1C9E75', 'link']];
-  const kinds = [];
-  for (let i = 0; i < 30; i++) kinds.push(i % 3 === 0 ? ['pic', pics[(i / 3) % pics.length | 0]] : i % 3 === 1 ? ['tile', tiles[i % tiles.length]] : ['ghost']);
-  const cards = kinds.map(([k, v], i) => {
-    const z = 0.45 + rnd() * 0.85, x = rnd(), y = rnd(), r = (rnd() - 0.5) * 40, w = (VERTICAL ? 230 : 210) * z;
-    const h = w * (k === 'pic' ? 0.72 : 1.2);
-    let inner = '';
-    if (k === 'pic') inner = `<img src="${A}${v}" style="width:100%;height:100%;object-fit:cover;display:block">`;
-    else if (k === 'tile') {
-      const [c, s] = v;
-      const shape = s === 'circle' ? `<div style="position:absolute;left:22%;top:20%;width:56%;height:47%;border-radius:50%;background:#fff;opacity:.9"></div>`
-        : s === 'tri' ? `<div style="position:absolute;left:20%;top:22%;width:0;height:0;border-left:${w * .3}px solid transparent;border-right:${w * .3}px solid transparent;border-bottom:${w * .5}px solid #fff;opacity:.9"></div>`
-        : s === 'bars' ? `<div style="position:absolute;left:18%;bottom:30%;display:flex;gap:6%;align-items:flex-end;width:64%;height:40%">${[40, 60, 80, 100].map(p => `<i style="flex:1;height:${p}%;background:#fff;opacity:.9"></i>`).join('')}</div>`
-        : s === 'dot' ? `<div style="position:absolute;left:25%;top:22%;width:50%;height:42%;background:#fff"><div style="margin:25% auto;width:50%;height:50%;border-radius:50%;background:#111"></div></div>`
-        : s === 'link' ? `<div style="position:absolute;left:30%;top:30%;color:#fff;font-size:${w * .38}px">${I.link}</div>`
-        : `<div style="position:absolute;left:14%;top:16%;right:14%;font:600 ${w * .09}px/1.3 'DejaVu Serif',serif;color:#5a4200">Lyuba, 42,000 years old.</div>`;
-      inner = `<div style="position:absolute;inset:0;background:${c}">${shape}</div>`;
-    } else inner = `<div style="position:absolute;inset:0;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.14)"></div>`;
-    return { x, y, z, r, w, h, html: `<div class="sc-card" style="width:${w}px;height:${h}px;filter:blur(${Math.max(0, (1 - z) * 6).toFixed(1)}px) brightness(${0.55 + z * 0.45})">${inner}</div>` };
-  }).sort((a, b) => a.z - b.z);
-  const words = ['scattered.', 'links.', 'screenshots.', 'files.'];
-  const sc = scene({ a: 2.7, b: 6.4, bg: 'dark', stage: `<div class="abs" id="cards" style="inset:0">${cards.map(c => c.html).join('')}</div>
-    <div class="abs" style="inset:0;background:linear-gradient(${VERTICAL ? '180deg' : '90deg'}, rgba(18,11,9,.82) 0%, rgba(18,11,9,.35) 45%, transparent 75%)"></div>
-    <div class="abs" id="scat" style="left:${T.x}px;top:${VERTICAL ? 760 : 420}px">
-      <div style="font:700 ${T.eye}px Inter;letter-spacing:.2em;color:#B5A79F;text-transform:uppercase">Your ideas are</div>
-      <div style="position:relative;height:${T.h1 * 1.35}px;margin-top:6px;overflow:hidden;width:${SW}px">${words.map((w, i) => `<div class="sw" style="position:absolute;left:0;top:0;font:800 ${T.h1 * 1.25}px/1.08 Inter;letter-spacing:-0.035em;color:${i ? '#fff' : 'var(--red)'}">${w}</div>`).join('')}</div>
+  const ip = VERTICAL ? 200 : 150, icx = SW / 2, icy = SH * (VERTICAL ? 0.34 : 0.33);
+  const TW = VERTICAL ? { w: 1000, h: 640 } : { w: 1240, h: 760 };
+  const app = `<div style="position:absolute;left:0;top:0;width:760px;height:480px;background:var(--win)">
+    ${swissTabs()}
+    <div class="toolbar" style="left:12px;right:12px;top:44px"><span>${I.lock}</span><span>${I.frame}</span><span>${I.sidebar}</span><div class="search" style="width:220px">${I.search} Search Mammoth</div>
+      <span style="margin-left:auto">${I.arrange}</span><span>${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
+    <div class="abs" style="left:0;right:0;top:82px;bottom:0">
+      ${photoCard(20, 12, 230, 164, 'adams.jpg')}${fileCard(266, 12, 230, 'Exhibition plan.pdf', '2.4 MB', pdfIcon(0.9))}${photoCard(512, 12, 228, 150, 'cave.jpg')}
+      ${noteCard(266, 90, 230, 92, 'Opening night: 14 November.', '2 days ago')}
+    </div></div>`;
+  scene({ a: 0, b: 4, bg: 'paper', enter: 'none', stage: `
+    <div class="abs bg bg-dark" id="odark" style="opacity:0"></div>
+    <div class="abs pulse" style="left:${icx - ip / 2}px;top:${icy - ip / 2}px;width:${ip}px;height:${ip}px;border-radius:50%;border:2px solid var(--red)"></div>
+    <div class="abs" id="morph" style="overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.06),0 14px 36px rgba(76,46,33,.18)">
+      <div class="abs" id="mapp" style="left:0;top:0;width:760px;height:480px;transform-origin:0 0;opacity:0">${app}</div>
+      <img id="micon" src="icon.png" class="abs" style="left:0;top:0;width:100%;height:100%">
+    </div>
+    <div class="abs" id="otext" style="left:0;width:${SW}px;top:${icy + ip / 2 + (VERTICAL ? 90 : 60)}px;text-align:center">
+      <div id="oeye" style="font:700 ${VERTICAL ? 28 : 20}px Inter;letter-spacing:.32em;color:var(--red);text-transform:uppercase">Swiss</div>
+      <div style="font:800 ${VERTICAL ? 100 : 84}px/1.06 Inter;letter-spacing:-0.035em;color:#2B1C16;margin-top:${VERTICAL ? 28 : 20}px">
+        ${(VERTICAL ? ['A pocket knife', 'for your ideas.'] : ['A pocket knife for your ideas.']).map(l => `<div style="overflow:hidden;padding-bottom:.06em"><div class="oln" style="white-space:nowrap">${l}</div></div>`).join('')}</div>
     </div>`,
     update(t, el) {
-      const cs = el.querySelectorAll('.sc-card'), out = io(seg(t, 3.05, 3.7));
-      cs.forEach((d, i) => {
-        const c = cards[i], drift = t + i * 0.7;
-        const px = (c.x * 1.2 - 0.1) * SW + Math.sin(drift * 0.5) * 18 * c.z, py = (c.y * 1.2 - 0.1) * SH + Math.cos(drift * 0.4) * 14 * c.z - t * 26 * c.z;
-        // At the end the camera flies through the cards.
-        const cx = SW / 2, cy = SH / 2, fly = 1 + out * 2.4 * c.z;
-        const fx = cx + (px - cx) * fly, fy = cy + (py - cy) * fly;
-        const appear = eo(seg(t, 0.02 + c.y * 0.35, 0.4 + c.y * 0.35));
-        d.style.transform = `translate(${fx - c.w / 2}px, ${fy - c.h / 2}px) rotate(${c.r + Math.sin(drift * 0.3) * 4}deg) scale(${(0.85 + 0.15 * appear) * (1 + out * 0.8 * c.z)})`;
-        d.style.opacity = appear * (1 - seg(out, 0.4, 1));
-      });
-      const starts = [0.25, 1.05, 1.7, 2.35];
-      el.querySelectorAll('.sw').forEach((w, i) => {
-        const a = starts[i], b = i < 3 ? starts[i + 1] : 3.2;
-        const inn = io(seg(t, a, a + 0.32)), o = io(seg(t, b, b + 0.28));
-        w.style.transform = `translateY(${(1 - inn) * 100 - o * 100}%)`;
-      });
-      $(el, '#scat').style.opacity = 1 - seg(t, 3.05, 3.4);
+      // The icon pops in, then grows into the Swiss window.
+      const u = seg(t, 0.1, 0.55), pop = u < 1 ? eo(u) * (1 + 0.12 * Math.sin(Math.PI * u)) : 1;
+      const m = io(seg(t, 2.5, 3.35));
+      const w = lerp(ip, TW.w, m), h = lerp(ip, TW.h, m), cy = lerp(icy, SH / 2, m);
+      const mo = $(el, '#morph');
+      Object.assign(mo.style, { left: icx - w / 2 + 'px', top: cy - h / 2 + 'px', width: w + 'px', height: h + 'px', borderRadius: lerp(ip * 0.225, 16, m) + 'px', opacity: eo(seg(t, 0.1, 0.3)) });
+      mo.style.transform = `scale(${(0.4 + 0.6 * pop) * (1 + 0.02 * seg(t, 3.35, 4.2))}) rotate(${(1 - eo(u)) * -14}deg)`;
+      $(el, '#micon').style.opacity = 1 - seg(t, 2.55, 2.95);
+      const s = Math.max(w / 760, h / 480), ap = $(el, '#mapp');
+      ap.style.opacity = seg(t, 2.6, 3.0);
+      ap.style.transform = `translate(${(w - 760 * s) / 2}px, ${(h - 480 * s) / 2}px) scale(${s})`;
+      const p = $(el, '.pulse'), pu = seg(t, 0.45, 1.35);
+      p.style.opacity = (1 - pu) * 0.8 * (pu > 0); p.style.transform = `scale(${1 + pu * 1.6})`;
+      const e = eo(seg(t, 0.6, 1.0)); $(el, '#oeye').style.opacity = e; $(el, '#oeye').style.letterSpacing = (0.5 - 0.18 * e) + 'em';
+      el.querySelectorAll('.oln').forEach((l, i) => l.style.transform = `translateY(${(1 - eo(seg(t, 0.75 + i * 0.1, 1.25 + i * 0.1))) * 105}%)`);
+      const o = $(el, '#otext'); o.style.opacity = 1 - seg(t, 2.35, 2.7); o.style.transform = `translateY(${seg(t, 2.35, 2.7) * 30}px)`;
+      $(el, '#odark').style.opacity = io(seg(t, 2.55, 3.35));
     } });
 }
 
-// ================= 01 · Menu bar: one click, the pop-up opens (6.4–9.8) =================
+// ================= Collect: an image, a link and a note arrive (4–9) =================
 {
-  const P = { x: 922, y: 34, w: 300, h: 410 };
-  const ptile = (kind, name, n, num) => `<div style="width:84px;text-align:center;font-size:11.5px;font-weight:500;color:#2a2a2c">${folderIcon(kind, 50, { num, count: n })}<div style="margin-top:6px">${name}</div></div>`;
-  const pthumb = inner => `<div style="width:84px;display:flex;justify-content:center"><div style="width:54px;height:54px;border-radius:9px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.2)">${inner}</div></div>`;
-  const popup = `<div class="window" id="popup" style="left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;transform-origin:85% 0">
-    <div style="height:38px;display:flex;align-items:center;gap:9px;padding:0 10px;background:rgba(0,0,0,.035);border-bottom:1px solid var(--line);font-size:12px">
-      <div class="lights"><i></i><i></i><i></i></div><span style="color:var(--ink2)">${I.clock}</span>
-      <span style="height:24px;border-radius:7px;background:rgba(10,122,255,.14);display:flex;align-items:center;gap:5px;padding:0 9px;font-weight:600"><span style="font-size:10px;color:var(--ink2)">${I.pin}</span>Mammoth</span>
-      <span style="color:var(--ink2)">Showreel</span><span style="margin-left:auto;color:var(--ink2)">${I.plus}</span></div>
-    <div style="height:30px;display:flex;align-items:center;gap:10px;padding:0 12px;color:var(--ink2);font-size:13px"><span>${I.lock}</span><span>${I.frame}</span><span style="margin-left:auto">${I.arrange}</span><span>${I.grid}</span><span>${I.list}</span></div>
-    <div style="display:flex;flex-wrap:wrap;gap:16px 10px;padding:10px 12px">
-      ${ptile('photos', 'PhotoBook', 3, 1)}${ptile('linker', 'Linker', 1, 2)}${ptile('notes', 'Notepad', 1, 3)}${ptile('files', 'Files', 2, 4)}${ptile('classic', 'Print shop', 6, 5)}${ptile('classic', 'Archive', null, 6)}
-      ${pthumb(img('skeleton.jpg', 54, 54))}${pthumb(img('cave.jpg', 54, 54))}${pthumb(`<div style="width:54px;height:54px;background:var(--note);color:#9a6a1c;display:flex;align-items:center;justify-content:center;font-size:24px">${I.lines}</div>`)}
+  const B = { x: 530, y: 100, w: 330, h: 500 }, S = { x: 870, y: 70, w: 380, h: 560 };
+  const s = 0.46, ox = -120, oy = -40; // the Wikipedia capture, scaled into the browser
+  const px = v => v * s + ox, py = v => v * s + oy;
+  const html = `<div class="window" style="left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;background:#fff;${DIM}">
+    <div style="height:40px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 12px;font-size:12px;color:var(--ink2)">
+      <div class="lights off"><i></i><i></i><i></i></div><span style="letter-spacing:.3em">‹›</span>
+      <div id="addr" style="flex:1;height:24px;border-radius:7px;background:rgba(0,0,0,.055);display:flex;align-items:center;gap:5px;padding:0 9px;font-size:11px;color:#3a3a3c;white-space:nowrap;overflow:hidden"><span style="color:var(--ink3);font-size:10px">${I.lock}</span><span id="url">en.wikipedia.org/wiki/Woolly_mammoth</span></div></div>
+    <div class="abs" style="left:0;top:40px;right:0;bottom:0;overflow:hidden">
+      <img src="${A}wiki.jpg" style="position:absolute;left:${ox}px;top:${oy}px;width:${1280 * s}px;height:${900 * s}px">
+      <div class="abs tsel" id="ts1" style="left:${px(262)}px;top:${py(338)}px;height:${24 * s + 2}px;width:0;background:rgba(10,122,255,.32)"></div>
+      <div class="abs tsel" id="ts2" style="left:${px(262)}px;top:${py(364)}px;height:${24 * s + 2}px;width:0;background:rgba(10,122,255,.32)"></div>
+      <div class="abs" id="pic" style="left:${px(743)}px;top:${py(376)}px;width:${250 * s}px;height:${191 * s}px"></div>
+    </div></div>
+  <div class="window" style="left:${S.x}px;top:${S.y}px;width:${S.w}px;height:${S.h}px;${DIM}">
+    ${swissTabs()}
+    <div class="toolbar" style="left:12px;right:12px;top:44px"><span>${I.lock}</span><span>${I.frame}</span><div class="search" style="width:170px">${I.search} Search Mammoth</div>
+      <span style="margin-left:auto">${I.grid}</span><span style="font-size:16px">${I.wand}</span></div>
+    <div class="abs" id="board" style="left:0;right:0;top:82px;bottom:0">
+      ${photoCard(12, 10, 170, 121, 'adams.jpg')}${fileCard(194, 10, 174, 'Exhibition plan.pdf', '2.4 MB', pdfIcon(0.9))}
+      ${photoCard(194, 84, 174, 132, 'wiki-skeleton.jpg', 'n-img')}${linkCard(12, 143, 170, 112, 'n-link')}
+      <div class="card notecard" id="n-note" style="left:194px;top:228px;width:174px;height:150px;font-size:13px"><div class="q">“</div>${NOTE}<div class="ago">now</div></div>
     </div>
-    <div class="abs" style="left:0;right:0;bottom:0;height:32px;border-top:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 12px;font-size:12px;color:#4a4a4e"><span>${I.plus} New ▾</span><span style="margin-left:auto">${I.trash}</span><span>?</span></div>
-  </div>`;
-  const sc = scene({ a: 6.4, b: 9.8, bg: 'desk', enter: 'fade', vtop: 0, html: `${menubar('Finder', ['File', 'Edit', 'View', 'Go', 'Window', 'Help'])}${popup}`,
-    title: { num: '01', eye: 'Menu bar', lines: ['One click', 'away.'], sub: 'Lives in your menu bar.<br>Always ready.', at: 1.0, y: VERTICAL ? 1250 : undefined },
+    <div class="abs" id="dropzone" style="left:0;right:0;top:82px;bottom:0;border-radius:0 0 11px 11px;box-shadow:inset 0 0 0 3px rgba(10,122,255,.7);background:rgba(10,122,255,.06);opacity:0;pointer-events:none"></div>
+  </div>
+  <div class="abs" id="g-img" style="width:90px;height:69px;border-radius:5px;overflow:hidden;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90">${img('wiki-skeleton.jpg', 90, 69)}</div>
+  <div class="abs" id="g-link" style="height:26px;border-radius:7px;background:#fff;display:flex;align-items:center;gap:6px;padding:0 10px;font-size:12px;font-weight:600;white-space:nowrap;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90"><span style="color:var(--k-linker)">${I.link}</span>Woolly mammoth – Wikipedia</div>
+  <div class="key" id="k-c" style="left:${B.x + 120}px;top:${B.y + 300}px">⌘C</div><div class="key" id="k-v" style="left:${S.x + 150}px;top:${S.y + 470}px">⌘V</div>`;
+  const G1 = 0.6, D1 = 1.35, G2 = 1.75, D2 = 2.45, SEL0 = 2.75, SEL1 = 3.1, COPY = 3.3, CLICK = 3.65, PASTE = 3.85;
+  const sc = scene({ a: 4, b: 9, bg: 'dark', html,
+    title: { eye: 'Collect', lines: ['Found something', 'worth keeping?'] },
     update(t, el) {
-      const open = t > 0.95, u = eo(seg(t, 0.95, 1.3));
-      const p = $(el, '#popup'); p.style.opacity = open ? u : 0; p.style.transform = `scale(${0.9 + 0.1 * u}) translateY(${(1 - u) * -10}px)`;
-      $(el, '#mbknife').style.background = open ? 'rgba(0,0,0,.14)' : 'transparent';
+      dragGhost(sc, $(el, '#g-img'), G1, D1, t);
+      dragGhost(sc, $(el, '#g-link'), G2, D2, t);
+      $(el, '#dropzone').style.opacity = (t > G1 + 0.35 && t < D1) || (t > G2 + 0.35 && t < D2) ? 1 : 0;
+      $(el, '#addr').style.background = t > G2 - 0.05 && t < D2 ? 'rgba(10,122,255,.2)' : 'rgba(0,0,0,.055)';
+      land($(el, '#n-img'), t, D1); land($(el, '#n-link'), t, D2); land($(el, '#n-note'), t, PASTE + 0.05);
+      // Dragging across two lines of text selects them.
+      const u = seg(t, SEL0, SEL1);
+      $(el, '#ts1').style.width = (u < 0.5 ? u * 2 * 440 * s : 440 * s) + 'px';
+      $(el, '#ts2').style.width = (u < 0.5 ? 0 : (u - 0.5) * 2 * 325 * s) + 'px';
+      el.querySelectorAll('.tsel').forEach(d => d.style.opacity = t < CLICK ? 1 : 0.45);
+      keyAt($(el, '#k-c'), t, COPY); keyAt($(el, '#k-v'), t, PASTE);
     },
-    camera: [[0, 1, 640, 360], [1.6, 1, 640, 360], [3.4, 1.12, 860, 300]],
-    vcam: [[0, 1, 900, 360], [3.4, 1.06, 940, 330]] });
-  const k = at(sc, '#mbknife');
-  sc.cursorKeys = [[0, 700, 520], [0.8, k.x, k.y + 2], [0.92, k.x, k.y + 2, 1], [1.9, 1010, 330], [3.4, 1010, 330]];
-  rings(sc, [[0.75, 1.6, '#mbknife', 5, 8], [1.6, 3.4, '#popup', 7, 16]]);
+    camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
+    vcam: [[0, 0.94, 890, 360], [5.5, 0.97, 890, 360]] });
+  const p = at(sc, '#pic'), d1 = at(sc, '#n-img'), u = at(sc, '#url', -40), d2 = at(sc, '#n-link');
+  const s0 = { x: B.x + px(266), y: B.y + 40 + py(350) }, s1 = { x: B.x + px(585), y: B.y + 40 + py(376) }, n = at(sc, '#n-note');
+  sc.cursorKeys = [[0, 700, 650], [G1 - 0.15, p.x, p.y], [G1, p.x, p.y, 1], [D1, d1.x, d1.y], [G2 - 0.15, u.x, u.y], [G2, u.x, u.y, 1], [D2, d2.x, d2.y],
+    [SEL0 - 0.05, s0.x, s0.y], [SEL0, s0.x, s0.y, 1], [SEL1, s1.x, s1.y], [CLICK - 0.15, n.x, n.y + 40], [CLICK, n.x, n.y + 40, 1], [5.5, n.x + 20, n.y + 60]];
+  rings(sc, [[D1 + 0.1, D1 + 0.8, '#n-img', 4, 12], [D2 + 0.1, D2 + 0.8, '#n-link', 4, 12], [PASTE + 0.15, 5.0, '#n-note', 4, 12]]);
 }
 
-// ================= 02 · Recent: copy, capture, keep (9.8–15.0) =================
+// ================= Recent: copy a link, take a screenshot, keep one (9–14) =================
 {
   const sw = { x: 500, y: 108, w: 740, h: 500 }, SIDE = 176;
   const th = (inner, bg = '#fff') => `<div class="th" style="background:${bg}">${inner}</div>`;
   const rows = [
-    { id: 'r-shot', th: `<div class="th">${img('wiki-skeleton.jpg', 38, 38)}</div>`, t: 'Screenshot 2026-10-21 at 10.41.12', s: `<span style="font-size:12px">${I.camera}</span> Screenshot · now` },
-    { id: 'r-text', th: th(`<span style="color:#9a6a1c;font-size:17px">${I.lines}</span>`, 'var(--note)'), t: 'Lyuba, 42,000 years old. Found in 2007.', s: 'Text · Notes · now' },
-    { id: 'r-link', th: th(`<span style="color:#fff;font-size:17px">${I.link}</span>`, 'var(--k-linker)'), t: 'Woolly mammoth – Wikipedia', s: 'en.wikipedia.org · Chrome · now' },
+    { id: 'r-shot', th: `<div class="th">${img('lyuba.jpg', 38, 38)}</div>`, t: 'Screenshot 2026-10-21 at 10.42.07', s: `<span style="font-size:12px">${I.camera}</span> Screenshot · now` },
+    { id: 'r-link', th: th(`<span style="color:#fff;font-size:17px">${I.link}</span>`, 'var(--k-linker)'), t: 'Lyuba – Wikipedia', s: 'en.wikipedia.org · now' },
     { id: 'r-a', th: `<div class="th">${img('cave.jpg', 38, 38)}</div>`, t: 'rouffignac-cave.jpg', s: 'Finder · yesterday' },
     { id: 'r-b', th: th(pdfIcon(0.8)), t: 'Exhibition plan.pdf', s: 'Finder · yesterday' },
   ].map(r => `<div class="rrow" id="${r.id}">${r.th}<div style="min-width:0"><div class="tt">${r.t}</div><div class="st">${r.s}</div></div></div>`).join('');
@@ -488,22 +500,22 @@ scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
     <div class="abs" style="left:${SIDE}px;right:0;top:0;bottom:0">
       <div class="toolbar" style="left:14px;right:14px;top:10px">
         <span style="font-weight:600;color:#1d1d1f">Recent</span><span data-rcount style="color:var(--ink3);font-size:12px">2</span><span style="color:var(--ink3);font-size:11.5px">kept 3 days</span>
-        <span style="margin-left:auto"></span>${chip(I.doc, 'Copies')}${chip(I.camera, 'Screenshots')}<span style="font-size:12px">Clear</span></div>
+        <span style="margin-left:auto"></span><span id="cchips" style="display:flex;gap:8px">${chip(I.doc, 'Copies')}${chip(I.camera, 'Screenshots')}</span><span style="font-size:12px">Clear</span></div>
       <div class="abs" id="rlist" style="left:8px;right:8px;top:54px;bottom:50px">${rows}</div>
       <div class="abs" id="selbar" style="left:0;right:0;bottom:0;height:48px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 14px;font-size:12.5px;opacity:0;background:var(--win)">
         <span style="color:var(--ink2)">1 selected</span><span class="pill" style="margin-left:auto">${I.trash}&nbsp;Remove</span>
         <span id="keepbtn" style="display:flex;align-items:center;border-radius:7px;background:var(--accent);color:#fff;font-weight:600;height:28px;overflow:hidden">
           <span style="padding:0 11px;display:flex;gap:6px;align-items:center">${I.tray} Keep</span><span style="padding:0 8px;border-left:1px solid rgba(255,255,255,.3);height:100%;display:flex;align-items:center;font-size:10px">${I.chev}</span></span></div>
       <div class="flash" id="keptflash" style="left:50%;bottom:64px"><span style="color:#5BD27A">${I.check}</span>Kept in Mammoth</div>
-    </div></div>`;
-  const LINK = 0.75, TEXT = 1.35, SHOT = 1.95, SEL = 2.85, KEEP = 3.45, ROW = 56;
-  const sc = scene({ a: 9.8, b: 15.0, bg: 'dark', html,
-    title: { num: '02', eye: 'Recent', lines: ['Copy.', 'Capture.', 'Keep.'], sub: 'Everything you copy or screenshot<br>lands here, ready to keep.',
-      chips: [['Link copied', LINK + 0.1, 'var(--k-linker)'], ['Text copied', TEXT + 0.1, 'var(--k-notes)'], ['Screenshot captured', SHOT + 0.1, '#B75CC4']], foot: 'Capture is opt-in · Settings → Capture', footAt: 2.3, out: 2.75 },
+    </div></div>
+  <div class="key" id="k-c" style="left:${sw.x + 400}px;top:${sw.y + 330}px">⌘C</div><div class="key" id="k-s" style="left:${sw.x + 400}px;top:${sw.y + 330}px">⇧⌘4</div>`;
+  const LINK = 0.75, SHOT = 1.65, SEL = 2.5, KEEP = 3.15, ROW = 56;
+  const sc = scene({ a: 9, b: 14, bg: 'dark', html,
+    title: { eye: 'Recent', lines: ['Copied.', 'Captured.', 'Within reach.'], sub: 'Optional clipboard and<br>screenshot capture.' },
     update(t, el) {
-      const ins = { 'r-link': eo(seg(t, LINK, LINK + 0.4)), 'r-text': eo(seg(t, TEXT, TEXT + 0.4)), 'r-shot': eo(seg(t, SHOT, SHOT + 0.4)) };
+      const ins = { 'r-link': eo(seg(t, LINK, LINK + 0.4)), 'r-shot': eo(seg(t, SHOT, SHOT + 0.4)) };
       let y = 0;
-      for (const id of ['r-shot', 'r-text', 'r-link', 'r-a', 'r-b']) {
+      for (const id of ['r-shot', 'r-link', 'r-a', 'r-b']) {
         const k = ins[id] != null ? ins[id] : 1, r = $(el, '#' + id);
         r.style.top = (y - (1 - k) * 16) + 'px'; r.style.opacity = k; y += ROW * k;
       }
@@ -512,91 +524,51 @@ scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
       show($(el, '#selbar'), eo(seg(t, SEL + 0.05, SEL + 0.3)));
       $(el, '#r-shot .st').innerHTML = t > KEEP + 0.1 ? `<span style="font-size:12px">${I.check}</span> Kept in Mammoth` : `<span style="font-size:12px">${I.camera}</span> Screenshot · now`;
       $(el, '#keepbtn').style.filter = t > KEEP - 0.04 && t < KEEP + 0.12 ? 'brightness(.85)' : 'none';
-      const f = $(el, '#keptflash'); f.style.opacity = fadeIO(t, KEEP + 0.15, 5.2, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, KEEP + 0.15, KEEP + 0.45))) * 8}px)`;
+      const f = $(el, '#keptflash'); f.style.opacity = fadeIO(t, KEEP + 0.15, 5.4, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, KEEP + 0.15, KEEP + 0.45))) * 8}px)`;
+      keyAt($(el, '#k-c'), t, LINK - 0.05); keyAt($(el, '#k-s'), t, SHOT - 0.05);
     },
-    camera: [[0, 1, 640, 360], [2.3, 1, 640, 360], [3.0, 1.22, 910, 400], [5.2, 1.22, 910, 400]],
-    vcam: [[0, 1, 870, 360], [2.3, 1, 870, 360], [3.0, 1.1, 900, 380]] });
+    camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
+    vcam: [[0, 1, 870, 360], [2.0, 1, 870, 360], [2.7, 1.1, 900, 380]] });
   const slot = { x: sw.x + SIDE + 8, y: sw.y + 54, w: sw.w - SIDE - 16, h: 54 };
-  rings(sc, [[LINK + 0.15, TEXT - 0.05, slot, 4, 12], [TEXT + 0.15, SHOT - 0.05, slot, 4, 12], [SHOT + 0.15, SEL - 0.1, slot, 4, 12], [KEEP - 0.35, KEEP + 0.6, '#keepbtn', 5, 10]]);
+  rings(sc, [[0.2, 1.4, '#cchips', 4, 14], [LINK + 0.15, SHOT - 0.05, slot, 4, 12], [SHOT + 0.15, SEL - 0.1, slot, 4, 12], [KEEP - 0.35, KEEP + 0.6, '#keepbtn', 5, 10]]);
   const kp = at(sc, '#keepbtn span'), sh = at(sc, '#r-shot .tt', -60, 4);
-  sc.cursorKeys = [[0, 1100, 660], [1.8, 1100, 600], [SEL - 0.12, sh.x, sh.y], [SEL, sh.x, sh.y, 1], [KEEP - 0.15, kp.x, kp.y], [KEEP, kp.x, kp.y, 1], [5.2, kp.x - 50, kp.y - 40]];
+  sc.cursorKeys = [[0, 1100, 660], [1.6, 1100, 600], [SEL - 0.12, sh.x, sh.y], [SEL, sh.x, sh.y, 1], [KEEP - 0.15, kp.x, kp.y], [KEEP, kp.x, kp.y, 1], [5.5, kp.x - 50, kp.y - 40]];
 }
 
-// ================= 03 · Projects: a tab for every idea (15.0–18.4) =================
-{
-  const W = { x: 480, y: 92, w: 770, h: 540 };
-  const tile = (x, y, w, h, inner) => `<div class="card" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${inner}</div>`;
-  const poster = (c, s) => `<div style="position:relative;width:100%;height:100%;background:${c}">${s}</div>`;
-  const boards = {
-    mammoth: folderTile('classic', 'Print shop', 20, 16, { num: 1, count: 6, tag: '#F09E26' }) + folderTile('photos', 'PhotoBook', 140, 16, { num: 2, count: 3 }) + folderTile('linker', 'Linker', 260, 16, { num: 3, count: 1 }) + folderTile('notes', 'Notepad', 380, 16, { num: 4, count: 1 }) + folderTile('files', 'Files', 500, 16, { num: 5, count: 2 })
-      + tile(20, 130, 240, 171, img('adams.jpg', 240, 171)) + tile(276, 130, 240, 185, img('skeleton.jpg', 240, 185)) + noteCard(532, 130, 218, 106, 'Hang the skeleton photo at 120 cm.', '1 hour ago'),
-    showreel: folderTile('classic', 'Cuts', 20, 16, { num: 1, count: 9 }) + folderTile('classic', 'Titles', 140, 16, { num: 2, count: 4 }) + folderTile('linker', 'Linker', 260, 16, { num: 3, count: 5 })
-      + tile(20, 130, 200, 200, poster('#3B4FB0', `<div style="position:absolute;left:25%;top:25%;width:50%;height:50%;background:#fff"><div style="margin:25%;width:50%;height:50%;border-radius:50%;background:#111"></div></div>`))
-      + tile(236, 130, 200, 200, poster('#F0A030', `<div style="position:absolute;left:25%;top:22%;border-left:50px solid transparent;border-right:50px solid transparent;border-bottom:90px solid #fff"></div>`))
-      + tile(452, 130, 200, 200, poster('#2F9E6E', `<div style="position:absolute;left:20%;bottom:25%;display:flex;gap:8px;align-items:flex-end;width:60%;height:45%">${[40, 60, 80, 100].map(p => `<i style="flex:1;height:${p}%;background:#fff"></i>`).join('')}</div>`)),
-    thesis: folderTile('classic', 'Sources', 20, 16, { num: 1, count: 23 }) + folderTile('classic', 'Drafts', 140, 16, { num: 2, count: 7 }) + folderTile('files', 'Files', 260, 16, { num: 3, count: 4 })
-      + tile(20, 130, 250, 74, `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:12px">${pdfIcon()}<div><div class="t">Chapter 2 – draft.pdf</div><div class="h">1.1 MB</div></div></div>`)
-      + tile(286, 130, 250, 164, img('tilesius.jpg', 250, 164)) + noteCard(20, 220, 250, 106, 'Ask about the citation style on Friday.', 'yesterday'),
-  };
-  const names = [['mammoth', 'Mammoth', '#DF4637'], ['showreel', 'Showreel', '#8cc78c'], ['thesis', 'Thesis', '#e0b46a'], ['trip', 'Field trip', '#7aa7e0']];
-  const html = `<div class="window" style="left:${W.x}px;top:${W.y}px;width:${W.w}px;height:${W.h}px;${DIM}">
-    <div class="tabs" id="tabbar"><div class="lights" style="margin-right:12px"><i></i><i></i><i></i></div>
-      ${names.map(([k, n, c], i) => `<div class="tab" data-tab="${k}">${i ? `<span class="dotc" style="background:${c}"></span>` : `<span style="font-size:11px;color:var(--ink2)">${I.pin}</span>`}${n}</div>`).join('')}
-      <div style="margin-left:auto;color:var(--ink2);font-size:15px">${I.plus}</div></div>
-    <div class="toolbar" style="left:12px;right:12px;top:44px"><span>${I.lock}</span><span>${I.frame}</span><span>${I.sidebar}</span><div class="search" style="width:240px" id="tsearch">${I.search} Search Mammoth</div>
-      <span style="margin-left:auto">${I.arrange}</span><span>${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
-    ${Object.entries(boards).map(([k, b]) => `<div class="abs board" data-board="${k}" style="left:0;right:0;top:82px;bottom:30px">${b}</div>`).join('')}
-    ${quickbar}</div>`;
-  const SWITCH = [[0, 'mammoth'], [0.95, 'showreel'], [1.75, 'thesis'], [2.55, 'mammoth']];
-  const sc = scene({ a: 15.0, b: 18.4, bg: 'dark', html,
-    title: { num: '03', eye: 'Projects', lines: ['Tabs for', 'every idea.'], sub: 'Folders, notes, pictures and links.<br>One calm place.' },
-    update(t, el) {
-      let cur = 'mammoth', since = 0;
-      for (const [a, k] of SWITCH) if (t >= a) { cur = k; since = t - a; }
-      el.querySelectorAll('[data-tab]').forEach(d => d.classList.toggle('sel', d.dataset.tab === cur));
-      el.querySelectorAll('[data-board]').forEach(d => { const on = d.dataset.board === cur; d.style.display = on ? 'block' : 'none'; if (on) { const u = eo(seg(since, 0, 0.3)); d.style.opacity = t < 0.1 ? 1 : u; d.style.transform = `translateY(${(1 - u) * 8}px)`; } });
-      $(el, '#tsearch').innerHTML = `${I.search} Search ${names.find(n => n[0] === cur)[1]}`;
-    },
-    camera: [[0, 1, 640, 360], [3.4, 1.03, 660, 360]],
-    vcam: [[0, 1, 865, 360], [0.6, 1, 865, 300], [1.2, 1.15, 800, 260]] });
-  const tp = k => at(sc, `[data-tab="${k}"]`);
-  sc.cursorKeys = [[0, 1000, 600], [0.8, tp('showreel').x, tp('showreel').y], [0.92, tp('showreel').x, tp('showreel').y, 1], [1.6, tp('thesis').x, tp('thesis').y], [1.72, tp('thesis').x, tp('thesis').y, 1],
-    [2.4, tp('mammoth').x, tp('mammoth').y], [2.52, tp('mammoth').x, tp('mammoth').y, 1], [3.4, tp('mammoth').x + 30, tp('mammoth').y + 80]];
-  rings(sc, [[0.4, 3.3, '#tabbar', 3, 12]]);
-}
-
-// ================= 04 · The wand: one tap, no mess (18.4–23.2) =================
+// ================= Magic wand: the mix sorts itself into folders, then one opens (14–19) =================
 {
   const W = { x: 470, y: 80, w: 790, h: 566 };
   const C = [
     { k: 'photos', x: 20, y: 128, w: 240, h: 171, html: () => img('adams.jpg', 240, 171) },
-    { k: 'notes', x: 20, y: 315, w: 240, h: 104, note: true, html: () => `<div class="q">“</div>Hang the skeleton photo at 120 cm.<div class="ago">1 hour ago</div>` },
+    { k: 'notes', x: 20, y: 315, w: 240, h: 130, note: true, html: () => `<div class="q">“</div>${NOTE}<div class="ago">10 min ago</div>` },
     { k: 'linker', x: 276, y: 128, w: 240, h: 104, html: () => `<div style="height:52px;overflow:hidden"><img src="${A}wiki.jpg" style="width:480px;margin:-36px 0 0 -100px"></div><div class="meta"><div class="t">Woolly mammoth – Wikipedia</div><div class="h">${I.link} en.wikipedia.org</div></div>` },
-    { k: 'files', x: 276, y: 248, w: 240, h: 66, html: () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:10px 12px"><div style="width:32px;height:32px;border-radius:7px;background:rgba(66,133,245,.14);color:#4285F5;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none">${I.doc}</div><div><div class="t">Label texts</div><div class="h">docs.google.com</div></div></div>` },
-    { k: 'files', x: 276, y: 330, w: 240, h: 66, html: () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:10px 12px">${pdfIcon(0.9)}<div><div class="t">Exhibition plan.pdf</div><div class="h">2.4 MB</div></div></div>` },
-    { k: 'photos', x: 532, y: 128, w: 238, h: 155, html: () => img('cave.jpg', 238, 155) },
-    { k: 'photos', x: 532, y: 299, w: 238, h: 150, html: () => img('lyuba.jpg', 238, 150) },
+    { k: 'files', x: 276, y: 248, w: 240, h: 62, html: () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:10px 12px">${pdfIcon(0.9)}<div><div class="t">Exhibition plan.pdf</div><div class="h">2.4 MB</div></div></div>` },
+    { k: 'files', x: 276, y: 326, w: 240, h: 62, html: () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:10px 12px">${docIcon}<div><div class="t">Label texts.docx</div><div class="h">48 KB</div></div></div>` },
+    { k: 'photos', x: 532, y: 128, w: 238, h: 182, html: () => img('wiki-skeleton.jpg', 238, 182) },
+    { k: 'photos', x: 532, y: 326, w: 238, h: 150, html: () => img('lyuba.jpg', 238, 150) },
   ];
-  const F = { photos: { x: 140, n: 2 }, linker: { x: 260, n: 3 }, notes: { x: 380, n: 4 }, files: { x: 500, n: 5 } };
+  const F = { photos: { x: 20, n: 1 }, linker: { x: 140, n: 2 }, notes: { x: 260, n: 3 }, files: { x: 380, n: 4 } };
   const FY = 16, order = ['photos', 'linker', 'notes', 'files'];
   const cards = C.map((c, i) => `<div class="card ${c.note ? 'notecard' : ''}" id="c${i}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px">${c.html()}</div>`).join('');
-  const folders = folderTile('classic', 'Print shop', 20, FY, { num: 1, count: 6, tag: '#F09E26' }) + order.map(k => folderTile(k, kindStyle[k].name, F[k].x, FY, { num: F[k].n, count: 0, id: 'f-' + k })).join('');
+  const folders = order.map(k => folderTile(k, kindStyle[k].name, F[k].x, FY, { num: F[k].n, count: 0, id: 'f-' + k })).join('');
+  // Inside PhotoBook: the breadcrumb and its three pictures.
+  const inside = `<div class="abs" id="inside" style="left:0;right:0;top:0;bottom:0;opacity:0">
+    <div style="height:34px;display:flex;align-items:center;gap:8px;padding:0 16px;font-size:13px;color:var(--ink2)"><span style="transform:rotate(90deg);display:inline-block">${I.chev}</span>Mammoth<span style="color:var(--ink3)">›</span>
+      <span style="display:flex;align-items:center;gap:5px;color:#1d1d1f;font-weight:600">${folderIcon('photos', 18)}PhotoBook</span></div>
+    ${photoCard(20, 46, 240, 171, 'adams.jpg')}${photoCard(276, 46, 238, 182, 'wiki-skeleton.jpg')}${photoCard(530, 46, 238, 150, 'lyuba.jpg')}</div>`;
   const html = `<div class="window" style="left:${W.x}px;top:${W.y}px;width:${W.w}px;height:${W.h}px;${DIM}">
-    <div class="tabs"><div class="lights" style="margin-right:12px"><i></i><i></i><i></i></div>
-      <div class="tab sel"><span style="font-size:11px;color:var(--ink2)">${I.pin}</span>Mammoth</div><div class="tab"><span class="dotc" style="background:#8cc78c"></span>Showreel</div><div class="tab"><span class="dotc" style="background:#e0b46a"></span>Thesis</div>
-      <div style="margin-left:auto;color:var(--ink2);font-size:15px">${I.plus}</div></div>
+    ${swissTabs()}
     <div class="toolbar" style="left:12px;right:12px;top:44px"><span>${I.lock}</span><span>${I.frame}</span><span>${I.sidebar}</span><div class="search" style="width:240px">${I.search} Search Mammoth</div>
       <span style="margin-left:auto">${I.arrange}</span><span>${I.grid}</span><span>${I.list}</span><span id="wand" style="font-size:16px;padding:3px 5px;border-radius:6px">${I.wand}</span></div>
-    <div class="abs" style="left:0;right:0;top:82px;bottom:30px">${folders}${cards}</div>
+    <div class="abs" style="left:0;right:0;top:82px;bottom:30px"><div class="abs" id="top" style="inset:0">${folders}${cards}</div>${inside}</div>
     ${quickbar}
     <div class="flash" id="orgflash" style="left:50%;top:250px"><span style="color:#C9A6FF">${I.wand}</span>Organized 7 items into 4 new folders</div></div>`;
-  const CLICK = 1.05, START = 1.22;
-  const sc = scene({ a: 18.4, b: 23.2, bg: 'dark', html,
-    title: { num: '04', eye: 'The wand', lines: ['One tap.', 'No mess.'], sub: 'Links, pictures, notes and files<br>sort themselves into folders.',
-      chips: [['Linker', 1.75, 'var(--k-linker)'], ['PhotoBook', 1.9, 'var(--k-photos)'], ['Notepad', 2.05, 'var(--k-notes)'], ['Files', 2.2, 'var(--k-files)']], out: 2.75 },
+  const CLICK = 0.9, START = 1.05, OPEN = 3.75;
+  const sc = scene({ a: 14, b: 19, bg: 'dark', html,
+    title: { eye: 'Magic wand', lines: ['A little order.', 'In one click.'] },
     update(t, el) {
       $(el, '#wand').style.background = t > CLICK - 0.05 && t < CLICK + 0.2 ? 'rgba(0,0,0,.1)' : 'transparent';
-      $(el, '#wand').style.color = t > 0.7 ? 'var(--accent)' : '';
+      $(el, '#wand').style.color = t > 0.6 ? 'var(--accent)' : '';
       order.forEach((k, i) => { const f = $(el, '#f-' + k), a = eo(seg(t, START + i * 0.07, START + 0.28 + i * 0.07)); f.style.opacity = a; f.style.transform = `scale(${0.85 + 0.15 * a})`; });
       const counts = { photos: 0, linker: 0, notes: 0, files: 0 };
       C.forEach((c, i) => {
@@ -607,16 +579,20 @@ scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
         if (u >= 1) counts[c.k]++;
       });
       order.forEach(k => { const n = $(el, '#f-' + k + ' [data-count]'); n.textContent = counts[k]; n.style.opacity = counts[k] ? 1 : 0; });
-      const f = $(el, '#orgflash'); f.style.opacity = fadeIO(t, 2.7, 4.8, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, 2.7, 3.0))) * 8}px)`;
+      $(el, '#f-photos .label').style.cssText = t > OPEN - 0.4 && t < OPEN ? 'background:var(--accent);color:#fff;border-radius:4px;display:inline-block;padding:0 5px' : '';
+      const f = $(el, '#orgflash'); f.style.opacity = fadeIO(t, 2.35, OPEN - 0.1, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, 2.35, 2.65))) * 8}px)`;
+      // Double-click PhotoBook: in we go.
+      const o = eo(seg(t, OPEN + 0.05, OPEN + 0.35));
+      $(el, '#top').style.opacity = 1 - o; $(el, '#inside').style.opacity = o; $(el, '#inside').style.transform = `translateY(${(1 - o) * 10}px)`;
     },
-    camera: [[0, 1, 640, 360], [2.8, 1, 640, 360], [3.5, 1.3, 760, 230], [4.8, 1.3, 760, 230]],
-    vcam: [[0, 1, 1060, 360], [1.1, 1, 1060, 360], [1.8, 1, 860, 360]] });
-  const w = at(sc, '#wand');
-  sc.cursorKeys = [[0, 900, 640], [0.9, w.x, w.y], [CLICK, w.x, w.y, 1], [2.3, 1100, 520], [4.8, 1100, 520]];
-  rings(sc, [[CLICK - 0.3, CLICK + 0.45, '#wand', 5, 10], [2.8, 4.7, { x: W.x + 140, y: W.y + 82 + 10, w: 480, h: 104 }, 6, 16]]);
+    camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
+    vcam: [[0, 1, 1060, 360], [0.95, 1, 1060, 360], [1.6, 1, 820, 360]] });
+  const w = at(sc, '#wand'), pb = at(sc, '#f-photos .ficon');
+  sc.cursorKeys = [[0, 900, 640], [CLICK - 0.15, w.x, w.y], [CLICK, w.x, w.y, 1], [2.2, 1000, 520], [OPEN - 0.45, pb.x, pb.y], [OPEN - 0.25, pb.x, pb.y, 1], [OPEN, pb.x, pb.y, 1], [5.5, pb.x + 120, pb.y + 260]];
+  rings(sc, [[CLICK - 0.3, CLICK + 0.45, '#wand', 5, 10], [2.4, OPEN - 0.5, { x: W.x + 20, y: W.y + 82 + 10, w: 456, h: 104 }, 6, 16]]);
 }
 
-// ================= 05 · Connected folders: Finder, inside Swiss (23.2–27.6) =================
+// ================= Connected folders: open one, rename, Finder follows (19–24) =================
 {
   const files = ['adams-mammoth-vienna.jpg', 'Exhibition plan.pdf', 'lyuba-baby-mammoth.jpg', 'rouffignac-cave.jpg', 'sanga-yuryakh-skull.jpg', 'siegsdorf-skeleton.jpg', 'tilesius-1815.jpg'];
   const pics = { 0: 'adams.jpg', 2: 'lyuba.jpg', 3: 'cave.jpg', 4: 'skull.jpg', 5: 'skeleton.jpg' };
@@ -624,23 +600,30 @@ scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
   const tiles = [0, 1, 2, 3, 4, 5].map((f, i) => `<div class="abs" id="t${f}" style="left:${16 + (i % 3) * 186}px;top:${62 + Math.floor(i / 3) * 170}px;width:176px;text-align:center">
       <div style="width:150px;height:100px;margin:0 auto;border-radius:5px;overflow:hidden;${pics[f] ? 'box-shadow:0 1px 4px rgba(0,0,0,.2)' : 'display:flex;align-items:center;justify-content:center'}">${pics[f] ? img(pics[f], 150, 100) : pdfIcon(2)}</div>
       <div class="tn" style="margin:8px auto 0;font:500 12px/1.3 Inter;padding:1px 6px;border-radius:4px;display:inline-block;max-width:176px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${files[f]}</div></div>`).join('');
+  const mam = order => order.map(([k, n, c], i) => folderTile(k, kindStyle[k].name, 20 + i * 120, 62, { count: c })).join('');
   const html = `<div class="window" style="left:468px;top:66px;width:790px;height:470px;${DIM}">
-    ${swissSidebar('connected', 176)}
+    ${swissSidebar('mammoth', 176).replace('<div class="srow "><span class="ic">' + I.drive, '<div class="srow" data-side="connected"><span class="ic">' + I.drive)}
     <div class="abs" style="left:176px;right:0;top:0;bottom:0">
-      <div class="toolbar" style="left:14px;right:14px;top:10px"><div class="search" style="width:220px">${I.search} Search Exhibit images</div><div class="pill">${I.drive} Exhibit images</div>
+      <div class="toolbar" style="left:14px;right:14px;top:10px"><div class="search" style="width:220px" id="csearch">${I.search} Search Mammoth</div><div class="pill" id="cpill" style="opacity:0">${I.drive} Exhibit images</div>
         <span style="margin-left:auto">${I.arrange}</span><span>${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
-      ${tiles}</div></div>
+      <div class="abs" id="cm" style="inset:0">${mam([['photos'], ['linker'], ['notes'], ['files']].map(([k], i) => [k, '', [3, 1, 1, 2][i]]))}</div>
+      <div class="abs" id="cc" style="inset:0;opacity:0">${tiles}</div></div></div>
   <div class="window" id="fwin" style="left:760px;top:388px;width:480px;height:290px;background:#fff;${DIM}">
     <div style="height:40px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 14px;font-size:13px">
-      <div class="lights off"><i></i><i></i><i></i></div><span style="font-weight:600;margin-left:50px">Exhibit images</span></div>
+      <div class="lights off"><i></i><i></i><i></i></div><span style="font-weight:600;margin-left:50px">Exhibit images</span><span style="margin-left:auto;color:var(--ink3);font-size:11.5px">Finder</span></div>
     <div class="frow" style="font-size:11px;color:var(--ink3);background:#fff;border-bottom:1px solid var(--line)">Name<span class="d" style="width:110px">Date Modified</span></div>
-    ${files.map((f, i) => `<div class="frow" id="frow${i}"><span style="color:${f.endsWith('pdf') ? '#D33' : 'var(--k-photos)'};font-size:13px">${f.endsWith('pdf') ? I.doc : I.photo}</span><span class="fn">${f}</span><span class="d" style="width:110px">${i === 2 ? '<span id="fdate">12 Oct 2026</span>' : '12 Oct 2026'}</span></div>`).join('')}
+    ${files.map((f, i) => `<div class="frow" id="frow${i}"><span style="color:${f.endsWith('pdf') ? '#D33' : 'var(--k-photos)'};font-size:13px">${f.endsWith('pdf') ? I.doc : I.photo}</span><span class="fn">${i === 2 ? NEW : f}</span><span class="d" style="width:110px">${i === 2 ? 'Today 10:44' : '12 Oct 2026'}</span></div>`).join('')}
   </div>
   <div class="key" id="kr1" style="left:700px;top:440px">↩</div><div class="key" id="kr2" style="left:700px;top:440px">↩</div>`;
-  const SELT = 0.75, EDIT = 1.05, TYPE = 1.2, DONE = 2.05;
-  const sc = scene({ a: 23.2, b: 27.6, bg: 'dark', html,
-    title: { num: '05', eye: 'Connected folders', lines: ['Finder,', 'inside Swiss.'], sub: 'Rename, move, tag and sort.<br>Finder follows along.', out: 2.55 },
+  const OPENC = 0.7, SELT = 1.3, EDIT = 1.55, TYPE = 1.7, DONE = 2.5, FIND = 2.85;
+  const sc = scene({ a: 19, b: 24, bg: 'dark', html,
+    title: { eye: 'Connected folders', lines: ['Your folders.', 'A faster way in.'] },
     update(t, el) {
+      const inC = t > OPENC + 0.05;
+      el.querySelectorAll('[data-side]').forEach(d => d.classList.toggle('sel', d.dataset.side === (inC ? 'connected' : 'mammoth')));
+      const o = eo(seg(t, OPENC + 0.05, OPENC + 0.35));
+      $(el, '#cm').style.opacity = 1 - o; $(el, '#cc').style.opacity = o; $(el, '#cpill').style.opacity = o;
+      $(el, '#csearch').innerHTML = `${I.search} Search ${inC ? 'Exhibit images' : 'Mammoth'}`;
       const tn = $(el, '#t2 .tn');
       const editing = t > EDIT && t < DONE, typed = Math.floor(clamp((t - TYPE) / 0.65) * NEW.length);
       tn.textContent = t >= DONE ? NEW : editing && t >= TYPE ? NEW.slice(0, typed) + (Math.floor(t * 2.4) % 2 ? '|' : '') : files[2];
@@ -648,109 +631,117 @@ scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
       else if (t > SELT) Object.assign(tn.style, { background: 'var(--accent)', color: '#fff', boxShadow: 'none' });
       else Object.assign(tn.style, { background: 'transparent', color: '#2a2a2c', boxShadow: 'none' });
       show($(el, '#kr1'), fadeIO(t, EDIT - 0.12, EDIT + 0.4, 0.12)); show($(el, '#kr2'), fadeIO(t, DONE - 0.12, DONE + 0.45, 0.12));
-      const done = t > DONE + 0.15;
-      $(el, '#frow2 .fn').textContent = done ? NEW : files[2];
-      $(el, '#fdate').textContent = done ? 'Today 10:44' : '12 Oct 2026';
-      $(el, '#frow2').style.background = `rgba(10,122,255,${0.2 * (done ? 1 - seg(t, 3.6, 4.3) : 0)})`;
-      const fw = $(el, '#fwin'), u = eo(seg(t, 0.2, 0.6)); fw.style.opacity = u; fw.style.transform = `translateY(${(1 - u) * 24}px)`;
+      // Then a brief look at Finder: the same file, renamed.
+      const fw = $(el, '#fwin'), u = eo(seg(t, FIND, FIND + 0.4)); fw.style.opacity = u; fw.style.transform = `translateY(${(1 - u) * 24}px)`;
+      $(el, '#frow2').style.background = `rgba(10,122,255,${0.22 * (t > FIND + 0.3 ? 1 - seg(t, 4.6, 5.3) : 0)})`;
     },
-    camera: [[0, 1, 640, 360], [2.6, 1, 640, 360], [3.2, 1.2, 960, 480], [4.4, 1.2, 960, 480]],
-    vcam: [[0, 1, 860, 330], [1.9, 1, 860, 330], [2.5, 1.08, 990, 470]] });
-  const n = at(sc, '#t2 .tn', 10, 2);
-  sc.cursorKeys = [[0, 1050, 660], [SELT - 0.12, n.x, n.y], [SELT, n.x, n.y, 1], [DONE + 0.3, 1180, 330], [4.4, 1180, 330]];
-  rings(sc, [[DONE + 0.25, 4.3, '#frow2', 3, 8]]);
+    camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
+    vcam: [[0, 1, 760, 330], [OPENC + 0.2, 1, 760, 330], [OPENC + 0.7, 1, 860, 330], [FIND, 1, 860, 330], [FIND + 0.5, 1.08, 990, 470]] });
+  const n = at(sc, '#t2 .tn', 10, 2), side = at(sc, '[data-side="connected"]', -20);
+  sc.cursorKeys = [[0, 1050, 660], [OPENC - 0.15, side.x, side.y], [OPENC, side.x, side.y, 1], [SELT - 0.12, n.x, n.y], [SELT, n.x, n.y, 1], [DONE + 0.3, 1180, 330], [5.5, 1180, 330]];
+  rings(sc, [[OPENC - 0.25, OPENC + 0.5, '[data-side="connected"]', 3, 9], [FIND + 0.35, 4.9, '#frow2', 3, 8]]);
 }
 
-// ================= 06 · The Frame: a canvas above it all (27.6–32.4) =================
+// ================= The Frame: references beside the work (24–32) =================
 {
-  const FR = { x: 470, y: 60, w: 790, h: 600 }, LIB = 190;
+  const E = { x: 470, y: 60, w: 740, h: 600 }, FR = { x: 790, y: 96, w: 420, h: 540 }, LIB = 130;
+  const T0 = 'Found in 2007 on the Yamal Peninsula in Siberia, ', T1 = 'Lyuba is the best-preserved ', T2 = 'mammoth calf ever found. She was about a month old. Hang her photo at eye level.';
   const libRows = [
-    ['lib-p', img('skull.jpg', 30, 30), 'sanga-yuryakh-skull.jpg'],
-    ['', img('adams.jpg', 30, 30), 'Vienna hall – walk.mp4'],
-    ['', img('wiki-skeleton.jpg', 30, 30), 'Screenshot 2026-10-21 at 10.41.12'],
+    ['lib-p', img('lyuba.jpg', 30, 30), 'Lyuba – hero print.jpg'],
+    ['', img('adams.jpg', 30, 30), 'adams-mammoth-vienna.jpg'],
+    ['', img('wiki-skeleton.jpg', 30, 30), 'Siegsdorf skeleton'],
     ['', `<div style="width:30px;height:30px;background:var(--k-linker);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center">${I.link}</div>`, 'en.wikipedia.org'],
-    ['', `<div style="width:30px;height:30px;background:var(--note);color:#9a6a1c;font-size:14px;display:flex;align-items:center;justify-content:center">${I.lines}</div>`, 'Hang the skeleton photo…'],
-    ['', img('cave.jpg', 30, 30), 'rouffignac-cave.jpg'],
-    ['', img('lyuba.jpg', 30, 30), 'Lyuba – hero print.jpg'],
-    ['', `<div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center">${pdfIcon(0.7)}</div>`, 'Exhibition plan.pdf'],
-  ].map(([id, th, n]) => `<div ${id ? `id="${id}"` : ''} style="display:flex;align-items:center;gap:8px;height:38px;padding:0 6px;font-size:12px;border-radius:6px"><div class="th" style="width:30px;height:30px;border-radius:6px;overflow:hidden;flex:none">${th}</div><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${n}</span></div>`).join('');
+  ].map(([id, th, n]) => `<div ${id ? `id="${id}"` : ''} style="display:flex;align-items:center;gap:7px;height:38px;padding:0 5px;font-size:11px;border-radius:6px"><div class="th" style="width:30px;height:30px;border-radius:6px;overflow:hidden;flex:none">${th}</div><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${n}</span></div>`).join('');
   const pause = '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
-  const html = `<div class="window" id="frame" style="left:${FR.x}px;top:${FR.y}px;width:${FR.w}px;height:${FR.h}px;background:#EDEDEC;${DIM}">
-    <div style="height:40px;display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid var(--line);color:var(--ink2);font-size:14px">
-      <div class="lights"><i></i><i></i><i></i></div><span style="color:#E8A23A">${I.lock}</span><span style="color:var(--accent)">${I.frame}</span><span>${I.sidebar}</span>
-      <span style="margin-left:auto;background:rgba(0,0,0,.06);border-radius:7px;padding:3px 6px;display:flex;gap:8px"><span style="color:var(--accent)">${I.arrow}</span><span>${I.hand}</span></span>
-      <span>${I.minus}</span><span style="font-size:11.5px;font-weight:500">100%</span><span>${I.plus}</span><span>${I.trash}</span></div>
-    <div class="abs" id="lib" style="left:0;top:40px;bottom:0;width:${LIB}px;border-right:1px solid var(--line);padding:10px 8px">
-      <div class="pill" style="background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);height:26px">${I.stack} All Items<span style="margin-left:auto;color:var(--accent)">${I.chev}</span></div>
-      <div class="search" style="margin:8px 0 6px;height:24px;font-size:12px">${I.search} Search</div>${libRows}</div>
-    <div class="abs" id="canvas" style="left:${LIB}px;top:40px;right:0;bottom:0;background-color:#E4E4E3;background-image:radial-gradient(rgba(0,0,0,.16) 1px, transparent 1.2px);background-size:20px 20px;overflow:hidden">
-      <div class="abs" style="left:24px;top:22px;width:200px;padding:12px 14px;border-radius:9px;background:var(--note);font-size:13px;line-height:1.35;box-shadow:0 1px 3px rgba(0,0,0,.08)">Hang the skeleton photo at 120 cm.</div>
-      <div class="abs" style="left:250px;top:22px;width:200px;height:154px;border-radius:6px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('skeleton.jpg', 200, 154)}</div>
-      <div class="abs" style="left:474px;top:40px;width:104px;height:150px;border-radius:6px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('lyuba.jpg', 104, 150)}</div>
-      <div class="abs" id="video" style="left:24px;top:200px;width:340px;height:192px;border-radius:8px;overflow:hidden;background:#111;box-shadow:0 2px 10px rgba(0,0,0,.2)">
-        <img id="vimg" src="${A}adams.jpg" style="position:absolute;left:0;top:0;width:520px;height:371px;transform-origin:0 0">
-        <div class="abs" id="vctl" style="left:10px;right:10px;bottom:10px;height:30px;border-radius:9px;background:rgba(40,40,42,.62);display:flex;align-items:center;gap:10px;padding:0 10px;color:#fff;font-size:13px">
-          <span id="vbtn" style="width:16px;display:flex;justify-content:center">${I.play}</span>
+  const html = `<div class="window" id="editor" style="left:${E.x}px;top:${E.y}px;width:${E.w}px;height:${E.h}px;background:#fff;${DIM}">
+    <div style="height:38px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;font-size:13px">
+      <div class="lights" id="elights"><i></i><i></i><i></i></div><span style="margin-left:70px;font-weight:600">Exhibit labels</span><span style="color:var(--ink3);margin-left:8px">— Edited</span></div>
+    <div class="abs" style="left:34px;top:70px;width:270px;font:400 15px/1.55 'DejaVu Serif', Georgia, serif;color:#222">
+      <div style="font:700 26px/1.2 Inter;letter-spacing:-0.02em;margin-bottom:14px">Lyuba</div>
+      <div style="font:600 11px Inter;letter-spacing:.14em;color:#999;text-transform:uppercase;margin-bottom:10px">Baby woolly mammoth · about 42,000 years old</div>
+      <span id="etext"></span><span id="caret" style="display:inline-block;width:1.5px;height:17px;background:#222;vertical-align:-3px"></span></div></div>
+  <div class="window" id="frame" style="left:${FR.x}px;top:${FR.y}px;width:${FR.w}px;height:${FR.h}px;background:#EDEDEC;transform-origin:70% 0;${DIM}">
+    <div style="height:38px;display:flex;align-items:center;gap:11px;padding:0 12px;border-bottom:1px solid var(--line);color:var(--ink2);font-size:13px">
+      <div class="lights"><i></i><i></i><i></i></div><span style="color:var(--accent)">${I.frame}</span><span style="font-size:12px;font-weight:600;color:#1d1d1f">The Frame</span>
+      <span style="margin-left:auto;background:rgba(0,0,0,.06);border-radius:7px;padding:3px 6px;display:flex;gap:8px"><span style="color:var(--accent)">${I.arrow}</span><span>${I.hand}</span></span><span style="font-size:11px;font-weight:500">100%</span></div>
+    <div class="abs" id="lib" style="left:0;top:38px;bottom:0;width:${LIB}px;border-right:1px solid var(--line);padding:8px 6px">
+      <div class="pill" style="background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);height:24px;font-size:11.5px">${I.folder} Mammoth<span style="margin-left:auto;color:var(--accent)">${I.chev}</span></div>
+      <div style="height:6px"></div>${libRows}</div>
+    <div class="abs" id="canvas" style="left:${LIB}px;top:38px;right:0;bottom:0;background-color:#E4E4E3;background-image:radial-gradient(rgba(0,0,0,.16) 1px, transparent 1.2px);background-size:20px 20px;overflow:hidden">
+      <div class="abs" id="fimg" style="left:14px;top:14px;width:150px;height:104px;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('lyuba.jpg', 150, 104)}</div>
+      <div class="abs" id="fnote" style="left:176px;top:14px;width:100px;min-height:96px;padding:10px 11px;border-radius:8px;background:var(--note);font-size:12.5px;line-height:1.35;opacity:0;box-shadow:0 1px 3px rgba(0,0,0,.08)"><span id="fnt"></span></div>
+      <div class="abs" id="video" style="left:14px;top:134px;width:262px;height:170px;border-radius:8px;overflow:hidden;background:#111;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.2)">
+        <img id="vimg" src="${A}adams.jpg" style="position:absolute;left:0;top:0;width:400px;height:285px;transform-origin:0 0">
+        <div class="abs" style="left:0;right:0;top:0;height:34px;background:linear-gradient(rgba(0,0,0,.55),transparent);color:#fff;font:600 11px Inter;padding:8px 10px">Tutorial: writing museum labels</div>
+        <div class="abs" id="vbig" style="left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;padding-left:3px">${I.play}</div>
+        <div class="abs" id="vctl" style="left:8px;right:8px;bottom:8px;height:26px;border-radius:8px;background:rgba(40,40,42,.62);display:flex;align-items:center;gap:8px;padding:0 9px;color:#fff;font-size:12px;opacity:0">
+          <span style="width:14px;display:flex;justify-content:center">${pause}</span>
           <div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.3)"><div id="vprog" style="height:100%;width:2%;background:#fff;border-radius:2px"></div></div>
-          <span id="vtime" style="font-size:11px;font-variant-numeric:tabular-nums">0:00</span></div></div>
-      <div class="abs" style="left:390px;top:220px;width:200px;height:130px;border-radius:6px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('cave.jpg', 200, 130)}</div>
-      <div class="abs" id="dropped" style="left:200px;top:400px;width:200px;height:138px;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('skull.jpg', 200, 138)}</div>
+          <span id="vtime" style="font-size:10.5px;font-variant-numeric:tabular-nums">0:00</span></div></div>
     </div></div>
-  <div class="abs" id="ghost" style="width:72px;height:50px;border-radius:5px;overflow:hidden;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90">${img('skull.jpg', 72, 50)}</div>`;
-  const GRAB = 0.6, DROP = 1.35, PLAY = 1.85, UNDO = 3.55;
-  const sc = scene({ a: 27.6, b: 32.4, bg: 'dark', html,
-    title: { num: '06', eye: 'The Frame', lines: ['A canvas', 'above it all.'], sub: 'Pull anything in from your library.<br>Move it, zoom in, undo.', keys: ['⌘', 'Z'], keysAt: 3.2, pressAt: UNDO, chips: [['Undo, any time', 3.4]] },
+  <div class="abs" id="ghost" style="width:72px;height:50px;border-radius:5px;overflow:hidden;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90">${img('lyuba.jpg', 72, 50)}</div>
+  <div class="key" id="k-n" style="left:${FR.x + 150}px;top:${FR.y + 380}px">⌘N</div><div class="key" id="k-v" style="left:${FR.x + 150}px;top:${FR.y + 380}px">⌘V</div>`;
+  const UP = 0.55, GRAB = 1.25, DROP = 2.0, NEWN = 2.4, PASTE = 3.6, PLAY = 4.25, BACK = 5.05;
+  const NT = 'Under 60 words. Big type.';
+  const sc = scene({ a: 24, b: 32, bg: 'desk', html,
+    title: { eye: 'The Frame', lines: ['Keep your', 'references beside', 'your work.'] },
     update(t, el) {
-      const dragging = t > GRAB && t < DROP;
+      // The work: typing goes on underneath, before and after the Frame is used.
+      const typed = T0 + T1.slice(0, Math.floor(clamp(t / 1.0) * T1.length)) + T2.slice(0, Math.floor(clamp((t - BACK - 0.15) / 3.0) * T2.length));
+      $(el, '#etext').textContent = typed;
+      const typing = t < 1.0 || t > BACK + 0.15;
+      $(el, '#caret').style.opacity = typing || Math.floor(t * 2.2) % 2 ? 1 : 0;
+      $(el, '#elights').classList.toggle('off', t > UP && t < BACK);
+      // The Frame comes up above it.
+      const f = $(el, '#frame'), u = eo(seg(t, UP, UP + 0.35)); f.style.opacity = u; f.style.transform = `scale(${0.92 + 0.08 * u})`;
       $(el, '#lib-p').style.background = t > GRAB && t < DROP + 0.3 ? 'rgba(10,122,255,.16)' : 'transparent';
-      const g = $(el, '#ghost');
-      if (dragging) { const m = /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(sc.cursor.style.transform); if (m) Object.assign(g.style, { left: (+m[1] + 8) + 'px', top: (+m[2] + 12) + 'px' }); }
-      g.style.opacity = dragging ? 0.92 * eo(seg(t, GRAB, GRAB + 0.12)) : 0;
-      // Dropped, then taken back with ⌘Z.
-      const dp = $(el, '#dropped'), di = eo(seg(t, DROP, DROP + 0.28)) * (1 - eo(seg(t, UNDO + 0.05, UNDO + 0.3)));
-      dp.style.opacity = di; dp.style.transform = `scale(${0.94 + 0.06 * di})`;
-      // A local video playing with the Mac's own controls (here a slow move through a museum hall photo).
+      dragGhost(sc, $(el, '#ghost'), GRAB, DROP, t);
+      land($(el, '#fimg'), t, DROP);
+      land($(el, '#fnote'), t, NEWN + 0.1);
+      $(el, '#fnt').textContent = NT.slice(0, Math.floor(clamp((t - NEWN - 0.3) / 0.8) * NT.length));
+      land($(el, '#video'), t, PASTE + 0.1);
+      keyAt($(el, '#k-n'), t, NEWN); keyAt($(el, '#k-v'), t, PASTE);
+      // The tutorial plays (a slow move through a museum hall photo).
       const vt = Math.max(0, t - PLAY), playing = t > PLAY;
-      $(el, '#vimg').style.transform = `translate(${-vt * 22}px, ${-vt * 9}px) scale(${1 + vt * 0.03})`;
-      $(el, '#vbtn').innerHTML = playing ? pause : I.play;
-      $(el, '#vprog').style.width = (2 + vt * 2) + '%';
+      $(el, '#vimg').style.transform = `translate(${-vt * 16}px, ${-vt * 6}px) scale(${1 + vt * 0.03})`;
+      $(el, '#vbig').style.opacity = playing ? 0 : 1;
+      $(el, '#vctl').style.opacity = playing ? 1 - seg(t, PLAY + 1.4, PLAY + 1.8) : 0;
+      $(el, '#vprog').style.width = (2 + vt * 3) + '%';
       $(el, '#vtime').textContent = '0:0' + Math.floor(vt);
-      $(el, '#vctl').style.opacity = playing ? 1 - seg(t, PLAY + 1.2, PLAY + 1.6) : 1;
     },
-    camera: [[0, 1, 640, 360], [4.8, 1.03, 660, 360]],
-    vcam: [[0, 1, 700, 360], [1.7, 1, 700, 360], [2.3, 1, 920, 360]] });
-  const lib = at(sc, '#lib-p', -40), dp = at(sc, '#dropped', -40, -30), pl = at(sc, '#vbtn');
-  sc.cursorKeys = [[0, 400, 640], [0.48, lib.x, lib.y], [GRAB, lib.x, lib.y, 1], [DROP, dp.x, dp.y], [PLAY - 0.12, pl.x, pl.y], [PLAY, pl.x, pl.y, 1], [3.0, 1000, 560], [4.8, 1000, 560]];
-  rings(sc, [[DROP + 0.05, 2.0, { x: FR.x + LIB + 200 - 4, y: FR.y + 40 + 400 - 4, w: 208, h: 146 }, 2, 10], [PLAY + 0.1, 3.1, '#video', 4, 12]]);
+    camera: [[0, 1, 640, 360], [8.5, 1.03, 660, 360]],
+    vcam: [[0, 0.95, 850, 360], [8.5, 0.95, 850, 360]] });
+  const lib = at(sc, '#lib-p', -30), dp = at(sc, '#fimg'), pl = at(sc, '#vbig'), et = { x: E.x + 34 + 200, y: E.y + 70 + 150 };
+  sc.cursorKeys = [[0, 600, 560], [GRAB - 0.2, lib.x, lib.y], [GRAB, lib.x, lib.y, 1], [DROP, dp.x, dp.y], [PASTE - 0.25, dp.x + 60, dp.y + 160], [PLAY - 0.2, pl.x, pl.y], [PLAY, pl.x, pl.y, 1],
+    [BACK - 0.15, et.x, et.y], [BACK, et.x, et.y, 1], [8.5, et.x - 30, et.y + 80]];
+  rings(sc, [[UP + 0.2, UP + 0.9, '#frame', 4, 14], [DROP + 0.05, DROP + 0.7, '#fimg', 3, 10], [PLAY + 0.1, PLAY + 0.8, '#video', 4, 12]]);
 }
 
-// ================= 07 · Three sizes: pop-up, window, full screen (32.4–35.8) =================
+// ================= Three sizes: pop-up, window, full screen (32–36) =================
 {
   const R = [{ x: 860, y: 110, w: 300, h: 420 }, { x: 470, y: 90, w: 780, h: 520 }, { x: 0, y: 0, w: 1280, h: 720 }];
-  const items = [['folder', 'photos', 'PhotoBook', 3], ['folder', 'linker', 'Linker', 1], ['folder', 'notes', 'Notepad', 1], ['folder', 'files', 'Files', 2], ['folder', 'classic', 'Print shop', 6],
-    ['pic', 'adams.jpg'], ['pic', 'skeleton.jpg'], ['pic', 'cave.jpg'], ['pic', 'lyuba.jpg'], ['pic', 'skull.jpg'], ['pic', 'tilesius.jpg']];
+  const items = [['folder', 'photos', 'PhotoBook', 3], ['folder', 'linker', 'Linker', 1], ['folder', 'notes', 'Notepad', 1], ['folder', 'files', 'Files', 2],
+    ['pic', 'cave.jpg'], ['pic', 'skeleton.jpg'], ['pic', 'skull.jpg'], ['pic', 'tilesius.jpg'], ['pic', 'adams.jpg'], ['pic', 'lyuba.jpg']];
   const grid = items.map(([k, a, b, n]) => k === 'folder'
     ? `<div class="gi" style="width:90px;text-align:center;font-size:12px;font-weight:500;color:#2a2a2c">${folderIcon(a, 54, { count: n })}<div style="margin-top:6px">${b}</div></div>`
     : `<div class="gi gp" style="border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.2)"><img src="${A}${a}" style="width:100%;height:100%;object-fit:cover;display:block"></div>`).join('');
   const html = `<div class="window" id="grow" style="${DIM}">
     <div style="height:38px;display:flex;align-items:center;gap:9px;padding:0 12px;background:rgba(0,0,0,.035);border-bottom:1px solid var(--line);font-size:12.5px">
       <div class="lights" id="glights"><i></i><i></i><i id="green"></i></div>
-      <span style="height:24px;border-radius:7px;background:rgba(10,122,255,.14);display:flex;align-items:center;gap:5px;padding:0 9px;font-weight:600;margin-left:6px"><span style="font-size:10px;color:var(--ink2)">${I.pin}</span>Mammoth</span><span style="color:var(--ink2)">Showreel</span><span class="wide" style="color:var(--ink2)">Thesis</span><span class="wide" style="color:var(--ink2)">Field trip</span></div>
+      <span style="height:24px;border-radius:7px;background:rgba(10,122,255,.14);display:flex;align-items:center;gap:5px;padding:0 9px;font-weight:600;margin-left:6px"><span style="font-size:10px;color:var(--ink2)">${I.pin}</span>Mammoth</span></div>
     <div id="ggrid" style="display:flex;flex-wrap:wrap;gap:18px 14px;padding:18px 16px;align-content:flex-start">${grid}</div></div>`;
   const label = `<div class="abs" id="sizelabel" style="left:50%;bottom:${VERTICAL ? 140 : 70}px;transform:translateX(-50%);display:flex;gap:10px">
     ${['Pop-up', 'Window', 'Full screen'].map((n, i) => `<span class="sizepill" data-i="${i}" style="font-size:${T.chip - 2}px">${n}</span>`).join('')}</div>`;
   const STEP = [1.05, 2.05];
-  const sc = scene({ a: 32.4, b: 35.8, bg: 'dark', html, stage: label,
-    title: { num: '07', eye: 'One click, three sizes', lines: ['Make it', 'yours.'], sub: 'Green grows Swiss: the pop-up,<br>the window, then the whole screen.', out: 2.0 },
+  const sc = scene({ a: 32, b: 36, bg: 'dark', html, stage: label,
+    title: { eye: 'Three sizes', lines: ['Just the space', 'you need.'], out: 2.0 },
     update(t, el) {
       const u1 = io(seg(t, STEP[0], STEP[0] + 0.45)), u2 = io(seg(t, STEP[1], STEP[1] + 0.5));
-      const r = t < STEP[1] ? R.map((_, i) => i)[0] : 1;
       const a = t < STEP[1] ? R[0] : R[1], b = t < STEP[1] ? R[1] : R[2], u = t < STEP[1] ? u1 : u2;
       const g = $(el, '#grow');
       Object.assign(g.style, { left: lerp(a.x, b.x, u) + 'px', top: lerp(a.y, b.y, u) + 'px', width: lerp(a.w, b.w, u) + 'px', height: lerp(a.h, b.h, u) + 'px', borderRadius: (t > STEP[1] ? lerp(11, 0, u2) : 11) + 'px' });
       const W = lerp(a.w, b.w, u), pw = W < 400 ? 76 : W < 900 ? 150 : 200;
       el.querySelectorAll('.gp').forEach(p => { p.style.width = pw + 'px'; p.style.height = pw * 0.7 + 'px'; });
-      el.querySelectorAll('.wide').forEach(p => p.style.display = W > 500 ? 'inline' : 'none');
       const step = t < STEP[0] + 0.2 ? 0 : t < STEP[1] + 0.2 ? 1 : 2;
       el.querySelectorAll('.sizepill').forEach(p => p.classList.toggle('on', +p.dataset.i === step));
       $(el, '#sizelabel').style.opacity = eo(seg(t, 0.3, 0.6));
@@ -758,28 +749,33 @@ scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
     },
     camera: [[0, 1, 640, 360]], vcam: [[0, 1, 1000, 360], [STEP[0], 1, 1000, 360], [STEP[0] + 0.5, 1, 860, 360], [STEP[1], 1, 860, 360], [STEP[1] + 0.5, 1, 640, 360]] });
   // The cursor follows the green light as the window grows.
-  sc.cursorKeys = [[0, 1100, 640], [0.85, 860 + 54, 110 + 19], [STEP[0], 860 + 54, 110 + 19, 1], [1.85, 470 + 54, 90 + 19], [STEP[1], 470 + 54, 90 + 19, 1], [2.7, 700, 420], [3.4, 700, 420]];
+  sc.cursorKeys = [[0, 1100, 640], [0.85, 860 + 54, 110 + 19], [STEP[0], 860 + 54, 110 + 19, 1], [1.85, 470 + 54, 90 + 19], [STEP[1], 470 + 54, 90 + 19, 1], [2.7, 700, 420], [4.5, 700, 420]];
 }
 
-// ================= Outro: the icon, Swiss, the line, FOR MACOS (35.8–40.0) =================
+// ================= Closing: the logo, the line, the three verbs (36–40) =================
 {
   let seed = 3; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const sparks = Array.from({ length: 26 }, () => ({ x: rnd() * SW, y: rnd() * SH, s: 10 + rnd() * 14, p: rnd() * 6, c: rnd() > 0.5 ? 'var(--red)' : '#E8A79E' }));
-  const ip = VERTICAL ? 230 : 170;
-  scene({ a: 35.8, b: 40.0, bg: 'paper', stage: `
+  const ip = VERTICAL ? 150 : 110, H = VERTICAL ? 104 : 100;
+  const lines = VERTICAL ? ['Keep your ideas', 'moving.'] : ['Keep your ideas moving.'];
+  const verbs = ['Collect.', 'Organize.', 'Keep working.'];
+  scene({ a: 36, b: 40, bg: 'paper', stage: `
     ${sparks.map(s => `<div class="spark" style="left:${s.x}px;top:${s.y}px;font-size:${s.s}px;color:${s.c}">+</div>`).join('')}
     <div class="abs" style="left:0;top:0;width:${SW}px;height:${SH}px;display:flex;flex-direction:column;align-items:center;justify-content:center">
-      <img id="oicon" src="icon.png" style="width:${ip}px;height:${ip}px;border-radius:${ip * .225}px;box-shadow:0 2px 4px rgba(0,0,0,.06),0 16px 40px rgba(76,46,33,.18)">
-      <div style="overflow:hidden;margin-top:${ip * 0.2}px"><div id="oword" style="font:800 ${ip * 0.66}px/1.05 Inter;letter-spacing:-0.045em;color:#2B1C16">Swiss</div></div>
-      <div style="overflow:hidden"><div id="oline" style="font:500 ${ip * 0.15}px Inter;color:#8A7F79;margin-top:6px">A pocket knife for your ideas.</div></div>
-      <div id="omac" style="font:700 ${ip * 0.085}px Inter;color:var(--red);letter-spacing:.32em;margin-top:${ip * 0.16}px">FOR MACOS 14 OR LATER</div>
+      <div id="clock" style="display:flex;align-items:center;gap:${ip * 0.22}px">
+        <img id="cicon" src="icon.png" style="width:${ip}px;height:${ip}px;border-radius:${ip * .225}px;box-shadow:0 2px 4px rgba(0,0,0,.06),0 12px 30px rgba(76,46,33,.18)">
+        <div style="overflow:hidden"><div id="cword" style="font:800 ${ip * 0.72}px/1.05 Inter;letter-spacing:-0.045em;color:#2B1C16">Swiss</div></div></div>
+      <div style="margin-top:${ip * 0.5}px;text-align:center;font:800 ${H}px/1.06 Inter;letter-spacing:-0.035em;color:#2B1C16">
+        ${lines.map(l => `<div style="overflow:hidden;padding-bottom:.06em"><div class="cln" style="white-space:nowrap">${l}</div></div>`).join('')}</div>
+      <div style="margin-top:${H * 0.36}px;display:flex;gap:.6em;font:600 ${VERTICAL ? 40 : 34}px Inter;color:#8A7F79">
+        ${verbs.map((v, i) => `<span class="cv" style="${i === 2 ? 'color:var(--red)' : ''}">${v}</span>`).join('')}</div>
     </div>`,
     update(t, el) {
-      const ic = $(el, '#oicon'), u = seg(t, 0.55, 1.0);
-      ic.style.opacity = eo(seg(t, 0.55, 0.75)); ic.style.transform = `scale(${0.5 + 0.5 * eo(u) + 0.1 * Math.sin(Math.PI * u)})`;
-      $(el, '#oword').style.transform = `translateY(${(1 - eo(seg(t, 0.85, 1.35))) * 105}%)`;
-      $(el, '#oline').style.transform = `translateY(${(1 - eo(seg(t, 1.1, 1.55))) * 105}%)`;
-      const m = eo(seg(t, 1.4, 1.9)); $(el, '#omac').style.opacity = m; $(el, '#omac').style.letterSpacing = (0.5 - 0.18 * m) + 'em';
+      const ic = $(el, '#cicon'), u = seg(t, 0.45, 0.9);
+      ic.style.opacity = eo(seg(t, 0.45, 0.65)); ic.style.transform = `scale(${0.5 + 0.5 * eo(u) + 0.1 * Math.sin(Math.PI * u)})`;
+      $(el, '#cword').style.transform = `translateX(${(1 - eo(seg(t, 0.7, 1.15))) * -105}%)`;
+      el.querySelectorAll('.cln').forEach((l, i) => l.style.transform = `translateY(${(1 - eo(seg(t, 1.0 + i * 0.1, 1.5 + i * 0.1))) * 105}%)`);
+      el.querySelectorAll('.cv').forEach((v, i) => { const w = eo(seg(t, 1.6 + i * 0.22, 1.95 + i * 0.22)); v.style.opacity = w; v.style.transform = `translateY(${(1 - w) * 14}px)`; v.style.display = 'inline-block'; });
       el.querySelectorAll('.spark').forEach((s, i) => {
         const sp = sparks[i], v = Math.max(0, Math.sin((t * 1.2 + sp.p)));
         s.style.opacity = v * 0.7 * seg(t, 0.6, 1.2); s.style.transform = `translateY(${-t * 10}px) rotate(${t * 30 + i * 20}deg)`;
@@ -790,7 +786,6 @@ scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
 // ================= seek =================
 window.DURATION = 40.0;
 const band = document.createElement('div'); band.id = 'band'; stage.appendChild(band);
-const black = document.createElement('div'); Object.assign(black.style, { position: 'absolute', inset: 0, background: '#000', opacity: 0, zIndex: 40 }); stage.appendChild(black);
 window.seek = function (t) {
   let bandOn = false;
   scenes.forEach((sc, i) => {
@@ -818,8 +813,6 @@ window.seek = function (t) {
     drawTitle(sc, lt);
   });
   band.style.display = bandOn ? 'block' : 'none';
-  // The cards fly past into black before the desktop fades up.
-  black.style.opacity = Math.min(seg(t, 6.0, 6.4), 1 - seg(t, 6.4, 6.75));
 };
 window.seek(params.has('t') ? +params.get('t') : 0);
 

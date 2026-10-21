@@ -40,7 +40,9 @@ export function setupClips(root = document) {
       if (fig.id === winner) {
         if (!s.loaded) { load(fig); }
         const p = video.play();
-        if (p && p.catch) p.catch(() => { s.userPaused = true; show(fig, "paused"); });
+        // A play the browser refuses or interrupts (a new load, autoplay rules) isn't the visitor pausing:
+        // show the Play button and try again on the next visibility change.
+        if (p && p.catch) p.catch(() => { if (video.paused) show(fig, "paused"); });
       } else if (!video.paused) {
         video.pause();
       }

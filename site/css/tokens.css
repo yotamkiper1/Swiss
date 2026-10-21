@@ -1,22 +1,19 @@
-/* Swiss design tokens. Dark, Apple Pro-style: the page is the film's own near-black, so the clips sit on it
-   edge to edge; white type; one red from the knife. */
+/* Swiss design tokens. Apple-like: white and light grey, the Mac's own type, one red from the knife for actions. */
 :root {
-  color-scheme: dark;
   /* color */
-  --bg: #181612;             /* the v10 film's backdrop, sampled */
-  --bg-alt: #0E0D0B;         /* deeper sections */
-  --tile: #24211C;           /* raised surfaces */
-  --tile-on-alt: #1C1A16;
-  --ink: #F5F5F7;            /* 16.6:1 on bg */
-  --ink-2: #A1A1A6;          /* secondary text: 7.0:1 on bg, 7.6:1 on bg-alt, 6.2:1 on tiles */
-  --line: #2E2A24;           /* tone step for small marks, never a rule */
+  --bg: #FFFFFF;
+  --bg-alt: #F5F5F7;         /* alternate sections */
+  --tile: #F5F5F7;
+  --tile-on-alt: #FFFFFF;
+  --ink: #1D1D1F;            /* 16.8:1 on white */
+  --ink-2: #515154;          /* secondary text only: 7.9:1 on white, 7.2:1 on bg-alt */
+  --line: #E8E8ED;            /* tone step for small marks, never a rule */
   --knife: #E04837;          /* the logo red: marks only */
-  --accent: #D23A28;         /* buttons: white on it 4.8:1 */
-  --accent-text: #FF6A55;    /* links and red words on dark: 6.4:1 */
-  --red-field: #C8231A;
-  --red-field-soft: #FFE4DF;
-  --accent-hover: #B92F1F;
-  --focus: #4DA3FF;
+  --accent: #C8231A;         /* Swiss red, from the knife: white on it 5.7:1; on white 5.7:1 */
+  --red-field: #C8231A;      /* full red sections */
+  --red-field-soft: #FFE4DF; /* secondary text on red: 4.7:1 */
+  --accent-hover: #A71C14;
+  --focus: #0071E3;
 
   /* type: the Mac's own San Francisco */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;

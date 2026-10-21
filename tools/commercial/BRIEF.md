@@ -1,4 +1,4 @@
-# Swiss: silent product film (43 s, v3) — production brief
+# Swiss: silent product film (40 s, v3) — production brief
 
 Everything here was checked against the source on `main` (commit `9785414`). File references are to `Sources/Stash/`.
 
@@ -37,12 +37,11 @@ The style follows the owner's second reference. Most of it plays on a dark, warm
 | 05 | Connected folders | Finder, inside Swiss. | Rename, move, tag and sort. Finder follows along. | — |
 | 06 | The Frame | A canvas above it all. | Pull anything in from your library. Move it, zoom in, undo. | ⌘ Z keycaps · Undo, any time |
 | 07 | One click, three sizes | Make it yours. | Green grows Swiss: the pop-up, the window, then the whole screen. | POP-UP · WINDOW · FULL SCREEN |
-| Privacy | — | ~~No account.~~ ~~No cloud.~~ **Stays on your Mac.** (red lock) | — | README: “no account, no cloud” |
 | Outro | — | Icon, **Swiss** | *A pocket knife for your ideas.* | FOR MACOS 14 OR LATER |
 
 In-UI strings come from the app: “Recent”, “kept 3 days”, “Copies”, “Screenshots”, “Keep”, “Kept in Mammoth”, “Organized 7 items into 4 new folders” (`Store.swift:1021`), “Linker / PhotoBook / Notepad / Files”, “Connected”, “New”.
 
-## 3. Timed storyboard (30 fps, 43.0 s = 1290 frames)
+## 3. Timed storyboard (30 fps, 40.0 s = 1200 frames)
 
 | Time | Beat | What happens |
 |---|---|---|
@@ -55,8 +54,7 @@ In-UI strings come from the app: “Recent”, “kept 3 days”, “Copies”, 
 | 23.2–27.6 | 05 Connected | Swiss › Connected › Exhibit images, with a Finder window of the same folder. Rename “lyuba-baby-mammoth.jpg” → “Lyuba – hero print.jpg”; the Finder row follows |
 | 27.6–32.4 | 06 Frame | Drag the skull from the library onto the canvas, play a local video with the Mac's controls, then ⌘Z takes the drop back |
 | 32.4–35.8 | 07 Sizes | The cursor clicks the green light twice: the pop-up grows to the window, then to the whole screen; the size pills follow |
-| 35.8–38.8 | Privacy | A red lock drops in. “No account.” and “No cloud.” are struck through, then “Stays on your Mac.” |
-| 38.8–43.0 | Outro | Off-white with drifting red crosses: icon, wordmark, line, FOR MACOS 14 OR LATER |
+| 35.8–40.0 | Outro | Off-white with drifting red crosses: icon, wordmark, line, FOR MACOS 14 OR LATER |
 
 Easing: cubic in-out for camera, cursor and wipes; ease-out with a light overshoot for icons; titles rise line by line.
 
@@ -70,7 +68,7 @@ Easing: cubic in-out for camera, cursor and wipes; ease-out with a light oversho
 
 ## 5. What was rendered
 
-- `swiss-film-1920x1080.mp4`: 1920×1080, 30 fps, 43.0 s (1290 frames), H.264 High, yuv420p, **no audio stream**.
+- `swiss-film-1920x1080.mp4`: 1920×1080, 30 fps, 40.0 s (1200 frames), H.264 High, yuv420p, **no audio stream**.
 - `swiss-film-1080x1920-vertical.mp4`: the same film for 1080×1920. Titles sit above the app (a 680-point-wide crop of each scene), and the menu bar scene runs full height.
 - v1 (40 s) and v2 (34 s) are in git history.
 

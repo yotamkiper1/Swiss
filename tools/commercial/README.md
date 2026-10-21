@@ -1,4 +1,4 @@
-# Swiss: silent product film (43 s)
+# Swiss: silent product film (40 s)
 
 A faithful HTML rebuild of Swiss's screens, rendered frame by frame. No audio, no video editor.
 

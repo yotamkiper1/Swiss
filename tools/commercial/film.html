@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Swiss Film</title>
 <style>
-/* The Swiss product film (v3, 43 s): a faithful rebuild of the app's screens on a dark stage, with kinetic titles,
+/* The Swiss product film (v3, 40 s): a faithful rebuild of the app's screens on a dark stage, with kinetic titles,
    a logo intro and outro, driven frame by frame by seek(t). Pictures are freely licensed (CREDITS.md).
    Colours and strings come from Sources/Stash (FolderViews.swift, RecentView.swift, Store.swift…). */
 :root {
@@ -761,31 +761,12 @@ scene({ a: 0, b: 2.7, bg: 'paper', enter: 'none', stage: `
   sc.cursorKeys = [[0, 1100, 640], [0.85, 860 + 54, 110 + 19], [STEP[0], 860 + 54, 110 + 19, 1], [1.85, 470 + 54, 90 + 19], [STEP[1], 470 + 54, 90 + 19, 1], [2.7, 700, 420], [3.4, 700, 420]];
 }
 
-// ================= Privacy: no account, no cloud (35.8–38.8) =================
-scene({ a: 35.8, b: 38.8, bg: 'dark', stage: `
-  <div class="abs" id="priv" style="left:0;top:0;width:${SW}px;height:${SH}px;display:flex;${VERTICAL ? 'flex-direction:column;' : ''}align-items:center;justify-content:center;gap:${VERTICAL ? 70 : 70}px">
-    <svg id="lock" width="${VERTICAL ? 200 : 170}" height="${VERTICAL ? 230 : 196}" viewBox="0 0 100 115"><path id="shackle" d="M25 52V34a25 25 0 0 1 50 0v18" fill="none" stroke="var(--red)" stroke-width="10" stroke-linecap="round"/>
-      <rect x="10" y="48" width="80" height="64" rx="14" fill="var(--red)"/><circle cx="50" cy="78" r="7" fill="#fff"/></svg>
-    <div style="font:800 ${VERTICAL ? 72 : 64}px/1.25 Inter;letter-spacing:-0.03em;${VERTICAL ? 'text-align:center' : ''}">
-      ${['No account.', 'No cloud.', 'Stays on your Mac.'].map((s, i) => `<div class="pl" style="position:relative;display:${VERTICAL ? 'block' : 'table'};${VERTICAL ? '' : ''}color:${i < 2 ? '#8A7F79' : '#fff'}"><span style="position:relative;display:inline-block">${s}${i < 2 ? '<i class="strike"></i>' : ''}</span></div>`).join('')}</div>
-  </div>`,
-  update(t, el) {
-    const lk = $(el, '#lock'), u = seg(t, 0.5, 0.95);
-    lk.style.opacity = eo(seg(t, 0.4, 0.65)); lk.style.transform = `scale(${0.7 + 0.3 * eo(u) + 0.08 * Math.sin(Math.PI * u)})`;
-    $(el, '#shackle').style.transform = `translateY(${(1 - eo(seg(t, 1.0, 1.3))) * -12}px)`;
-    const starts = [0.75, 1.25, 1.8];
-    el.querySelectorAll('.pl').forEach((p, i) => {
-      const v = eo(seg(t, starts[i], starts[i] + 0.35)); p.style.opacity = v; p.style.transform = `translateY(${(1 - v) * 18}px)`;
-      const s = $(p, '.strike'); if (s) s.style.transform = `scaleX(${io(seg(t, starts[i] + 0.3, starts[i] + 0.6))})`;
-    });
-  } });
-
-// ================= Outro: the icon, Swiss, the line, FOR MACOS (38.8–43.0) =================
+// ================= Outro: the icon, Swiss, the line, FOR MACOS (35.8–40.0) =================
 {
   let seed = 3; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const sparks = Array.from({ length: 26 }, () => ({ x: rnd() * SW, y: rnd() * SH, s: 10 + rnd() * 14, p: rnd() * 6, c: rnd() > 0.5 ? 'var(--red)' : '#E8A79E' }));
   const ip = VERTICAL ? 230 : 170;
-  scene({ a: 38.8, b: 43.0, bg: 'paper', stage: `
+  scene({ a: 35.8, b: 40.0, bg: 'paper', stage: `
     ${sparks.map(s => `<div class="spark" style="left:${s.x}px;top:${s.y}px;font-size:${s.s}px;color:${s.c}">+</div>`).join('')}
     <div class="abs" style="left:0;top:0;width:${SW}px;height:${SH}px;display:flex;flex-direction:column;align-items:center;justify-content:center">
       <img id="oicon" src="icon.png" style="width:${ip}px;height:${ip}px;border-radius:${ip * .225}px;box-shadow:0 2px 4px rgba(0,0,0,.06),0 16px 40px rgba(76,46,33,.18)">
@@ -807,7 +788,7 @@ scene({ a: 35.8, b: 38.8, bg: 'dark', stage: `
 }
 
 // ================= seek =================
-window.DURATION = 43.0;
+window.DURATION = 40.0;
 const band = document.createElement('div'); band.id = 'band'; stage.appendChild(band);
 const black = document.createElement('div'); Object.assign(black.style, { position: 'absolute', inset: 0, background: '#000', opacity: 0, zIndex: 40 }); stage.appendChild(black);
 window.seek = function (t) {

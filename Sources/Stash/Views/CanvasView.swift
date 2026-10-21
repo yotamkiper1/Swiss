@@ -296,11 +296,12 @@ private struct CanvasItemView: View {
         }
         .overlay(
             RoundedRectangle(cornerRadius: 8 * min(1, canvas.zoom), style: .continuous)
-                .strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0)
+                // A quote shows it's chosen with a quiet grey ring, not the coloured one.
+                .strokeBorder(item.quote == true ? Color.black.opacity(0.28) : Color.accentColor, lineWidth: selected ? (item.quote == true ? 1 : 2) : 0)
         )
         .overlay(alignment: .bottomTrailing) {
             if selected {
-                // The sizer: drag the corner to make it bigger or smaller (pictures and videos keep their shape).
+                // The sizer: drag the corner to make it bigger or smaller (pictures, videos, notes and quotes keep their shape).
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
                     .font(.system(size: 7, weight: .heavy))
                     .foregroundStyle(.white)
@@ -350,7 +351,7 @@ private struct CanvasItemView: View {
 
     private var label: String {
         switch item.kind {
-        case .text: "Note: \(item.name ?? item.text ?? "")"
+        case .text: "\(item.quote == true ? "Quote" : "Note"): \(item.name ?? item.text ?? "")"
         case .image: "Picture"
         case .link: "Link: \(item.text ?? item.url ?? "")"
         case .video: "Video: \(item.text ?? item.url ?? "")"
@@ -405,30 +406,65 @@ private struct CanvasItemView: View {
         }
     }
 
-    /// A note's text grows and shrinks with the note (made bigger, it reads bigger).
-    private var textSize: CGFloat { 13 * canvas.zoom * min(3, max(0.7, item.width / 200)) }
+    /// A note's text grows and shrinks with the note: its size is part of the note (made bigger, it reads bigger).
+    /// It's laid out once, at 13 pt, and drawn scaled — so while the sizer is dragged nothing re-wraps (no words jumping
+    /// between lines), and the lines break in the same places at any size or zoom.
+    private var scale: CGFloat { canvas.zoom * item.textSize / 13 * (frame.width > 0 ? size.width / frame.width : 1) }
+
+    private func noteFont(_ size: CGFloat) -> Font { .system(size: size, design: item.quote == true ? .serif : .default) }
+
+    /// A typed note is a yellow sticky; copied text is a quote: a white, see-through card, readable over anything.
+    @ViewBuilder private var noteFill: some View {
+        if item.quote == true {
+            ZStack {
+                Rectangle().fill(.ultraThinMaterial).environment(\.colorScheme, .light)
+                Color.white.opacity(0.6)
+            }
+        } else {
+            Color(red: 1.0, green: 0.93, blue: 0.62)
+        }
+    }
+
+    @ViewBuilder private func quoteMark(_ textSize: CGFloat) -> some View {
+        if item.quote == true {
+            Text("\u{201C}")
+                .font(.system(size: textSize * 1.6, weight: .bold, design: .serif))
+                .foregroundStyle(Color.black.opacity(0.32))
+                .frame(height: textSize * 0.9, alignment: .top)
+                .frame(maxWidth: .infinity, alignment: item.text?.isRightToLeft == true ? .trailing : .leading)
+        }
+    }
 
     @ViewBuilder private var noteView: some View {
-        let fill = Color(red: 1.0, green: 0.93, blue: 0.62)
         if canvas.editingID == item.id {
-            TextEditor(text: $draft)
-                .font(.system(size: textSize))
-                .environment(\.layoutDirection, draft.isRightToLeft ? .rightToLeft : .leftToRight) // Hebrew from the right
-                .scrollContentBackground(.hidden)
-                .padding(6 * canvas.zoom)
-                .background(fill)
-                .foregroundStyle(Color.black.opacity(0.85))
-                .onAppear { draft = item.text ?? "" }
-                .onChange(of: draft) { canvas.update(item.id) { $0.text = draft } }
-                .onDisappear { if draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { canvas.delete([item.id]) } }
+            VStack(spacing: 0) {
+                quoteMark(13 * scale).padding([.horizontal, .top], 9 * scale)
+                TextEditor(text: $draft)
+                    .font(noteFont(13 * scale))
+                    .environment(\.layoutDirection, draft.isRightToLeft ? .rightToLeft : .leftToRight) // Hebrew from the right
+                    .scrollContentBackground(.hidden)
+                    .padding(6 * scale)
+            }
+            .background(noteFill)
+            .foregroundStyle(Color.black.opacity(0.85))
+            .onAppear { draft = item.text ?? "" }
+            .onChange(of: draft) { canvas.update(item.id) { $0.text = draft } }
+            .onDisappear { if draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { canvas.delete([item.id]) } }
         } else {
-            Text(item.text ?? "")
-                .font(.system(size: textSize))
-                .foregroundStyle(Color.black.opacity(0.85))
-                .multilineTextAlignment(item.text?.isRightToLeft == true ? .trailing : .leading)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: item.text?.isRightToLeft == true ? .topTrailing : .topLeading)
-                .padding(9 * canvas.zoom)
-                .background(fill)
+            let s = max(0.01, scale)
+            VStack(spacing: 0) {
+                quoteMark(13)
+                Text(item.text ?? "")
+                    .font(noteFont(13))
+                    .foregroundStyle(Color.black.opacity(0.85))
+                    .multilineTextAlignment(item.text?.isRightToLeft == true ? .trailing : .leading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: item.text?.isRightToLeft == true ? .topTrailing : .topLeading)
+            }
+            .padding(9)
+            .frame(width: size.width / s, height: size.height / s)
+            .scaleEffect(s, anchor: .topLeading)
+            .frame(width: size.width, height: size.height, alignment: .topLeading)
+            .background(noteFill)
         }
     }
 
@@ -499,14 +535,14 @@ private struct CanvasItemView: View {
             .onChanged { value in
                 var w = max(40 * canvas.zoom, frame.width + value.translation.width)
                 var h = max(30 * canvas.zoom, frame.height + value.translation.height)
-                if item.kind == .image || item.kind == .video, frame.width > 0 { h = w * frame.height / frame.width } // keeps its shape
+                if item.kind != .link && item.kind != .file, frame.width > 0 { h = w * frame.height / frame.width } // keeps its shape
                 if h < 30 * canvas.zoom { h = 30 * canvas.zoom; w = h * frame.width / max(1, frame.height) }
                 liveSize = CGSize(width: w, height: h)
             }
             .onEnded { _ in
                 if let liveSize {
                     canvas.resize(item.id, to: CGSize(width: liveSize.width / canvas.zoom, height: liveSize.height / canvas.zoom),
-                                  keepAspect: item.kind == .image || item.kind == .video)
+                                  keepAspect: item.kind != .link && item.kind != .file)
                 }
                 liveSize = nil
             }

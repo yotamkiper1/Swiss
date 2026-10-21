@@ -555,6 +555,12 @@ extension AppDelegate {
             for item in q {
                 switch item.name {
                 case "text": canvas.addText(item.value ?? "")
+                case "paste": // as ⌘V does with copied text
+                    let pb = NSPasteboard(name: NSPasteboard.Name("swiss.canvas.test.paste"))
+                    pb.clearContents(); pb.setString(item.value ?? "", forType: .string)
+                    canvas.ingest(pb)
+                case "resize": // the selected thing to this width, as its sizer does
+                    if let id = canvas.selection.first, let w = Double(item.value ?? "") { canvas.resize(id, to: CGSize(width: w, height: 1), keepAspect: true) }
                 case "url": if let u = item.value.flatMap(URL.init(string:)) { canvas.addLink(u) }
                 case "clear": canvas.clear()
                 case "undo": canvas.undoClear()
@@ -578,7 +584,7 @@ extension AppDelegate {
                 let sy = screenH - w.frame.maxY + canvas.viewOrigin.y + vf.maxY + 6 - 8 + 8
                 log("sizer at \(Int(sx)) \(Int(sy)) size \(Int(it.width))x\(Int(it.height))")
             }
-            log("canvas items=\(canvas.items.map { "\($0.kind.rawValue):\(Int($0.width))x\(Int($0.height))@\(Int($0.x)),\(Int($0.y)) asset=\($0.asset != nil) url=\($0.url?.prefix(40) ?? "-")" }) zoom=\(canvas.zoom) pan=\(canvas.pan) cleared=\(canvas.cleared?.count ?? 0)")
+            log("canvas items=\(canvas.items.map { "\($0.kind.rawValue)\($0.quote == true ? "(quote)" : ""):\(Int($0.width))x\(Int($0.height)) font=\(Int($0.textSize))@\(Int($0.x)),\(Int($0.y)) asset=\($0.asset != nil) url=\($0.url?.prefix(40) ?? "-")" }) zoom=\(canvas.zoom) pan=\(canvas.pan) cleared=\(canvas.cleared?.count ?? 0)")
         case "debugspace":
             // Selects the first picture anywhere (?pick) and presses Space in the visible window.
             if url.query == "pick", let photo = store.items.first(where: { $0.kind == .image }) { store.selection = [.item(photo.id)] }

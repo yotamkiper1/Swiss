@@ -26,6 +26,13 @@ struct CanvasItem: Codable, Identifiable, Equatable {
     var z: Int = 0
     /// A name you gave it (right-click → Name…), shown under it.
     var name: String?
+    /// A note's text size (canvas points), set once it's resized: the text grows and shrinks with the note.
+    var fontSize: Double?
+    /// Text you copied and pasted in: shown as a white quote card, not a yellow note.
+    var quote: Bool?
+
+    /// A note's text size: what resizing made it, or (never resized) the size notes always had for their width.
+    var textSize: Double { fontSize ?? 13 * min(3, max(0.7, width / 200)) }
 
     var frame: CGRect { CGRect(x: x, y: y, width: width, height: height) }
     var link: URL? { url.flatMap(URL.init(string:)) }
@@ -259,6 +266,7 @@ final class CanvasStore: ObservableObject {
         update(id) { item in
             var w = max(40, size.width), h = max(30, size.height)
             if keepAspect, item.width > 0 { h = w * item.height / item.width }
+            if item.kind == .text, item.width > 0 { item.fontSize = item.textSize * w / item.width } // the text grows with it
             item.width = w
             item.height = h
         }
@@ -269,6 +277,7 @@ final class CanvasStore: ObservableObject {
         remember()
         for i in items.indices where ids.contains(items[i].id) {
             let w = max(40, items[i].width * factor), h = max(30, items[i].height * factor)
+            if items[i].kind == .text, items[i].width > 0 { items[i].fontSize = items[i].textSize * w / items[i].width }
             items[i].x += (items[i].width - w) / 2
             items[i].y += (items[i].height - h) / 2
             items[i].width = w
@@ -352,15 +361,20 @@ final class CanvasStore: ObservableObject {
             return true
         }
         if let string = pb.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines), !string.isEmpty {
-            if let url = Store.webURL(from: string) { addLink(url, at: point) } else { addText(string, at: point) }
+            // Copied text comes in as a quote; a note from the library (its double-click) stays a note.
+            if let url = Store.webURL(from: string) { addLink(url, at: point) } else {
+                addText(string, at: point, quote: !pb.name.rawValue.hasPrefix("swiss.canvas.library"))
+            }
             return true
         }
         return false
     }
 
-    func addText(_ text: String, at point: CGPoint? = nil) {
+    func addText(_ text: String, at point: CGPoint? = nil, quote: Bool = false) {
         let lines = max(1, min(12, text.count / 28 + text.filter { $0 == "\n" }.count + 1))
-        add(.text, at: point, size: CGSize(width: 200, height: 26 + Double(lines) * 17), text: text)
+        // A quote has a line more on top, for its quote mark.
+        let id = add(.text, at: point, size: CGSize(width: 200, height: 26 + Double(lines) * 17 + (quote ? 18 : 0)), text: text)
+        if quote, let i = items.firstIndex(where: { $0.id == id }) { items[i].quote = true }
     }
 
     func newNote() {

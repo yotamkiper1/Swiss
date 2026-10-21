@@ -9,3 +9,5 @@ A faithful HTML rebuild of Swiss's screens, rendered frame by frame. No audio, n
 - `assets/`: freely licensed pictures from Wikimedia Commons and a Wikipedia capture; credits in `CREDITS.md`.
 
 The rendered MP4s aren't stored in git.
+
+- `assets/fonts/`: Schibsted Grotesk (SIL OFL 1.1, licence in `OFL-SchibstedGrotesk.txt`) for the titles; the app screens use Inter (SIL OFL 1.1), which must be installed locally.

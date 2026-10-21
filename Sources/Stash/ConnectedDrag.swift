@@ -25,6 +25,11 @@ final class ConnectedDrag: NSObject, NSDraggingSource {
     private var active = false
     private var ghost: NSImageView?
     private var ghostOrigin: NSPoint = .zero
+    /// Same safety as the board's drag: if the mouse-up never reaches Swiss, the drag and its picture go away.
+    private var watchdog: Timer?
+
+    /// The window is closing: any drag in it stops.
+    func cancel() { if active || ghost != nil { reset() } }
 
     func handle(_ event: NSEvent, in window: StashPanel) -> Bool {
         guard Store.shared.connectedView != nil, !Store.shared.showingRecent else { return false }
@@ -73,6 +78,13 @@ final class ConnectedDrag: NSObject, NSDraggingSource {
         moving = selection.paths
         active = true
         showGhost(in: window)
+        watchdog?.invalidate()
+        watchdog = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
+            MainActor.assumeIsolated {
+                let drag = ConnectedDrag.shared
+                if NSEvent.pressedMouseButtons & 1 == 0 { drag.cancel(); drag.watchdog?.invalidate(); drag.watchdog = nil }
+            }
+        }
     }
 
     /// A folder tile (not one being dragged, nor inside one), or a part of the path above.
@@ -173,6 +185,8 @@ final class ConnectedDrag: NSObject, NSDraggingSource {
 
     private func reset() {
         removeGhost()
+        watchdog?.invalidate()
+        watchdog = nil
         if active { ConnectedEditor.shared.dropTargetPath = nil }
         pressed = nil
         moving = []

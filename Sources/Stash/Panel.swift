@@ -20,7 +20,11 @@ final class StashPanel: NSPanel {
     override func order(_ place: NSWindow.OrderingMode, relativeTo otherWin: Int) {
         if place != .out { ShownWindows.shared.set(gateKey, shown: true) }
         super.order(place, relativeTo: otherWin)
-        if place == .out { ShownWindows.shared.set(gateKey, shown: false) }
+        if place == .out {
+            ShownWindows.shared.set(gateKey, shown: false)
+            BoardDrag.shared.cancel() // a drag can't outlive its window (its picture would stay stuck)
+            ConnectedDrag.shared.cancel()
+        }
     }
 
     init(contentRect: NSRect, compact: Bool = false, floating: Bool = false) {

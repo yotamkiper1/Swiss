@@ -33,6 +33,27 @@ final class BoardDrag: NSObject, NSDraggingSource {
     /// The picture of the dragged tiles that follows the pointer (like Finder's drag image).
     private var ghost: NSImageView?
     private var ghostOrigin: NSPoint = .zero
+    /// While dragging: checks the button is still held. If the mouse-up went somewhere else (a notification popped up,
+    /// the window closed mid-drag), the drag is called off so its picture never stays stuck on the board.
+    private var watchdog: Timer?
+    private var testing = false
+    var hasGhost: Bool { ghost != nil }
+
+    private func startWatchdog() {
+        watchdog?.invalidate()
+        guard !testing else { return }
+        watchdog = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
+            MainActor.assumeIsolated { BoardDrag.shared.checkStillPressed() }
+        }
+    }
+
+    private func checkStillPressed() {
+        guard active || ghost != nil else { watchdog?.invalidate(); watchdog = nil; return }
+        if NSEvent.pressedMouseButtons & 1 == 0 { reset() } // let go where Swiss didn't see it: nothing moves
+    }
+
+    /// The window is closing: any drag in it stops.
+    func cancel() { if active || ghost != nil { reset() } }
 
     private var store: Store { Store.shared }
 
@@ -123,6 +144,7 @@ final class BoardDrag: NSObject, NSDraggingSource {
         showGhost(in: window) // the picture first, before the real tiles dim
         DragSelection.shared.ids = moving
         active = true
+        startWatchdog()
     }
 
     /// Takes a picture of the dragged tiles (each one on its own, nothing in between) and lays it on top.
@@ -165,8 +187,9 @@ final class BoardDrag: NSObject, NSDraggingSource {
 
     // MARK: Test hooks (Stash Test only)
 
-    func testBegin(_ ids: Set<Selectable>, in window: NSWindow) {
+    func testBegin(_ ids: Set<Selectable>, in window: NSWindow, asIfReal: Bool = false) {
         guard TestMode.isOn, let first = ids.first else { return }
+        testing = !asIfReal // a real drag is watched; a test one (no button held) isn't
         compact = (window as? StashPanel)?.isCompact ?? false
         store.selection = ids
         begin(with: first, in: window)
@@ -288,6 +311,9 @@ final class BoardDrag: NSObject, NSDraggingSource {
 
     private func reset() {
         removeGhost()
+        watchdog?.invalidate()
+        watchdog = nil
+        testing = false
         if active {
             DragSelection.shared.ids = []
             DragOffset.shared.value = .zero

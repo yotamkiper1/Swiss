@@ -317,7 +317,14 @@ extension AppDelegate {
         case "debuginfo": showInfo(for: store.selection)
         case "debugghost":
             let w = compact.isVisible ? compact : panel
-            if url.path == "/off" { BoardDrag.shared.testEnd() } else {
+            if url.path == "/missedup" {
+                // A real drag whose mouse-up never arrives: the picture must clear itself.
+                BoardDrag.shared.testBegin(store.selection, in: w, asIfReal: true)
+                log("ghost after begin: \(BoardDrag.shared.hasGhost)")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { MainActor.assumeIsolated {
+                    log("ghost 0.8 s later (button not held): \(BoardDrag.shared.hasGhost), dimmed: \(DragSelection.shared.ids.count)")
+                } }
+            } else if url.path == "/off" { BoardDrag.shared.testEnd() } else {
                 BoardDrag.shared.testBegin(store.selection, in: w)
                 BoardDrag.shared.testMove(dx: 90, dy: -70)
             }

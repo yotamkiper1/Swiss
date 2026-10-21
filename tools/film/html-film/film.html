@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Swiss Film</title>
+<style>
+/* Type: titles in Schibsted Grotesk (SIL OFL 1.1, assets/fonts), a grotesk in the Swiss tradition;
+   the app's own screens stay in Inter (SIL OFL 1.1) as a stand-in for the macOS system font. */
+@font-face { font-family: 'Schibsted Grotesk'; font-weight: 400 900; font-display: block;
+  src: url(assets/fonts/SchibstedGrotesk-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Schibsted Grotesk'; font-weight: 400 900; font-display: block;
+  src: url(assets/fonts/SchibstedGrotesk-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113; }
+/* The Swiss product film (v4, 40 s): a faithful rebuild of the app's screens on a dark stage, with kinetic titles,
+   a logo intro and outro, driven frame by frame by seek(t). Pictures are freely licensed (CREDITS.md).
+   Colours and strings come from Sources/Stash (FolderViews.swift, RecentView.swift, Store.swift…). */
+:root {
+  --paper: #F3F4F1;          /* the icon's background */
+  --red: #DF4637;            /* the knife */
+  --brown: #4C2E21;          /* the blade */
+  --ink: #1D1D1F;
+  --ink2: #6E6E73;
+  --ink3: #A1A1A6;
+  --accent: #0A7AFF;
+  --win: #F6F6F5;
+  --side: #EBEAE8;
+  --line: rgba(0,0,0,.08);
+  --folder-back: rgb(97,166,237);   /* FolderIcon.back, light */
+  --folder-front: rgb(133,194,250); /* FolderIcon.front, light */
+  --k-linker: rgb(28,158,117);
+  --k-photos: rgb(217,89,48);
+  --k-notes: rgb(240,158,38);
+  --k-files: rgb(135,135,128);
+  --note: #FDEDA8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--paper); overflow: hidden; }
+body { font-family: Inter, -apple-system, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; letter-spacing: -0.005em; }
+#stage { position: absolute; left: 0; top: 0; background: var(--paper); overflow: hidden; }
+#screen { position: absolute; overflow: hidden; border-radius: 14px; background: #ddd;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 18px 50px rgba(60,40,30,.16); }
+.scene { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; opacity: 0; }
+.abs { position: absolute; }
+
+
+/* macOS bits */
+.wallpaper { position: absolute; inset: 0; background:
+  radial-gradient(120% 90% at 15% 10%, #E9E3DA 0%, transparent 60%),
+  radial-gradient(90% 80% at 90% 90%, #D5DCE3 0%, transparent 60%),
+  linear-gradient(160deg, #E6E1D9, #D8DADB); }
+.menubar { position: absolute; left: 0; top: 0; width: 1280px; height: 24px; background: rgba(255,255,255,.62);
+  display: flex; align-items: center; padding: 0 26px; font-size: 13px; gap: 18px; color: #1d1d1f; z-index: 50; }
+.menubar b { font-weight: 700; }
+.menubar .right { margin-left: auto; display: flex; gap: 14px; align-items: center; }
+.window { position: absolute; background: var(--win); border-radius: 11px; overflow: hidden;
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.22), 0 10px 32px rgba(0,0,0,.20); }
+.lights { display: flex; gap: 8px; }
+.lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.lights i:nth-child(1) { background: #FF5F57; } .lights i:nth-child(2) { background: #FEBC2E; } .lights i:nth-child(3) { background: #28C840; }
+.lights.off i { background: #D6D6D6 !important; }
+.ic { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; }
+.key { position: absolute; background: rgba(30,30,32,.78); color: #fff; font-size: 15px; font-weight: 600; padding: 6px 11px;
+  border-radius: 8px; letter-spacing: .02em; opacity: 0; white-space: nowrap; }
+.flash { position: absolute; background: rgba(40,40,42,.86); color: #fff; font-size: 13px; font-weight: 500; padding: 8px 15px;
+  border-radius: 20px; opacity: 0; white-space: nowrap; display: flex; gap: 7px; align-items: center; }
+
+/* Swiss window */
+.sidebar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--side); border-right: 1px solid var(--line); padding: 44px 8px 0; font-size: 13px; }
+.srow { height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: 6px; color: #2a2a2c; white-space: nowrap; }
+.srow .n { margin-left: auto; color: var(--ink3); font-size: 11.5px; }
+.srow.sel { background: rgba(10,122,255,.16); }
+.srow .ic { color: var(--ink2); font-size: 14px; }
+.shead { font-size: 11px; font-weight: 600; color: var(--ink3); padding: 14px 8px 4px; display: flex; }
+.shead span { margin-left: auto; }
+.dotc { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.toolbar { position: absolute; height: 34px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink2); }
+.search { height: 26px; border-radius: 7px; background: rgba(0,0,0,.055); display: flex; align-items: center; gap: 6px; padding: 0 9px; color: var(--ink3); font-size: 13px; }
+.pill { height: 24px; border-radius: 6px; background: rgba(0,0,0,.05); display: flex; align-items: center; gap: 5px; padding: 0 8px; color: #3a3a3c; font-size: 12.5px; }
+.tabs { position: absolute; left: 0; right: 0; top: 0; height: 40px; background: rgba(0,0,0,.035); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 4px; padding: 0 12px; font-size: 13px; }
+.tab { height: 28px; padding: 0 14px; border-radius: 7px; display: flex; align-items: center; gap: 7px; color: #59595d; }
+.tab.sel { background: rgba(10,122,255,.14); color: #1d1d1f; font-weight: 600; }
+.quickbar { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 0 14px; font-size: 12px; color: #4a4a4e; }
+.quickbar small { color: var(--ink3); font-size: 10px; margin-right: 3px; }
+
+/* Folder tile */
+.ftile { position: absolute; width: 96px; text-align: center; font-size: 12.5px; font-weight: 500; color: #2a2a2c; }
+.ficon { position: relative; margin: 0 auto; }
+.ficon .back1 { position: absolute; left: 0; top: 0; background: var(--folder-back); }
+.ficon .back2 { position: absolute; left: 0; right: 0; bottom: 0; background: var(--folder-back); }
+.ficon .front { position: absolute; left: 0; right: 0; bottom: 0; background: var(--folder-front); }
+.ficon .kdot { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.92); display: flex; align-items: center; justify-content: center; color: #fff; }
+.ficon .num { position: absolute; left: -9px; top: -7px; width: 15px; height: 15px; border-radius: 4px; border: 1px solid rgba(0,0,0,.25); font-size: 9.5px; line-height: 13px; color: #555; background: rgba(255,255,255,.6); font-weight: 600; }
+.ficon .count { position: absolute; right: -7px; top: -7px; min-width: 18px; height: 18px; border-radius: 9px; background: #5d5d61; color: #fff; font-size: 10px; font-weight: 700; line-height: 18px; padding: 0 4px; border: 1.5px solid #f6f6f5; }
+.ftile .label { margin-top: 7px; white-space: nowrap; }
+
+/* Cards */
+.card { position: absolute; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.07), 0 2px 6px rgba(0,0,0,.05); }
+.card .meta { padding: 9px 12px; font-size: 12.5px; }
+.card .t { font-weight: 600; color: #1d1d1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .h { color: var(--ink2); font-size: 11.5px; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+.notecard { background: #F1F0EE; padding: 14px 16px; font-family: "DejaVu Serif", Georgia, serif; font-size: 14.5px; line-height: 1.4; color: #262626; }
+.notecard .q { font-size: 22px; color: #9a9a9a; line-height: 1; height: 14px; font-family: Georgia, serif; }
+.notecard .ago { font-family: Inter, sans-serif; font-size: 11px; color: var(--ink3); margin-top: 8px; }
+
+/* Recent list */
+.rrow { position: absolute; left: 0; right: 0; height: 54px; display: flex; align-items: center; gap: 11px; padding: 0 14px; border-radius: 8px; }
+.rrow .th { width: 38px; height: 38px; border-radius: 7px; flex: none; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(0,0,0,.06); }
+.rrow .tt { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rrow .st { font-size: 11.5px; color: var(--ink2); margin-top: 2px; white-space: nowrap; display: flex; gap: 4px; align-items: center; }
+.rrow.sel { background: rgba(10,122,255,.85); }
+.rrow.sel .tt, .rrow.sel .st { color: #fff; }
+
+/* Finder list */
+.frow { height: 26px; display: flex; align-items: center; font-size: 12.5px; padding: 0 12px; gap: 8px; }
+.frow:nth-child(even) { background: rgba(0,0,0,.03); }
+.frow .d { margin-left: auto; color: var(--ink2); width: 150px; }
+/* v3 stage: full-frame scenes revealed by a red slash, kinetic titles on the left */
+.scene { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 1; transform: none; overflow: hidden; display: none; }
+.bg { position: absolute; inset: 0; }
+.bg-dark { background: #191614; }   /* one flat field: the icon's dark brown taken almost to black */
+.bg-paper { background: var(--paper); }
+.bg-desk { background: var(--red); }   /* the Frame scene is a whole field of the knife's red */
+.vp { position: absolute; overflow: hidden; }
+.world { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; }
+.window { box-shadow: 0 0 0 .5px rgba(0,0,0,.4), 0 18px 48px rgba(0,0,0,.34); }
+.title { position: absolute; z-index: 30; color: #fff; font-family: 'Schibsted Grotesk', Inter, sans-serif; }
+.title .eye { color: #E5584A; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; margin-bottom: 18px; }
+.title .eye .num { margin-right: 1.1em; }
+.title .h1 { font-weight: 600; letter-spacing: -0.035em; line-height: 1.0; }
+.title .ln { overflow: hidden; padding-bottom: .06em; }
+.title .ln span { display: inline-block; white-space: nowrap; }
+.title .sub { margin-top: 28px; color: rgba(255,255,255,.82); font-weight: 400; line-height: 1.35; letter-spacing: -0.01em; }
+.title .chips { margin-top: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.title .chips.row { flex-direction: row; flex-wrap: wrap; }
+.title .chip { display: block; color: #fff; font-weight: 500; letter-spacing: -0.01em; opacity: 0; }
+.title .chip i { display: none; }
+.title .keys { margin-top: 30px; display: flex; gap: 12px; opacity: 0; }
+.title .keys + .chips { margin-top: 16px; }
+.title .kc { width: 2.1em; height: 2.1em; border-radius: .35em; background: #fff; color: #222; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 .18em 0 rgba(255,255,255,.35); transition: none; }
+.title .kc.down { transform: translateY(.12em); box-shadow: 0 .06em 0 rgba(255,255,255,.35); }
+.title .foot { margin-top: 18px; color: #8A7F79; font-weight: 500; opacity: 0; }
+.sc-card { position: absolute; left: 0; top: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+.spark { position: absolute; font-weight: 300; opacity: 0; }
+#band { position: absolute; inset: 0; background: var(--red); z-index: 60; display: none; }
+.strike { position: absolute; left: -2%; right: -2%; top: 54%; height: .07em; background: #DF4637; transform-origin: 0 50%; transform: scaleX(0); }
+.sizepill { white-space: nowrap; padding: 0 .9em; color: rgba(255,255,255,.38); font-family: 'Schibsted Grotesk', Inter, sans-serif; font-weight: 600; letter-spacing: -0.02em; }
+.sizepill.on { color: #fff; }
+.sizepill.ink { color: rgba(0,0,0,.3); } .sizepill.ink.on { color: #1d1d1f; }
+.hl { position: absolute; border: 3px solid var(--red); opacity: 0; pointer-events: none; z-index: 80; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// ---------- time helpers ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const io = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;   // cubic in-out
+const eo = x => 1 - Math.pow(1 - x, 3);                                     // cubic out
+const lerp = (a, b, u) => a + (b - a) * u;
+const $ = (root, sel) => root.querySelector(sel);
+
+// ---------- icons (simplified SF Symbols) ----------
+const I = {
+  link: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',
+  photo: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M4 5h16a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 4 5zm1.5 11.5h13l-4.2-5.6-3.3 4.2-2.2-2.6z"/><circle cx="8" cy="9" r="1.7" fill="#fff" opacity=".9"/></svg>',
+  doc: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2.5h8l5 5v13a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20.5v-16A2 2 0 0 1 6 2.5z"/><path d="M14 2.5v5h5" fill="#fff" opacity=".55"/></svg>',
+  lines: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h9"/></svg>',
+  wand: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20 15 9"/><path d="M17 3v3M15.5 4.5h3M20 9v2M19 10h2M11 4v2M10 5h2"/></svg>',
+  search: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>',
+  clock: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></svg>',
+  stack: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="5" y="8" width="14" height="12" rx="2"/><path d="M7 5h10M9 2.5h6"/></svg>',
+  folder: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7.5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  drive: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="9" rx="2"/><path d="M12 13v4M5 20h14M8 20v-3h8v3"/></svg>',
+  plus: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  sidebar: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M9 5v14"/></svg>',
+  lock: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.7-1.5"/></svg>',
+  frame: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>',
+  grid: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></svg>',
+  list: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.1M4.5 12h.1M4.5 18h.1"/></svg>',
+  arrange: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5" width="5" height="4" rx="1"/><rect x="10" y="5" width="5" height="4" rx="1"/><rect x="17" y="5" width="4" height="4" rx="1"/><rect x="3" y="11" width="5" height="4" rx="1"/><rect x="10" y="11" width="5" height="4" rx="1"/><rect x="17" y="11" width="4" height="4" rx="1"/></svg>',
+  trash: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"/></svg>',
+  tray: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10m-4-4 4 4 4-4"/><path d="M3 14h5l1.5 3h5L16 14h5v5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19z"/></svg>',
+  check: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+  chev: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m7 10 5 5 5-5"/></svg>',
+  pin: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 3h8l-1.3 6 3.3 3H6l3.3-3zM11.3 12h1.4v9h-1.4z"/></svg>',
+  arrow: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3.5 18.5 12 12.6 13l3.4 7-2.4 1.1-3.3-7.1L6 18z"/></svg>',
+  hand: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V12m0-6.5V5a1.5 1.5 0 0 1 3 0v7m0-5.5a1.5 1.5 0 0 1 3 0V13m0-4a1.5 1.5 0 0 1 3 0v5a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-2.7L4.5 14a1.5 1.5 0 0 1 2.5-1.7L8 14"/></svg>',
+  minus: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+  play: '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  camera: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><circle cx="12" cy="12" r="3"/></svg>',
+  wifi: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 9.5a13 13 0 0 1 18 0M6.5 13a8 8 0 0 1 11 0M10 16.5a3 3 0 0 1 4 0"/></svg>',
+  battery: '<svg class="ic" viewBox="0 0 28 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="7" width="21" height="10" rx="3"/><rect x="4" y="9" width="15" height="6" rx="1.5" fill="currentColor" stroke="none"/><path d="M25 10.5v3"/></svg>',
+  knife: '<svg class="ic" viewBox="0 0 24 24"><path d="M10 13 19 4.5c.6 2.6-2.4 7.2-6 9z" fill="currentColor"/><rect x="3" y="12.5" width="15" height="5.2" rx="2.6" fill="currentColor"/><circle cx="15.3" cy="15.1" r="1" fill="#fff"/></svg>',
+};
+const kindStyle = {
+  photos: { color: 'var(--k-photos)', sym: I.photo, name: 'PhotoBook' },
+  linker: { color: 'var(--k-linker)', sym: I.link, name: 'Linker' },
+  notes:  { color: 'var(--k-notes)',  sym: I.lines, name: 'Notepad' },
+  files:  { color: 'var(--k-files)',  sym: I.doc, name: 'Files' },
+  classic:{ color: null, sym: '', name: 'Folder' },
+};
+
+// The folder icon ("Dot" design, FolderViews.swift): Finder-blue folder, a coloured kind dot in the corner.
+function folderIcon(kind, s, opts = {}) {
+  const k = kindStyle[kind]; const d = s * 0.3;
+  return `<div class="ficon" style="width:${s}px;height:${s * .8}px">
+    <div class="back1" style="width:${s * .4}px;height:${s * .16}px;border-radius:${s * .06}px ${s * .06}px 0 0"></div>
+    <div class="back2" style="top:${s * .1}px;border-radius:${s * .08}px"></div>
+    <div class="front" style="top:${s * .24}px;border-radius:${s * .08}px"></div>
+    ${k.color ? `<div class="kdot" style="width:${d}px;height:${d}px;right:${-s * .04}px;bottom:${-s * .04}px;background:${k.color};font-size:${d * .52}px">${k.sym}</div>` : ''}
+    ${opts.num ? `<div class="num">${opts.num}</div>` : ''}
+    ${opts.count != null ? `<div class="count" data-count>${opts.count}</div>` : ''}
+  </div>`;
+}
+function folderTile(kind, name, x, y, opts = {}) {
+  return `<div class="ftile" style="left:${x}px;top:${y}px" ${opts.id ? `id="${opts.id}"` : ''}>${folderIcon(kind, 64, opts)}
+    <div class="label">${opts.tag ? `<span class="dotc" style="background:${opts.tag};margin-right:5px"></span>` : ''}${name}</div></div>`;
+}
+
+// The cursor (macOS arrow).
+const cursorHTML = `<div class="cursor abs" style="left:0;top:0;width:22px;height:30px;z-index:100;transform-origin:3px 3px">
+  <div class="ring abs" style="left:-13px;top:-13px;width:32px;height:32px;border-radius:50%;border:2px solid rgba(10,122,255,.0)"></div>
+  <svg width="22" height="30" viewBox="0 0 22 30"><path d="M2 2v22l6-5.5 4 9 3.6-1.6-4-8.8H20z" fill="#000" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></div>`;
+
+
+// Cursor path: [t, x, y, click?]. Eased moves with a slight arc; a click presses for a moment.
+function moveCursor(sc, keys, t) {
+  const c = sc.cursor;
+  if (!keys) { c.style.opacity = 0; return; }
+  let x = keys[0][1], y = keys[0][2];
+  for (let i = 0; i < keys.length - 1; i++) {
+    const [t0, x0, y0] = keys[i], [t1, x1, y1] = keys[i + 1];
+    if (t >= t0 && t <= t1) {
+      const u = io(seg(t, t0, t1)), arc = Math.sin(Math.PI * u) * 0.08;
+      const dx = x1 - x0, dy = y1 - y0;
+      x = lerp(x0, x1, u) - dy * arc; y = lerp(y0, y1, u) + dx * arc;
+    } else if (t > t1) { x = x1; y = y1; }
+  }
+  let press = 0, ring = 0;
+  for (const k of keys) if (k[3]) {
+    const d = t - k[0];
+    if (d > -0.06 && d < 0.16) press = 1;
+    if (d >= 0 && d < 0.5) ring = 1 - d / 0.5;
+  }
+  c.style.opacity = 1;
+  c.style.transform = `translate(${x - 3}px, ${y - 3}px) scale(${press ? 0.88 : 1})`;
+  const r = c.querySelector('.ring');
+  r.style.borderColor = `rgba(10,122,255,${0.35 * ring})`;
+  r.style.transform = `scale(${0.6 + (1 - ring) * 0.6})`;
+}
+const show = (el, o, dy = 0) => { el.style.opacity = o; if (dy) el.style.transform = `translateY(${dy}px)`; };
+const fadeIO = (t, a, b, d = 0.35) => Math.min(seg(t, a, a + d), 1 - seg(t, b - d, b));
+
+// ---------- layout (16:9 default, ?v=1 vertical) ----------
+const params = new URLSearchParams(location.search);
+const VERTICAL = params.get('v') === '1';
+const SW = VERTICAL ? 1080 : 1920, SH = VERTICAL ? 1920 : 1080;
+const stage = document.getElementById('stage');
+stage.style.width = SW + 'px'; stage.style.height = SH + 'px';
+// Each app scene shows a 1280×720-point world in a viewport: the whole frame in 16:9, the lower part (a 680-point-wide crop) in vertical.
+const L = VERTICAL ? { x: 0, y: 690, w: 1080, h: 1143 } : { x: 0, y: 0, w: 1920, h: 1080 };
+const K = VERTICAL ? L.w / 680 : L.w / 1280;
+// Titles: a left column beside the app in 16:9, a block above it in vertical.
+const T = VERTICAL ? { x: 72, y: 150, eye: 24, h1: 96, sub: 34, chip: 26, w: 940 } : { x: 112, y: 250, eye: 18, h1: 86, sub: 28, chip: 21, w: 560 };
+
+// ---------- the material: freely licensed pictures from Wikimedia Commons (see CREDITS.md) ----------
+const A = 'assets/';
+const img = (src, w, h, extra = '') => `<img src="${A}${src}" style="display:block;width:${w}px;height:${h}px;object-fit:cover;${extra}">`;
+const menubar = (app, menus) => `<div class="menubar"><b>${app}</b>${menus.map(m => `<span>${m}</span>`).join('')}
+  <div class="right"><span id="mbknife" style="color:#1d1d1f;font-size:16px;padding:2px 5px;border-radius:5px">${I.knife}</span><span>${I.wifi}</span><span>${I.battery}</span><span>Wed 21 Oct&nbsp; 10:41</span></div></div>`;
+
+function swissSidebar(sel, w = 170) {
+  const r = (key, icon, name, n, extra = '') => `<div class="srow ${sel === key ? 'sel' : ''}" data-side="${key}"><span class="ic">${icon}</span>${name}${extra}<span class="n" ${key === 'recent' ? 'data-rcount' : ''}>${n}</span></div>`;
+  return `<div class="sidebar" style="width:${w}px">
+    <div class="lights abs" style="left:16px;top:16px"><i></i><i></i><i></i></div>
+    ${r('recent', I.clock, 'Recent', 3)}${r('all', I.stack, 'All Items', 214)}
+    <div class="shead">Projects<span>${I.plus}</span></div>
+    ${r('mammoth', I.folder, 'Mammoth', 38, ' <span class="dotc" style="background:#DF4637"></span>')}
+    ${r('showreel', I.folder, 'Showreel', 12, ' <span class="dotc" style="background:#8cc78c"></span>')}
+    ${r('thesis', I.folder, 'Thesis', 31, ' <span class="dotc" style="background:#e0b46a"></span>')}
+    <div class="shead">Connected<span>${I.plus}</span></div>
+    <div class="srow ${sel === 'connected' ? 'sel' : ''}"><span class="ic">${I.drive}</span>Exhibit images</div>
+  </div>`;
+}
+const quickbar = `<div class="quickbar"><span><small>⌘1</small>Note</span><span><small>⌘2</small>Folder</span><span><small>⌘3</small>Linker</span><span><small>⌘4</small>PhotoBook</span><span><small>⌘5</small>Notepad</span><span><small>⌘6</small>Files</span>
+  <span style="margin-left:auto;color:var(--ink3)">1–9 open</span><span>?</span></div>`;
+const noteCard = (x, y, w, h, text, ago, id = '') => `<div class="card notecard" ${id ? `id="${id}"` : ''} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><div class="q">“</div>${text}<div class="ago">${ago}</div></div>`;
+const pdfIcon = (s = 1) => `<div style="width:${30 * s}px;height:${36 * s}px;border-radius:3px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);font:700 ${8 * s}px Inter;color:#D33;display:flex;align-items:flex-end;justify-content:center;padding-bottom:${4 * s}px;flex:none">PDF</div>`;
+
+// ---------- scenes ----------
+// A scene is a full frame: its own background, a world viewport (camera, cursor, rings) and a title block.
+// It enters with a red diagonal wipe (or a fade) at a, and stays drawn until the next one has covered it.
+const scenes = [];
+const WIPE = 0.5;
+function scene(o) {
+  const el = document.createElement('div'); el.className = 'scene';
+  el.innerHTML = `<div class="bg bg-${o.bg}"></div>`;
+  if (o.html) {
+    el.innerHTML += `<div class="vp" style="left:${L.x}px;top:${VERTICAL && o.vtop != null ? o.vtop : L.y}px;width:${L.w}px;height:${L.h}px"><div class="world">${o.html}${cursorHTML}</div></div>`;
+  }
+  if (o.stage) el.innerHTML += o.stage;
+  if (o.title) el.appendChild(titleBlock(o.title));
+  stage.appendChild(el);
+  el.style.display = 'block'; // laid out until the first seek, so at() can measure
+  if (o.title) { // a long line shrinks the title until it fits its column
+    const h = $(el, '.title .h1'); let fs = T.h1;
+    const tw = (!VERTICAL && o.title.w) || T.w;
+    while (fs > 40 && [...h.querySelectorAll('.ln span')].some(s => s.offsetWidth > tw)) h.style.fontSize = (fs -= 2) + 'px';
+  }
+  const sc = Object.assign({ el, enter: 'wipe' }, o);
+  sc.vp = $(el, '.vp'); sc.world = sc.vp && $(el, '.world'); sc.cursor = sc.world && $(sc.world, '.cursor');
+  scenes.push(sc);
+  return sc;
+}
+// Centre of an element in world coordinates (valid before the first seek, when worlds are unscaled).
+function at(sc, sel, dx = 0, dy = 0) {
+  const r = $(sc.world, sel).getBoundingClientRect(), v = sc.vp.getBoundingClientRect();
+  return { x: r.left - v.left + r.width / 2 + dx, y: r.top - v.top + r.height / 2 + dy };
+}
+function box(sc, sel) {
+  const r = $(sc.world, sel).getBoundingClientRect(), v = sc.vp.getBoundingClientRect();
+  return { x: r.left - v.left, y: r.top - v.top, w: r.width, h: r.height };
+}
+// Red highlight rings: [a, b, box or selector, pad, radius] in scene time.
+function rings(sc, list) {
+  sc.rings = list.map(([a, b, bx, pad = 8, rad = 14]) => {
+    if (typeof bx === 'string') bx = box(sc, bx);
+    const d = document.createElement('div'); d.className = 'hl';
+    Object.assign(d.style, { left: bx.x - pad + 'px', top: bx.y - pad + 'px', width: bx.w + pad * 2 + 'px', height: bx.h + pad * 2 + 'px', borderRadius: rad + 'px' });
+    sc.world.insertBefore(d, sc.cursor);
+    return { a, b, d };
+  });
+}
+// Camera keys: [t, zoom, cx, cy] in scene time.
+function cam(keys, t) {
+  let k = keys[0];
+  if (t >= keys[keys.length - 1][0]) k = keys[keys.length - 1];
+  else for (let i = 0; i < keys.length - 1; i++) if (t >= keys[i][0] && t <= keys[i + 1][0]) {
+    const u = io(seg(t, keys[i][0], keys[i + 1][0]));
+    k = [t, lerp(keys[i][1], keys[i + 1][1], u), lerp(keys[i][2], keys[i + 1][2], u), lerp(keys[i][3], keys[i + 1][3], u)];
+  }
+  let [, z, cx, cy] = k;
+  const S = K * z, hw = L.w / 2 / S, hh = L.h / 2 / S;
+  cx = clamp(cx, hw, 1280 - hw); cy = clamp(cy, Math.min(hh, 360), Math.max(720 - hh, 360));
+  return `translate(${L.w / 2 - cx * S}px, ${L.h / 2 - cy * S}px) scale(${S})`;
+}
+
+// ---------- kinetic titles (the reference's style: red numbered eyebrow, big white lines, grey line, chips) ----------
+function titleBlock(o) {
+  const d = document.createElement('div'); d.className = 'title';
+  Object.assign(d.style, { left: T.x + 'px', top: (o.y != null ? o.y : T.y) + 'px', width: T.w + 'px' });
+  d.innerHTML = `    <div class="h1" style="font-size:${T.h1}px">${o.lines.map(l => `<div class="ln"><span>${l}</span></div>`).join('')}</div>
+    ${o.sub ? `<div class="sub" style="font-size:${T.sub}px">${o.sub}</div>` : ''}
+    ${o.keys ? `<div class="keys">${o.keys.map(k => `<span class="kc" style="font-size:${T.chip + 4}px">${k}</span>`).join('')}</div>` : ''}
+    ${o.chips ? `<div class="chips ${VERTICAL ? 'row' : ''}">${o.chips.map(([n, , c]) => `<span class="chip" style="font-size:${T.chip}px"><i style="background:${c || 'var(--red)'}"></i>${n}</span>`).join('')}</div>` : ''}
+    ${o.foot ? `<div class="foot" style="font-size:${T.chip - 3}px">${o.foot}</div>` : ''}`;
+  return d;
+}
+function drawTitle(sc, lt) {
+  const o = sc.title; if (!o) return;
+  const d = $(sc.el, '.title'), s = o.at || 0.35, out = o.out != null ? 1 - seg(lt, o.out, o.out + 0.3) : 1;
+  d.style.opacity = out;
+  const e = $(d, '.eye'); if (e) { const u = eo(seg(lt, s, s + 0.4)); e.style.opacity = u; e.style.transform = `translateX(${(1 - u) * -16}px)`; }
+  d.querySelectorAll('.ln span').forEach((l, i) => { const u = eo(seg(lt, s + 0.1 + i * 0.09, s + 0.55 + i * 0.09)); l.style.transform = `translateY(${(1 - u) * 105}%)`; });
+  const sub = $(d, '.sub'); if (sub) { const u = eo(seg(lt, s + 0.45, s + 0.9)); sub.style.opacity = u; sub.style.transform = `translateY(${(1 - u) * 10}px)`; }
+  d.querySelectorAll('.chip').forEach((c, i) => { const u = eo(seg(lt, o.chips[i][1], o.chips[i][1] + 0.3)); c.style.opacity = u; c.style.transform = `translateX(${(1 - u) * -14}px) scale(${0.94 + 0.06 * u})`; });
+  const k = $(d, '.keys'); if (k) { const u = eo(seg(lt, o.keysAt, o.keysAt + 0.3)); k.style.opacity = u; k.querySelectorAll('.kc').forEach((c, i) => c.classList.toggle('down', lt > o.pressAt + i * 0.08 && lt < o.pressAt + 0.35)); }
+  const f = $(d, '.foot'); if (f) f.style.opacity = eo(seg(lt, o.footAt, o.footAt + 0.4));
+}
+const ringsDraw = (sc, t) => { for (const r of sc.rings || []) { const o = fadeIO(t, r.a, r.b, 0.2), u = eo(seg(t, r.a, r.a + 0.3)); r.d.style.opacity = o; r.d.style.transform = `scale(${1.04 - 0.04 * u})`; } };
+
+// The app shows slightly dimmed on the dark stage, as in the reference.
+const DIM = 'filter:brightness(.94)';
+
+// The film follows one project, Mammoth: an exhibition being put together.
+// A thing dragged along with the cursor (shown while the drag lasts).
+function dragGhost(sc, el, a, b, t) {
+  const on = t > a && t < b;
+  if (on) { const m = /translate\(([-\d.]+)px, ([-\d.]+)px\)/.exec(sc.cursor.style.transform); if (m) Object.assign(el.style, { left: (+m[1] + 8) + 'px', top: (+m[2] + 12) + 'px' }); }
+  el.style.opacity = on ? 0.92 * eo(seg(t, a, a + 0.12)) : 0;
+}
+// A card that lands: fades and settles in at t0.
+const land = (el, t, t0) => { const u = eo(seg(t, t0, t0 + 0.3)); el.style.opacity = u; el.style.transform = `scale(${0.9 + 0.1 * u})`; };
+// A key overlay shown around t0.
+const keyAt = (el, t, t0, d = 0.6) => show(el, fadeIO(t, t0 - 0.1, t0 + d, 0.12));
+const swissTabs = (extra = '') => `<div class="tabs"><div class="lights" style="margin-right:12px"><i></i><i></i><i></i></div>
+  <div class="tab sel"><span style="font-size:11px;color:var(--ink2)">${I.pin}</span>Mammoth</div>${extra}
+  <div style="margin-left:auto;color:var(--ink2);font-size:15px">${I.plus}</div></div>`;
+const linkCard = (x, y, w, h, id = '') => `<div class="card" ${id ? `id="${id}"` : ''} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><div style="height:${h - 52}px;overflow:hidden"><img src="${A}wiki.jpg" style="width:${w * 2}px;margin:-${(h - 52) * 0.75}px 0 0 -${w * 0.4}px"></div><div class="meta"><div class="t">Woolly mammoth – Wikipedia</div><div class="h">${I.link} en.wikipedia.org</div></div></div>`;
+const fileCard = (x, y, w, name, size, icon, id = '') => `<div class="card" ${id ? `id="${id}"` : ''} style="left:${x}px;top:${y}px;width:${w}px;height:62px"><div class="meta" style="display:flex;gap:10px;align-items:center;padding:10px 12px">${icon}<div style="min-width:0"><div class="t">${name}</div><div class="h">${size}</div></div></div></div>`;
+const docIcon = `<div style="width:30px;height:36px;border-radius:3px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);font:700 7px Inter;color:#2B5797;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;flex:none">DOCX</div>`;
+const photoCard = (x, y, w, h, src, id = '') => `<div class="card" ${id ? `id="${id}"` : ''} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${img(src, w, h)}</div>`;
+const NOTE = 'The woolly mammoth began to diverge from the steppe mammoth about 800,000 years ago.';
+
+// ================= Opening: the icon opens into the app (0–4) =================
+{
+  const ip = VERTICAL ? 200 : 150, icx = SW / 2, icy = SH * (VERTICAL ? 0.34 : 0.33);
+  const TW = VERTICAL ? { w: 1000, h: 640 } : { w: 1240, h: 760 };
+  const app = `<div style="position:absolute;left:0;top:0;width:760px;height:480px;background:var(--win)">
+    ${swissTabs()}
+    <div class="toolbar" style="left:12px;right:12px;top:44px"><span>${I.lock}</span><span>${I.frame}</span><span>${I.sidebar}</span><div class="search" style="width:220px">${I.search} Search Mammoth</div>
+      <span style="margin-left:auto">${I.arrange}</span><span>${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
+    <div class="abs" style="left:0;right:0;top:82px;bottom:0">
+      ${photoCard(20, 12, 230, 164, 'adams.jpg')}${fileCard(266, 12, 230, 'Exhibition plan.pdf', '2.4 MB', pdfIcon(0.9))}${photoCard(512, 12, 228, 150, 'cave.jpg')}
+      ${noteCard(266, 90, 230, 92, 'Opening night: 14 November.', '2 days ago')}
+    </div></div>`;
+  scene({ a: 0, b: 4, bg: 'paper', enter: 'none', stage: `
+    <div class="abs bg bg-dark" id="odark" style="opacity:0"></div>
+    <div class="abs pulse" style="left:${icx - ip / 2}px;top:${icy - ip / 2}px;width:${ip}px;height:${ip}px;border-radius:50%;border:2px solid var(--red)"></div>
+    <div class="abs" id="morph" style="overflow:hidden;background:var(--paper);box-shadow:0 14px 36px rgba(76,46,33,.16)">
+      <div class="abs" id="mapp" style="left:0;top:0;width:760px;height:480px;transform-origin:0 0;opacity:0">${app}</div>
+      <img id="micon" src="icon.png" class="abs" style="left:0;top:0;width:100%;height:100%">
+    </div>
+    <div class="abs" id="otext" style="left:0;width:${SW}px;top:${icy + ip / 2 + (VERTICAL ? 90 : 60)}px;text-align:center">
+      <div id="oeye" style="display:none"></div>
+      <div style="font:600 ${VERTICAL ? 104 : 92}px/1.02 'Schibsted Grotesk';letter-spacing:-0.035em;color:#2B1C16">
+        ${(VERTICAL ? ['A pocket knife', 'for your ideas.'] : ['A pocket knife for your ideas.']).map(l => `<div style="overflow:hidden;padding-bottom:.06em"><div class="oln" style="white-space:nowrap">${l}</div></div>`).join('')}</div>
+    </div>`,
+    update(t, el) {
+      // The icon pops in, then grows into the Swiss window.
+      const u = seg(t, 0.1, 0.65), pop = u < 1 ? eo(u) * (1 + 0.04 * Math.sin(Math.PI * u)) : 1;
+      const m = io(seg(t, 2.5, 3.35));
+      const w = lerp(ip, TW.w, m), h = lerp(ip, TW.h, m), cy = lerp(icy, SH / 2, m);
+      const mo = $(el, '#morph');
+      Object.assign(mo.style, { left: icx - w / 2 + 'px', top: cy - h / 2 + 'px', width: w + 'px', height: h + 'px', borderRadius: lerp(ip * 0.225, 16, m) + 'px', opacity: eo(seg(t, 0.1, 0.3)) });
+      mo.style.transform = `scale(${(0.7 + 0.3 * pop) * (1 + 0.02 * seg(t, 3.35, 4.2))})`;
+      $(el, '#micon').style.opacity = 1 - io(seg(t, 2.5, 2.72));
+      const s = Math.max(w / 760, h / 480), ap = $(el, '#mapp');
+      ap.style.opacity = eo(seg(t, 2.85, 3.2));
+      ap.style.transform = `translate(${(w - 760 * s) / 2}px, ${(h - 480 * s) / 2}px) scale(${s})`;
+      const p = $(el, '.pulse'), pu = seg(t, 0.45, 1.35);
+      p.style.opacity = (1 - pu) * 0.45 * (pu > 0); p.style.transform = `scale(${1 + pu * 1.6})`;
+      const e = eo(seg(t, 0.6, 1.0)); $(el, '#oeye').style.opacity = e; $(el, '#oeye').style.letterSpacing = (0.5 - 0.18 * e) + 'em';
+      el.querySelectorAll('.oln').forEach((l, i) => l.style.transform = `translateY(${(1 - eo(seg(t, 0.75 + i * 0.1, 1.25 + i * 0.1))) * 105}%)`);
+      const o = $(el, '#otext'); o.style.opacity = 1 - seg(t, 2.35, 2.7); o.style.transform = `translateY(${seg(t, 2.35, 2.7) * 30}px)`;
+      $(el, '#odark').style.opacity = io(seg(t, 2.55, 3.35));
+    } });
+}
+
+// ================= Collect: an image, a link and a note arrive (4–9) =================
+{
+  const B = { x: 530, y: 100, w: 330, h: 500 }, S = { x: 870, y: 70, w: 380, h: 560 };
+  const s = 0.46, ox = -120, oy = -40; // the Wikipedia capture, scaled into the browser
+  const px = v => v * s + ox, py = v => v * s + oy;
+  const html = `<div class="window" style="left:${B.x}px;top:${B.y}px;width:${B.w}px;height:${B.h}px;background:#fff;${DIM}">
+    <div style="height:40px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 12px;font-size:12px;color:var(--ink2)">
+      <div class="lights off"><i></i><i></i><i></i></div><span style="letter-spacing:.3em">‹›</span>
+      <div id="addr" style="flex:1;height:24px;border-radius:7px;background:rgba(0,0,0,.055);display:flex;align-items:center;gap:5px;padding:0 9px;font-size:11px;color:#3a3a3c;white-space:nowrap;overflow:hidden"><span style="color:var(--ink3);font-size:10px">${I.lock}</span><span id="url">en.wikipedia.org/wiki/Woolly_mammoth</span></div></div>
+    <div class="abs" style="left:0;top:40px;right:0;bottom:0;overflow:hidden">
+      <img src="${A}wiki.jpg" style="position:absolute;left:${ox}px;top:${oy}px;width:${1280 * s}px;height:${900 * s}px">
+      <div class="abs tsel" id="ts1" style="left:${px(262)}px;top:${py(338)}px;height:${24 * s + 2}px;width:0;background:rgba(10,122,255,.32)"></div>
+      <div class="abs tsel" id="ts2" style="left:${px(262)}px;top:${py(364)}px;height:${24 * s + 2}px;width:0;background:rgba(10,122,255,.32)"></div>
+      <div class="abs" id="pic" style="left:${px(743)}px;top:${py(376)}px;width:${250 * s}px;height:${191 * s}px"></div>
+    </div></div>
+  <div class="window" style="left:${S.x}px;top:${S.y}px;width:${S.w}px;height:${S.h}px;${DIM}">
+    ${swissTabs()}
+    <div class="toolbar" style="left:12px;right:12px;top:44px"><span>${I.lock}</span><span>${I.frame}</span><div class="search" style="width:170px">${I.search} Search Mammoth</div>
+      <span style="margin-left:auto">${I.grid}</span><span style="font-size:16px">${I.wand}</span></div>
+    <div class="abs" id="board" style="left:0;right:0;top:82px;bottom:0">
+      ${photoCard(12, 10, 170, 121, 'adams.jpg')}${fileCard(194, 10, 174, 'Exhibition plan.pdf', '2.4 MB', pdfIcon(0.9))}
+      ${photoCard(194, 84, 174, 132, 'wiki-skeleton.jpg', 'n-img')}${linkCard(12, 143, 170, 112, 'n-link')}
+      <div class="card notecard" id="n-note" style="left:194px;top:228px;width:174px;height:150px;font-size:13px"><div class="q">“</div>${NOTE}<div class="ago">now</div></div>
+    </div>
+    <div class="abs" id="dropzone" style="left:0;right:0;top:82px;bottom:0;border-radius:0 0 11px 11px;box-shadow:inset 0 0 0 3px rgba(10,122,255,.7);background:rgba(10,122,255,.06);opacity:0;pointer-events:none"></div>
+  </div>
+  <div class="abs" id="g-img" style="width:90px;height:69px;border-radius:5px;overflow:hidden;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90">${img('wiki-skeleton.jpg', 90, 69)}</div>
+  <div class="abs" id="g-link" style="height:26px;border-radius:7px;background:#fff;display:flex;align-items:center;gap:6px;padding:0 10px;font-size:12px;font-weight:600;white-space:nowrap;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90"><span style="color:var(--k-linker)">${I.link}</span>Woolly mammoth – Wikipedia</div>
+  <div class="key" id="k-c" style="left:${B.x + 120}px;top:${B.y + 300}px">⌘C</div><div class="key" id="k-v" style="left:${S.x + 150}px;top:${S.y + 470}px">⌘V</div>`;
+  const G1 = 0.6, D1 = 1.35, G2 = 1.75, D2 = 2.45, SEL0 = 2.75, SEL1 = 3.1, COPY = 3.3, CLICK = 3.65, PASTE = 3.85;
+  const sc = scene({ a: 4, b: 9, bg: 'dark', html,
+    title: { lines: ['Found something', 'worth keeping?'], sub: 'Drag it in or paste it: pictures,<br>links and notes.' },
+    update(t, el) {
+      dragGhost(sc, $(el, '#g-img'), G1, D1, t);
+      dragGhost(sc, $(el, '#g-link'), G2, D2, t);
+      $(el, '#dropzone').style.opacity = (t > G1 + 0.35 && t < D1) || (t > G2 + 0.35 && t < D2) ? 1 : 0;
+      $(el, '#addr').style.background = t > G2 - 0.05 && t < D2 ? 'rgba(10,122,255,.2)' : 'rgba(0,0,0,.055)';
+      land($(el, '#n-img'), t, D1); land($(el, '#n-link'), t, D2); land($(el, '#n-note'), t, PASTE + 0.05);
+      // Dragging across two lines of text selects them.
+      const u = seg(t, SEL0, SEL1);
+      $(el, '#ts1').style.width = (u < 0.5 ? u * 2 * 440 * s : 440 * s) + 'px';
+      $(el, '#ts2').style.width = (u < 0.5 ? 0 : (u - 0.5) * 2 * 325 * s) + 'px';
+      el.querySelectorAll('.tsel').forEach(d => d.style.opacity = t < CLICK ? 1 : 0.45);
+      keyAt($(el, '#k-c'), t, COPY); keyAt($(el, '#k-v'), t, PASTE);
+    },
+    camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
+    vcam: [[0, 0.94, 890, 360], [5.5, 0.97, 890, 360]] });
+  const p = at(sc, '#pic'), d1 = at(sc, '#n-img'), u = at(sc, '#url', -40), d2 = at(sc, '#n-link');
+  const s0 = { x: B.x + px(266), y: B.y + 40 + py(350) }, s1 = { x: B.x + px(585), y: B.y + 40 + py(376) }, n = at(sc, '#n-note');
+  sc.cursorKeys = [[0, 700, 650], [G1 - 0.15, p.x, p.y], [G1, p.x, p.y, 1], [D1, d1.x, d1.y], [G2 - 0.15, u.x, u.y], [G2, u.x, u.y, 1], [D2, d2.x, d2.y],
+    [SEL0 - 0.05, s0.x, s0.y], [SEL0, s0.x, s0.y, 1], [SEL1, s1.x, s1.y], [CLICK - 0.15, n.x, n.y + 40], [CLICK, n.x, n.y + 40, 1], [5.5, n.x + 20, n.y + 60]];
+  rings(sc, [[D1 + 0.1, D1 + 0.8, '#n-img', 4, 12], [D2 + 0.1, D2 + 0.8, '#n-link', 4, 12], [PASTE + 0.15, 5.0, '#n-note', 4, 12]]);
+}
+
+// ================= Recent: copy a link, take a screenshot, keep one (9–14) =================
+{
+  const sw = { x: 500, y: 108, w: 740, h: 500 }, SIDE = 176, P = { x: 740, y: 236, w: 520, h: 384 };
+  // The page being captured: a real screenshot of a Wikipedia search (assets/wiki-search.jpg, 1100 px wide page)
+  const CAP = { x: 0, y: 0, w: 520, h: 346 }, CH = 34;
+  const th = (inner, bg = '#fff') => `<div class="th" style="background:${bg}">${inner}</div>`;
+  const rows = [
+    { id: 'r-shot', th: `<div class="th">${img('wiki-search.jpg', 38, 38, 'object-position:0 0')}</div>`, t: 'Screenshot 2026-10-21 at 10.42.07', s: `<span style="font-size:12px">${I.camera}</span> Screenshot · now` },
+    { id: 'r-link', th: th(`<span style="color:#fff;font-size:17px">${I.link}</span>`, 'var(--k-linker)'), t: 'Lyuba – Wikipedia', s: 'en.wikipedia.org · now' },
+    { id: 'r-a', th: `<div class="th">${img('cave.jpg', 38, 38)}</div>`, t: 'rouffignac-cave.jpg', s: 'Finder · yesterday' },
+    { id: 'r-b', th: th(pdfIcon(0.8)), t: 'Exhibition plan.pdf', s: 'Finder · yesterday' },
+  ].map(r => `<div class="rrow" id="${r.id}">${r.th}<div style="min-width:0"><div class="tt">${r.t}</div><div class="st">${r.s}</div></div></div>`).join('');
+  const chip = (icon, n) => `<span style="height:24px;border-radius:12px;background:rgba(10,122,255,.16);color:var(--accent);font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;padding:0 9px">${icon}&nbsp;${n}</span>`;
+  const html = `<div class="window" style="left:${sw.x}px;top:${sw.y}px;width:${sw.w}px;height:${sw.h}px;${DIM}">
+    ${swissSidebar('recent', SIDE)}
+    <div class="abs" style="left:${SIDE}px;right:0;top:0;bottom:0">
+      <div class="toolbar" style="left:14px;right:14px;top:10px">
+        <span style="font-weight:600;color:#1d1d1f">Recent</span><span data-rcount style="color:var(--ink3);font-size:12px">2</span><span style="color:var(--ink3);font-size:11.5px">kept 3 days</span>
+        <span style="margin-left:auto"></span><span id="cchips" style="display:flex;gap:8px">${chip(I.doc, 'Copies')}${chip(I.camera, 'Screenshots')}</span><span style="font-size:12px">Clear</span></div>
+      <div class="abs" id="rlist" style="left:8px;right:8px;top:54px;bottom:50px">${rows}</div>
+      <div class="abs" id="selbar" style="left:0;right:0;bottom:0;height:48px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 14px;font-size:12.5px;opacity:0;background:var(--win)">
+        <span style="color:var(--ink2)">1 selected</span><span class="pill" style="margin-left:auto">${I.trash}&nbsp;Remove</span>
+        <span id="keepbtn" style="display:flex;align-items:center;border-radius:7px;background:var(--accent);color:#fff;font-weight:600;height:28px;overflow:hidden">
+          <span style="padding:0 11px;display:flex;gap:6px;align-items:center">${I.tray} Keep</span><span style="padding:0 8px;border-left:1px solid rgba(255,255,255,.3);height:100%;display:flex;align-items:center;font-size:10px">${I.chev}</span></span></div>
+      <div class="flash" id="keptflash" style="left:50%;bottom:64px"><span style="color:#5BD27A">${I.check}</span>Kept in Mammoth</div>
+    </div></div>
+  <div class="window" id="pwin" style="left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;background:#fff;opacity:0">
+    <div style="height:${CH}px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 12px;font-size:12px;color:var(--ink2)">
+      <div class="lights off"><i></i><i></i><i></i></div><span style="letter-spacing:.3em">‹›</span>
+      <div style="flex:1;height:22px;border-radius:7px;background:rgba(0,0,0,.055);display:flex;align-items:center;gap:5px;padding:0 9px;font-size:10.5px;color:#3a3a3c;white-space:nowrap;overflow:hidden"><span style="color:var(--ink3);font-size:10px">${I.lock}</span>en.wikipedia.org/w/index.php?search=woolly+mammoth+calf+Lyuba</div></div>
+    <div class="abs" style="left:0;top:${CH}px;right:0;bottom:0;overflow:hidden"><img src="${A}wiki-search.jpg" style="display:block;width:${P.w}px"></div>
+    <div class="abs" id="shotsel" style="left:${CAP.x}px;top:${CH + CAP.y}px;width:0;height:0;border:1px solid #fff;background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(0,0,0,.4)"></div>
+    <div class="abs" id="shotflash" style="inset:0;background:#fff;opacity:0"></div></div>
+  <div class="abs" id="shotthumb" style="width:${CAP.w}px;height:${CAP.h}px;border:3px solid #fff;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:90;transform-origin:0 0;background:#fff"><img src="${A}wiki-search.jpg" style="width:${P.w}px;margin:${-CAP.y}px 0 0 ${-CAP.x}px;display:block"></div>
+  <div class="key" id="k-c" style="left:${sw.x + 400}px;top:${sw.y + 330}px">⌘C</div><div class="key" id="k-s" style="left:${P.x + 120}px;top:${P.y + 110}px">⇧⌘4</div>`;
+  const LINK = 0.6, PIC = 0.95, SKEY = 1.25, DRAG0 = 1.4, DRAG1 = 1.8, SNAP = 1.85, FLY = 2.15, SHOT = 2.5, SEL = 3.1, KEEP = 3.65, ROW = 56;
+  const slot = { x: sw.x + SIDE + 8, y: sw.y + 54, w: sw.w - SIDE - 16, h: 54 };
+  const sc = scene({ a: 9, b: 14, bg: 'dark', html,
+    title: { lines: ['Copied.', 'Captured.', 'Within reach.'], sub: 'Recent: optional clipboard and<br>screenshot capture.', chips: [['Screenshots land in Recent on their own', SHOT + 0.05, '#B75CC4']] },
+    update(t, el) {
+      const ins = { 'r-link': eo(seg(t, LINK, LINK + 0.4)), 'r-shot': eo(seg(t, SHOT, SHOT + 0.4)) };
+      let y = 0;
+      for (const id of ['r-shot', 'r-link', 'r-a', 'r-b']) {
+        const k = ins[id] != null ? ins[id] : 1, r = $(el, '#' + id);
+        r.style.top = (y - (1 - k) * 16) + 'px'; r.style.opacity = k; y += ROW * k;
+      }
+      el.querySelectorAll('[data-rcount]').forEach(c => c.textContent = 2 + Object.values(ins).filter(v => v > 0.5).length);
+      $(el, '#r-shot').classList.toggle('sel', t > SEL + 0.05);
+      show($(el, '#selbar'), eo(seg(t, SEL + 0.05, SEL + 0.3)));
+      $(el, '#r-shot .st').innerHTML = t > KEEP + 0.1 ? `<span style="font-size:12px">${I.check}</span> Kept in Mammoth` : `<span style="font-size:12px">${I.camera}</span> Screenshot · now`;
+      $(el, '#keepbtn').style.filter = t > KEEP - 0.04 && t < KEEP + 0.12 ? 'brightness(.85)' : 'none';
+      const f = $(el, '#keptflash'); f.style.opacity = fadeIO(t, KEEP + 0.15, 5.4, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, KEEP + 0.15, KEEP + 0.45))) * 8}px)`;
+      keyAt($(el, '#k-c'), t, LINK - 0.05); keyAt($(el, '#k-s'), t, SKEY);
+      // A picture is open; ⇧⌘4, drag out an area, and the shot flies into Recent by itself.
+      const pw = $(el, '#pwin'), po = eo(seg(t, PIC, PIC + 0.3)) * (1 - seg(t, FLY + 0.1, FLY + 0.4));
+      pw.style.opacity = po; pw.style.transform = `translateY(${(1 - eo(seg(t, PIC, PIC + 0.3))) * 20}px)`;
+      const d = eo(seg(t, DRAG0, DRAG1)), ss = $(el, '#shotsel');
+      Object.assign(ss.style, { width: CAP.w * d + 'px', height: CAP.h * d + 'px', opacity: t > DRAG0 && t < SNAP ? 1 : 0 });
+      $(el, '#shotflash').style.opacity = t > SNAP ? 0.85 * (1 - seg(t, SNAP, SNAP + 0.25)) : 0;
+      const th = $(el, '#shotthumb'), fl = io(seg(t, FLY, SHOT));
+      const from = { x: P.x + CAP.x, y: P.y + CH + CAP.y, s: 1 }, to = { x: slot.x + 14, y: slot.y + 8, s: 38 / CAP.h };
+      th.style.left = lerp(from.x, to.x, fl) + 'px'; th.style.top = lerp(from.y, to.y, fl) + 'px';
+      th.style.transform = `scale(${lerp(from.s, to.s, fl)})`;
+      th.style.opacity = t > SNAP && t < SHOT + 0.05 ? 1 : 0;
+    },
+    camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
+    vcam: [[0, 1, 870, 360], [0.85, 1, 870, 360], [1.3, 1, 985, 400], [2.2, 1, 985, 400], [2.75, 1.1, 900, 380]] });
+  rings(sc, [[0.2, 1.4, '#cchips', 4, 14], [LINK + 0.15, SHOT - 0.05, slot, 4, 12], [SHOT + 0.05, SEL - 0.1, slot, 4, 12], [KEEP - 0.35, KEEP + 0.6, '#keepbtn', 5, 10]]);
+  const kp = at(sc, '#keepbtn span'), sh = at(sc, '#r-shot .tt', -60, 4);
+  sc.cursorKeys = [[0, 1100, 660], [DRAG0 - 0.15, P.x + CAP.x, P.y + CH + CAP.y], [DRAG0, P.x + CAP.x, P.y + CH + CAP.y, 1], [DRAG1, P.x + CAP.x + CAP.w, P.y + CH + CAP.y + CAP.h], [SEL - 0.6, P.x + CAP.x + CAP.w - 20, P.y + 300], [SEL - 0.12, sh.x, sh.y], [SEL, sh.x, sh.y, 1], [KEEP - 0.15, kp.x, kp.y], [KEEP, kp.x, kp.y, 1], [5.5, kp.x - 50, kp.y - 40]];
+}
+
+// ================= Magic wand: the mix sorts itself into folders, then one opens (14–19) =================
+{
+  const W = { x: 470, y: 80, w: 790, h: 566 };
+  const C = [
+    { k: 'photos', x: 20, y: 128, w: 240, h: 171, html: () => img('adams.jpg', 240, 171) },
+    { k: 'notes', x: 20, y: 315, w: 240, h: 130, note: true, html: () => `<div class="q">“</div>${NOTE}<div class="ago">10 min ago</div>` },
+    { k: 'linker', x: 276, y: 128, w: 240, h: 104, html: () => `<div style="height:52px;overflow:hidden"><img src="${A}wiki.jpg" style="width:480px;margin:-36px 0 0 -100px"></div><div class="meta"><div class="t">Woolly mammoth – Wikipedia</div><div class="h">${I.link} en.wikipedia.org</div></div>` },
+    { k: 'files', x: 276, y: 248, w: 240, h: 62, html: () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:10px 12px">${pdfIcon(0.9)}<div><div class="t">Exhibition plan.pdf</div><div class="h">2.4 MB</div></div></div>` },
+    { k: 'files', x: 276, y: 326, w: 240, h: 62, html: () => `<div class="meta" style="display:flex;gap:10px;align-items:center;padding:10px 12px">${docIcon}<div><div class="t">Label texts.docx</div><div class="h">48 KB</div></div></div>` },
+    { k: 'photos', x: 532, y: 128, w: 238, h: 182, html: () => img('wiki-skeleton.jpg', 238, 182) },
+    { k: 'photos', x: 532, y: 326, w: 238, h: 150, html: () => img('lyuba.jpg', 238, 150) },
+  ];
+  const F = { photos: { x: 20, n: 1 }, linker: { x: 140, n: 2 }, notes: { x: 260, n: 3 }, files: { x: 380, n: 4 } };
+  const FY = 16, order = ['photos', 'linker', 'notes', 'files'];
+  const cards = C.map((c, i) => `<div class="card ${c.note ? 'notecard' : ''}" id="c${i}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px">${c.html()}</div>`).join('');
+  const folders = order.map(k => folderTile(k, kindStyle[k].name, F[k].x, FY, { num: F[k].n, count: 0, id: 'f-' + k })).join('');
+  // Inside PhotoBook: the breadcrumb and its three pictures.
+  const inside = `<div class="abs" id="inside" style="left:0;right:0;top:0;bottom:0;opacity:0">
+    <div style="height:34px;display:flex;align-items:center;gap:8px;padding:0 16px;font-size:13px;color:var(--ink2)"><span style="transform:rotate(90deg);display:inline-block">${I.chev}</span>Mammoth<span style="color:var(--ink3)">›</span>
+      <span style="display:flex;align-items:center;gap:5px;color:#1d1d1f;font-weight:600">${folderIcon('photos', 18)}PhotoBook</span></div>
+    ${photoCard(20, 46, 240, 171, 'adams.jpg')}${photoCard(276, 46, 238, 182, 'wiki-skeleton.jpg')}${photoCard(530, 46, 238, 150, 'lyuba.jpg')}</div>`;
+  const html = `<div class="window" style="left:${W.x}px;top:${W.y}px;width:${W.w}px;height:${W.h}px;${DIM}">
+    ${swissTabs()}
+    <div class="toolbar" style="left:12px;right:12px;top:44px"><span>${I.lock}</span><span>${I.frame}</span><span>${I.sidebar}</span><div class="search" style="width:240px">${I.search} Search Mammoth</div>
+      <span style="margin-left:auto">${I.arrange}</span><span>${I.grid}</span><span>${I.list}</span><span id="wand" style="font-size:16px;padding:3px 5px;border-radius:6px">${I.wand}</span></div>
+    <div class="abs" style="left:0;right:0;top:82px;bottom:30px"><div class="abs" id="top" style="inset:0">${folders}${cards}</div>${inside}</div>
+    ${quickbar}
+    <div class="flash" id="orgflash" style="left:50%;top:250px"><span style="color:#C9A6FF">${I.wand}</span>Organized 7 items into 4 new folders</div></div>`;
+  const CLICK = 0.9, START = 1.05, OPEN = 3.75;
+  const sc = scene({ a: 14, b: 19, bg: 'dark', html,
+    title: { lines: ['A little order.', 'In one click.'], sub: 'The magic wand sorts<br>a project by kind.' },
+    update(t, el) {
+      $(el, '#wand').style.background = t > CLICK - 0.05 && t < CLICK + 0.2 ? 'rgba(0,0,0,.1)' : 'transparent';
+      $(el, '#wand').style.color = t > 0.6 ? 'var(--accent)' : '';
+      order.forEach((k, i) => { const f = $(el, '#f-' + k), a = eo(seg(t, START + i * 0.07, START + 0.28 + i * 0.07)); f.style.opacity = a; f.style.transform = `scale(${0.85 + 0.15 * a})`; });
+      const counts = { photos: 0, linker: 0, notes: 0, files: 0 };
+      C.forEach((c, i) => {
+        const d = $(el, '#c' + i), a = START + 0.25 + i * 0.08, u = io(seg(t, a, a + 0.6));
+        const tx = F[c.k].x + 48 - (c.x + c.w / 2), ty = FY + 26 - (c.y + c.h / 2);
+        d.style.transform = `translate(${tx * u}px, ${ty * u}px) scale(${lerp(1, 0.1, u)}) rotate(${Math.sin(Math.PI * u) * (i % 2 ? 6 : -6)}deg)`;
+        d.style.opacity = 1 - seg(u, 0.55, 0.92);
+        if (u >= 1) counts[c.k]++;
+      });
+      order.forEach(k => { const n = $(el, '#f-' + k + ' [data-count]'); n.textContent = counts[k]; n.style.opacity = counts[k] ? 1 : 0; });
+      $(el, '#f-photos .label').style.cssText = t > OPEN - 0.4 && t < OPEN ? 'background:var(--accent);color:#fff;border-radius:4px;display:inline-block;padding:0 5px' : '';
+      const f = $(el, '#orgflash'); f.style.opacity = fadeIO(t, 2.35, OPEN - 0.1, 0.25); f.style.transform = `translate(-50%, ${(1 - eo(seg(t, 2.35, 2.65))) * 8}px)`;
+      // Double-click PhotoBook: in we go.
+      const o = eo(seg(t, OPEN + 0.05, OPEN + 0.35));
+      $(el, '#top').style.opacity = 1 - o; $(el, '#inside').style.opacity = o; $(el, '#inside').style.transform = `translateY(${(1 - o) * 10}px)`;
+    },
+    camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
+    vcam: [[0, 1, 1060, 360], [0.95, 1, 1060, 360], [1.6, 1, 820, 360]] });
+  const w = at(sc, '#wand'), pb = at(sc, '#f-photos .ficon');
+  sc.cursorKeys = [[0, 900, 640], [CLICK - 0.15, w.x, w.y], [CLICK, w.x, w.y, 1], [2.2, 1000, 520], [OPEN - 0.45, pb.x, pb.y], [OPEN - 0.25, pb.x, pb.y, 1], [OPEN, pb.x, pb.y, 1], [5.5, pb.x + 120, pb.y + 260]];
+  rings(sc, [[CLICK - 0.3, CLICK + 0.45, '#wand', 5, 10], [2.4, OPEN - 0.5, { x: W.x + 20, y: W.y + 82 + 10, w: 456, h: 104 }, 6, 16]]);
+}
+
+// ================= Connected folders: open one, rename, Finder follows (19–24) =================
+{
+  const files = ['adams-mammoth-vienna.jpg', 'Exhibition plan.pdf', 'lyuba-baby-mammoth.jpg', 'rouffignac-cave.jpg', 'sanga-yuryakh-skull.jpg', 'siegsdorf-skeleton.jpg', 'tilesius-1815.jpg'];
+  const pics = { 0: 'adams.jpg', 2: 'lyuba.jpg', 3: 'cave.jpg', 4: 'skull.jpg', 5: 'skeleton.jpg' };
+  const NEW = 'Lyuba – hero print.jpg';
+  const tiles = [0, 1, 2, 3, 4, 5].map((f, i) => `<div class="abs" id="t${f}" style="left:${16 + (i % 3) * 186}px;top:${62 + Math.floor(i / 3) * 170}px;width:176px;text-align:center">
+      <div style="width:150px;height:100px;margin:0 auto;border-radius:5px;overflow:hidden;${pics[f] ? 'box-shadow:0 1px 4px rgba(0,0,0,.2)' : 'display:flex;align-items:center;justify-content:center'}">${pics[f] ? img(pics[f], 150, 100) : pdfIcon(2)}</div>
+      <div class="tn" style="margin:8px auto 0;font:500 12px/1.3 Inter;padding:1px 6px;border-radius:4px;display:inline-block;max-width:176px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${files[f]}</div></div>`).join('');
+  const mam = order => order.map(([k, n, c], i) => folderTile(k, kindStyle[k].name, 20 + i * 120, 62, { count: c })).join('');
+  const html = `<div class="window" style="left:468px;top:66px;width:790px;height:470px;${DIM}">
+    ${swissSidebar('mammoth', 176).replace('<div class="srow "><span class="ic">' + I.drive, '<div class="srow" data-side="connected"><span class="ic">' + I.drive)}
+    <div class="abs" style="left:176px;right:0;top:0;bottom:0">
+      <div class="toolbar" style="left:14px;right:14px;top:10px"><div class="search" style="width:220px" id="csearch">${I.search} Search Mammoth</div><div class="pill" id="cpill" style="opacity:0">${I.drive} Exhibit images</div>
+        <span style="margin-left:auto">${I.arrange}</span><span>${I.grid}</span><span>${I.list}</span><span style="font-size:16px">${I.wand}</span></div>
+      <div class="abs" id="cm" style="inset:0">${mam([['photos'], ['linker'], ['notes'], ['files']].map(([k], i) => [k, '', [3, 1, 1, 2][i]]))}</div>
+      <div class="abs" id="cc" style="inset:0;opacity:0">${tiles}</div></div></div>
+  <div class="window" id="fwin" style="left:760px;top:388px;width:480px;height:290px;background:#fff;${DIM}">
+    <div style="height:40px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 14px;font-size:13px">
+      <div class="lights off"><i></i><i></i><i></i></div><span style="font-weight:600;margin-left:50px">Exhibit images</span><span style="margin-left:auto;color:var(--ink3);font-size:11.5px">Finder</span></div>
+    <div class="frow" style="font-size:11px;color:var(--ink3);background:#fff;border-bottom:1px solid var(--line)">Name<span class="d" style="width:110px">Date Modified</span></div>
+    ${files.map((f, i) => `<div class="frow" id="frow${i}"><span style="color:${f.endsWith('pdf') ? '#D33' : 'var(--k-photos)'};font-size:13px">${f.endsWith('pdf') ? I.doc : I.photo}</span><span class="fn">${i === 2 ? NEW : f}</span><span class="d" style="width:110px">${i === 2 ? 'Today 10:44' : '12 Oct 2026'}</span></div>`).join('')}
+  </div>
+  <div class="key" id="kr1" style="left:700px;top:440px">↩</div><div class="key" id="kr2" style="left:700px;top:440px">↩</div>`;
+  const OPENC = 0.7, SELT = 1.3, EDIT = 1.55, TYPE = 1.7, DONE = 2.5, FIND = 2.85;
+  const sc = scene({ a: 19, b: 24, bg: 'dark', html,
+    title: { lines: ['Your folders.', 'A faster way in.'], sub: 'Connect any Finder folder<br>and work right inside it.' },
+    update(t, el) {
+      const inC = t > OPENC + 0.05;
+      el.querySelectorAll('[data-side]').forEach(d => d.classList.toggle('sel', d.dataset.side === (inC ? 'connected' : 'mammoth')));
+      const o = eo(seg(t, OPENC + 0.05, OPENC + 0.35));
+      $(el, '#cm').style.opacity = 1 - o; $(el, '#cc').style.opacity = o; $(el, '#cpill').style.opacity = o;
+      $(el, '#csearch').innerHTML = `${I.search} Search ${inC ? 'Exhibit images' : 'Mammoth'}`;
+      const tn = $(el, '#t2 .tn');
+      const editing = t > EDIT && t < DONE, typed = Math.floor(clamp((t - TYPE) / 0.65) * NEW.length);
+      tn.textContent = t >= DONE ? NEW : editing && t >= TYPE ? NEW.slice(0, typed) + (Math.floor(t * 2.4) % 2 ? '|' : '') : files[2];
+      if (editing) Object.assign(tn.style, { background: t < TYPE ? 'rgba(10,122,255,.25)' : '#fff', color: '#1d1d1f', boxShadow: '0 0 0 2px rgba(10,122,255,.6)' });
+      else if (t > SELT) Object.assign(tn.style, { background: 'var(--accent)', color: '#fff', boxShadow: 'none' });
+      else Object.assign(tn.style, { background: 'transparent', color: '#2a2a2c', boxShadow: 'none' });
+      show($(el, '#kr1'), fadeIO(t, EDIT - 0.12, EDIT + 0.4, 0.12)); show($(el, '#kr2'), fadeIO(t, DONE - 0.12, DONE + 0.45, 0.12));
+      // Then a brief look at Finder: the same file, renamed.
+      const fw = $(el, '#fwin'), u = eo(seg(t, FIND, FIND + 0.4)); fw.style.opacity = eo(seg(t, FIND, FIND + 0.14)); fw.style.transform = `translateY(${(1 - u) * 28}px) scale(${0.985 + 0.015 * u})`;
+      $(el, '#frow2').style.background = `rgba(10,122,255,${0.22 * (t > FIND + 0.3 ? 1 - seg(t, 4.6, 5.3) : 0)})`;
+    },
+    camera: [[0, 1, 640, 360], [5.5, 1.03, 660, 360]],
+    vcam: [[0, 1, 760, 330], [OPENC + 0.2, 1, 760, 330], [OPENC + 0.7, 1, 860, 330], [FIND, 1, 860, 330], [FIND + 0.5, 1.08, 990, 470]] });
+  const n = at(sc, '#t2 .tn', 10, 2), side = at(sc, '[data-side="connected"]', -20);
+  sc.cursorKeys = [[0, 1050, 660], [OPENC - 0.15, side.x, side.y], [OPENC, side.x, side.y, 1], [SELT - 0.12, n.x, n.y], [SELT, n.x, n.y, 1], [DONE + 0.3, 1180, 330], [5.5, 1180, 330]];
+  rings(sc, [[OPENC - 0.25, OPENC + 0.5, '[data-side="connected"]', 3, 9], [FIND + 0.35, 4.9, '#frow2', 3, 8]]);
+}
+
+// ================= The Frame: references beside the work (24–32) =================
+{
+  const E = { x: 470, y: 60, w: 740, h: 600 }, FR = { x: 750, y: 90, w: 460, h: 550 }, LIB = 120;
+  const T0 = 'Found in 2007 on the Yamal Peninsula in Siberia, ', T1 = 'Lyuba is the best-preserved ', T2 = 'mammoth calf ever found. She was about a month old. Hang her photo at eye level.';
+  const libRows = [
+    ['lib-p', img('lyuba.jpg', 30, 30), 'Lyuba – hero print.jpg'],
+    ['', img('adams.jpg', 30, 30), 'adams-mammoth-vienna.jpg'],
+    ['', img('wiki-skeleton.jpg', 30, 30), 'Siegsdorf skeleton'],
+    ['', `<div style="width:30px;height:30px;background:var(--k-linker);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center">${I.link}</div>`, 'en.wikipedia.org'],
+  ].map(([id, th, n]) => `<div ${id ? `id="${id}"` : ''} style="display:flex;align-items:center;gap:7px;height:38px;padding:0 5px;font-size:11px;border-radius:6px"><div class="th" style="width:30px;height:30px;border-radius:6px;overflow:hidden;flex:none">${th}</div><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${n}</span></div>`).join('');
+  const pause = '<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  const html = `<div class="window" id="editor" style="left:${E.x}px;top:${E.y}px;width:${E.w}px;height:${E.h}px;background:#fff;${DIM}">
+    <div style="height:38px;background:#F4F4F3;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;font-size:13px">
+      <div class="lights" id="elights"><i></i><i></i><i></i></div><span style="margin-left:70px;font-weight:600">Exhibit labels</span><span style="color:var(--ink3);margin-left:8px">— Edited</span></div>
+    <div class="abs" style="left:30px;top:70px;width:226px;font:400 14px/1.55 'DejaVu Serif', Georgia, serif;color:#222">
+      <div style="font:700 26px/1.2 Inter;letter-spacing:-0.02em;margin-bottom:14px">Lyuba</div>
+      <div style="font:400 12.5px Inter;color:#8a8a8e;margin-bottom:10px">Baby woolly mammoth, about 42,000 years old</div>
+      <span id="etext"></span><span id="caret" style="display:inline-block;width:1.5px;height:17px;background:#222;vertical-align:-3px"></span></div></div>
+  <div class="window" id="frame" style="left:${FR.x}px;top:${FR.y}px;width:${FR.w}px;height:${FR.h}px;background:#EDEDEC;transform-origin:70% 0;${DIM}">
+    <div style="height:38px;display:flex;align-items:center;gap:11px;padding:0 12px;border-bottom:1px solid var(--line);color:var(--ink2);font-size:13px">
+      <div class="lights"><i></i><i></i><i></i></div><span style="color:var(--accent)">${I.frame}</span><span style="font-size:12px;font-weight:600;color:#1d1d1f">The Frame</span>
+      <span style="margin-left:auto;background:rgba(0,0,0,.06);border-radius:7px;padding:3px 6px;display:flex;gap:8px"><span style="color:var(--accent)">${I.arrow}</span><span>${I.hand}</span></span><span style="font-size:11px;font-weight:500">100%</span></div>
+    <div class="abs" id="lib" style="left:0;top:38px;bottom:0;width:${LIB}px;border-right:1px solid var(--line);padding:8px 6px">
+      <div class="pill" style="background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);height:24px;font-size:11.5px">${I.folder} Mammoth<span style="margin-left:auto;color:var(--accent)">${I.chev}</span></div>
+      <div style="height:6px"></div>${libRows}</div>
+    <div class="abs" id="canvas" style="left:${LIB}px;top:38px;right:0;bottom:0;background-color:#E4E4E3;background-image:radial-gradient(rgba(0,0,0,.16) 1px, transparent 1.2px);background-size:20px 20px;overflow:hidden">
+      <div class="abs" id="fimg" style="left:14px;top:12px;width:150px;height:100px;border-radius:6px;overflow:hidden;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.18)">${img('lyuba.jpg', 150, 100)}</div>
+      <div class="abs" id="fnote" style="left:176px;top:12px;width:150px;min-height:100px;padding:10px 11px;border-radius:8px;background:var(--note);font-size:12.5px;line-height:1.35;opacity:0;box-shadow:0 1px 3px rgba(0,0,0,.08)"><span id="fnt"></span></div>
+      <div class="abs" id="video" style="left:14px;top:126px;width:312px;height:196px;border-radius:8px;overflow:hidden;background:#111;opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.2)">
+        <img id="vimg" src="${A}adams.jpg" style="position:absolute;left:0;top:0;width:470px;height:335px;transform-origin:0 0">
+        <div class="abs" style="left:0;right:0;top:0;height:34px;background:linear-gradient(rgba(0,0,0,.55),transparent);color:#fff;font:600 11px Inter;padding:8px 10px">Tutorial: writing museum labels</div>
+        <div class="abs" id="vbig" style="left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;padding-left:3px">${I.play}</div>
+        <div class="abs" id="vctl" style="left:8px;right:8px;bottom:8px;height:26px;border-radius:8px;background:rgba(40,40,42,.62);display:flex;align-items:center;gap:8px;padding:0 9px;color:#fff;font-size:12px;opacity:0">
+          <span style="width:14px;display:flex;justify-content:center">${pause}</span>
+          <div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.3)"><div id="vprog" style="height:100%;width:2%;background:#fff;border-radius:2px"></div></div>
+          <span id="vtime" style="font-size:10.5px;font-variant-numeric:tabular-nums">0:00</span></div></div>
+    </div></div>
+  <div class="abs" id="ghost" style="width:72px;height:50px;border-radius:5px;overflow:hidden;opacity:0;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90">${img('lyuba.jpg', 72, 50)}</div>
+  <div class="key" id="k-n" style="left:${FR.x + 150}px;top:${FR.y + 380}px">⌘N</div><div class="key" id="k-v" style="left:${FR.x + 150}px;top:${FR.y + 380}px">⌘V</div>`;
+  const UP = 0.5, GRAB = 1.05, DROP = 1.7, NEWN = 2.05, PASTE = 2.95, PLAY = 3.45, BACK = 5.1;
+  const NT = 'Under 60 words. Big type.';
+  const sc = scene({ a: 24, b: 32, bg: 'desk', html,
+    title: { w: 510, lines: ['Keep your', 'references beside', 'your work.'], sub: 'The Frame floats above<br>whatever you’re doing.', chips: [['Watch videos right on the canvas', PLAY + 0.15, 'var(--accent)']] },
+    update(t, el) {
+      // The work: typing goes on underneath, before and after the Frame is used.
+      const typed = T0 + T1.slice(0, Math.floor(clamp(t / 1.0) * T1.length)) + T2.slice(0, Math.floor(clamp((t - BACK - 0.15) / 3.0) * T2.length));
+      $(el, '#etext').textContent = typed;
+      const typing = t < 1.0 || t > BACK + 0.15;
+      $(el, '#caret').style.opacity = typing || Math.floor(t * 2.2) % 2 ? 1 : 0;
+      $(el, '#elights').classList.toggle('off', t > UP && t < BACK);
+      // The Frame comes up above it.
+      const f = $(el, '#frame'), u = eo(seg(t, UP, UP + 0.35)); f.style.opacity = eo(seg(t, UP, UP + 0.13)); f.style.transform = `translateY(${(1 - u) * 18}px) scale(${0.94 + 0.06 * u})`;
+      $(el, '#lib-p').style.background = t > GRAB && t < DROP + 0.3 ? 'rgba(10,122,255,.16)' : 'transparent';
+      dragGhost(sc, $(el, '#ghost'), GRAB, DROP, t);
+      land($(el, '#fimg'), t, DROP);
+      land($(el, '#fnote'), t, NEWN + 0.1);
+      $(el, '#fnt').textContent = NT.slice(0, Math.floor(clamp((t - NEWN - 0.25) / 0.6) * NT.length));
+      land($(el, '#video'), t, PASTE + 0.1);
+      keyAt($(el, '#k-n'), t, NEWN); keyAt($(el, '#k-v'), t, PASTE);
+      // The tutorial plays (a slow move through a museum hall photo).
+      const vt = Math.max(0, t - PLAY), playing = t > PLAY;
+      $(el, '#vimg').style.transform = `translate(${-vt * 16}px, ${-vt * 6}px) scale(${1 + vt * 0.03})`;
+      $(el, '#vbig').style.opacity = playing ? 0 : 1;
+      $(el, '#vctl').style.opacity = playing ? 1 - seg(t, PLAY + 1.6, PLAY + 2.0) : 0;
+      $(el, '#vprog').style.width = (2 + vt * 2) + '%';
+      $(el, '#vtime').textContent = '0:0' + Math.floor(vt);
+    },
+    camera: [[0, 1, 640, 360], [8.5, 1.03, 660, 360]],
+    vcam: [[0, 0.95, 850, 360], [PLAY + 0.1, 0.95, 850, 360], [PLAY + 0.6, 1.3, 1040, 350], [BACK - 0.2, 1.3, 1040, 350], [BACK + 0.4, 0.95, 850, 360]] });
+  const lib = at(sc, '#lib-p', -30), dp = at(sc, '#fimg'), pl = at(sc, '#vbig'), et = { x: E.x + 30 + 180, y: E.y + 70 + 170 };
+  sc.cursorKeys = [[0, 600, 560], [GRAB - 0.2, lib.x, lib.y], [GRAB, lib.x, lib.y, 1], [DROP, dp.x, dp.y], [PASTE - 0.25, dp.x + 60, dp.y + 160], [PLAY - 0.2, pl.x, pl.y], [PLAY, pl.x, pl.y, 1],
+    [BACK - 0.15, et.x, et.y], [BACK, et.x, et.y, 1], [8.5, et.x - 30, et.y + 80]];
+  rings(sc, [[UP + 0.2, UP + 0.9, '#frame', 4, 14], [DROP + 0.05, DROP + 0.7, '#fimg', 3, 10], [PLAY + 0.1, BACK - 0.1, '#video', 4, 12]]);
+}
+
+// ================= Three sizes: pop-up, window, full screen (32–36) =================
+{
+  const R = [{ x: 860, y: 110, w: 300, h: 420 }, { x: 470, y: 90, w: 780, h: 520 }, { x: 0, y: 0, w: 1280, h: 720 }];
+  const items = [['folder', 'photos', 'PhotoBook', 3], ['folder', 'linker', 'Linker', 1], ['folder', 'notes', 'Notepad', 1], ['folder', 'files', 'Files', 2],
+    ['pic', 'cave.jpg'], ['pic', 'skeleton.jpg'], ['pic', 'skull.jpg'], ['pic', 'tilesius.jpg'], ['pic', 'adams.jpg'], ['pic', 'lyuba.jpg']];
+  const grid = items.map(([k, a, b, n]) => k === 'folder'
+    ? `<div class="gi" style="width:90px;text-align:center;font-size:12px;font-weight:500;color:#2a2a2c">${folderIcon(a, 54, { count: n })}<div style="margin-top:6px">${b}</div></div>`
+    : `<div class="gi gp" style="border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.2)"><img src="${A}${a}" style="width:100%;height:100%;object-fit:cover;display:block"></div>`).join('');
+  const html = `<div class="window" id="grow" style="${DIM}">
+    <div style="height:38px;display:flex;align-items:center;gap:9px;padding:0 12px;background:rgba(0,0,0,.035);border-bottom:1px solid var(--line);font-size:12.5px">
+      <div class="lights" id="glights"><i></i><i></i><i id="green"></i></div>
+      <span style="height:24px;border-radius:7px;background:rgba(10,122,255,.14);display:flex;align-items:center;gap:5px;padding:0 9px;font-weight:600;margin-left:6px"><span style="font-size:10px;color:var(--ink2)">${I.pin}</span>Mammoth</span></div>
+    <div id="ggrid" style="display:flex;flex-wrap:wrap;gap:18px 14px;padding:18px 16px;align-content:flex-start">${grid}</div></div>`;
+  const label = `<div class="abs" id="sizelabel" style="left:50%;bottom:${VERTICAL ? 140 : 70}px;transform:translateX(-50%);display:flex;gap:10px">
+    ${['Pop-up', 'Window', 'Full screen'].map((n, i) => `<span class="sizepill" data-i="${i}" style="font-size:${T.chip - 2}px">${n}</span>`).join('')}</div>`;
+  const STEP = [1.05, 2.05];
+  const sc = scene({ a: 32, b: 36, bg: 'dark', html, stage: label,
+    title: { lines: ['Just the space', 'you need.'], sub: 'Pop-up, window or full screen.', out: 2.0 },
+    update(t, el) {
+      const u1 = io(seg(t, STEP[0], STEP[0] + 0.45)), u2 = io(seg(t, STEP[1], STEP[1] + 0.5));
+      const a = t < STEP[1] ? R[0] : R[1], b = t < STEP[1] ? R[1] : R[2], u = t < STEP[1] ? u1 : u2;
+      const g = $(el, '#grow');
+      Object.assign(g.style, { left: lerp(a.x, b.x, u) + 'px', top: lerp(a.y, b.y, u) + 'px', width: lerp(a.w, b.w, u) + 'px', height: lerp(a.h, b.h, u) + 'px', borderRadius: (t > STEP[1] ? lerp(11, 0, u2) : 11) + 'px' });
+      const W = lerp(a.w, b.w, u), pw = W < 780 ? lerp(76, 150, (W - 300) / 480) : lerp(150, 214, (W - 780) / 500);
+      el.querySelectorAll('.gp').forEach(p => { p.style.width = pw + 'px'; p.style.height = pw * 0.7 + 'px'; });
+      const step = t < STEP[0] + 0.2 ? 0 : t < STEP[1] + 0.2 ? 1 : 2;
+      el.querySelectorAll('.sizepill').forEach(p => p.classList.toggle('on', +p.dataset.i === step));
+      // In full screen the words sit on the app's light surface, so they switch to dark ink there.
+      el.querySelectorAll('.sizepill').forEach(p => p.classList.toggle('ink', step === 2));
+      $(el, '#sizelabel').style.opacity = eo(seg(t, 0.3, 0.6));
+      g.style.opacity = eo(seg(t, 0.1, 0.4));
+    },
+    camera: [[0, 1, 640, 360], [STEP[1] + 0.5, 1, 640, 360], [4.5, 1.07, 560, 260]], vcam: [[0, 1, 1000, 360], [STEP[0], 1, 1000, 360], [STEP[0] + 0.5, 1, 860, 360], [STEP[1], 1, 860, 360], [STEP[1] + 0.5, 1, 640, 360]] });
+  // The cursor follows the green light as the window grows.
+  sc.cursorKeys = [[0, 1100, 640], [0.85, 860 + 54, 110 + 19], [STEP[0], 860 + 54, 110 + 19, 1], [1.85, 470 + 54, 90 + 19], [STEP[1], 470 + 54, 90 + 19, 1], [2.7, 700, 420], [4.5, 700, 420]];
+}
+
+// ================= Closing: the logo, the line, the three verbs (36–40) =================
+{
+  let seed = 3; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const sparks = Array.from({ length: 26 }, () => ({ x: rnd() * SW, y: rnd() * SH, s: 10 + rnd() * 14, p: rnd() * 6, c: rnd() > 0.5 ? 'var(--red)' : '#E8A79E' }));
+  const ip = VERTICAL ? 150 : 110, H = VERTICAL ? 104 : 100;
+  const lines = VERTICAL ? ['Keep your ideas', 'moving.'] : ['Keep your ideas moving.'];
+  const verbs = ['Collect.', 'Organize.', 'Keep working.'];
+  scene({ a: 36, b: 40, bg: 'paper', stage: `
+    ${sparks.map(s => `<div class="spark" style="left:${s.x}px;top:${s.y}px;font-size:${s.s}px;color:${s.c}">+</div>`).join('')}
+    <div class="abs" style="left:0;top:0;width:${SW}px;height:${SH}px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div id="clock" style="display:flex;align-items:center;gap:${ip * 0.22}px">
+        <img id="cicon" src="icon.png" style="width:${ip}px;height:${ip}px;border-radius:${ip * .225}px;box-shadow:0 12px 30px rgba(76,46,33,.16)">
+        <div><div id="cword" style="font:600 ${ip * 0.74}px/1.05 'Schibsted Grotesk';letter-spacing:-0.035em;color:#2B1C16">Swiss</div></div></div>
+      <div style="margin-top:${ip * 0.5}px;text-align:center;font:600 ${H}px/1.02 'Schibsted Grotesk';letter-spacing:-0.035em;color:#2B1C16">
+        ${lines.map(l => `<div style="overflow:hidden;padding-bottom:.06em"><div class="cln" style="white-space:nowrap">${l}</div></div>`).join('')}</div>
+      <div style="margin-top:${H * 0.36}px;display:flex;gap:.6em;font:500 ${VERTICAL ? 40 : 34}px 'Schibsted Grotesk';letter-spacing:-0.015em;color:#2B1C16">
+        ${verbs.map((v, i) => `<span class="cv" style="${i === 2 ? 'color:var(--red)' : ''}">${v}</span>`).join('')}</div>
+    </div>`,
+    update(t, el) {
+      const ic = $(el, '#cicon'), u = seg(t, 0.45, 0.95);
+      $(el, '#clock').parentElement.style.transform = `scale(${1.04 - 0.04 * eo(seg(t, 0.4, 2.6))})`;
+      ic.style.opacity = eo(seg(t, 0.45, 0.65)); ic.style.transform = `scale(${0.8 + 0.2 * eo(u) + 0.03 * Math.sin(Math.PI * u)})`;
+      const wu = eo(seg(t, 0.68, 1.12)); $(el, '#cword').style.transform = `translateX(${(1 - wu) * -18}%)`; $(el, '#cword').style.opacity = wu;
+      el.querySelectorAll('.cln').forEach((l, i) => l.style.transform = `translateY(${(1 - eo(seg(t, 1.0 + i * 0.1, 1.5 + i * 0.1))) * 105}%)`);
+      el.querySelectorAll('.cv').forEach((v, i) => { const w = eo(seg(t, 1.6 + i * 0.22, 1.95 + i * 0.22)); v.style.opacity = w; v.style.transform = `translateY(${(1 - w) * 14}px)`; v.style.display = 'inline-block'; });
+      el.querySelectorAll('.spark').forEach((s, i) => {
+        const sp = sparks[i], v = Math.max(0, Math.sin((t * 1.2 + sp.p)));
+        s.style.opacity = 0; s.style.transform = `translateY(${-t * 10}px) rotate(${t * 30 + i * 20}deg)`;
+      });
+    } });
+}
+
+// ================= seek =================
+window.DURATION = 40.0;
+const BANDW = VERTICAL ? 64 : 84, DRIFT = VERTICAL ? 50 : 80;
+const band = document.createElement('div'); band.id = 'band'; stage.appendChild(band);
+window.seek = function (t) {
+  let bandOn = false;
+  scenes.forEach((sc, i) => {
+    const next = scenes[i + 1];
+    const end = next ? next.a + (next.enter === 'wipe' ? WIPE : 0.35) : DURATION + 1;
+    const on = t >= sc.a && t < end;
+    sc.el.style.display = on ? 'block' : 'none';
+    if (!on) return;
+    sc.el.style.zIndex = i + 1;
+    const lt = t - sc.a;
+    // Entering: a red slash crosses the frame and the new scene is revealed behind it, settling in from the right
+    // while the outgoing scene drifts left and dims, so the cut reads as one continuous move.
+    if (sc.enter === 'wipe' && lt < WIPE) {
+      const u = io(lt / WIPE), sk = SH * 0.22, e = lerp(-sk - BANDW - 40, SW + sk + 40, u), dx = (1 - u) * DRIFT;
+      sc.el.style.transform = `translateX(${dx}px)`;
+      sc.el.style.clipPath = `polygon(0 0, ${e + sk - dx}px 0, ${e - sk - dx}px ${SH}px, 0 ${SH}px)`;
+      band.style.clipPath = `polygon(${e + sk}px 0, ${e + sk + BANDW}px 0, ${e - sk + BANDW}px ${SH}px, ${e - sk}px ${SH}px)`;
+      bandOn = true;
+    } else { sc.el.style.clipPath = 'none'; sc.el.style.transform = 'none'; }
+    if (next && next.enter === 'wipe' && t >= next.a) {
+      const u = io(seg(t, next.a, next.a + WIPE));
+      // scaled up from its left edge just enough that drifting never uncovers the stage at the right
+      sc.el.style.transformOrigin = '0 50%';
+      sc.el.style.transform = `translateX(${-u * DRIFT}px) scale(${1 + (u * DRIFT + 2) / SW})`; sc.el.style.filter = `brightness(${1 - 0.18 * u})`;
+    } else sc.el.style.filter = 'none';
+    sc.el.style.opacity = sc.enter === 'fade' ? io(seg(lt, 0, 0.35)) : 1;
+    if (sc.world) {
+      sc.world.style.transform = cam(VERTICAL && sc.vcam ? sc.vcam : sc.camera, lt);
+      moveCursor(sc, sc.cursorKeys, lt);
+      ringsDraw(sc, lt);
+    }
+    if (sc.update) sc.update(lt, sc.el);
+    drawTitle(sc, lt);
+  });
+  band.style.display = bandOn ? 'block' : 'none';
+};
+window.seek(params.has('t') ? +params.get('t') : 0);
+
+</script>
+</body>
+</html>

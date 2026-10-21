@@ -1,0 +1,536 @@
+{
+ "final_gain_db": 2.29,
+ "sfx_limiter_max_gr_db": -3.7,
+ "sfx_limiter_active_s": 0.3,
+ "sfx_gain_db": 5.87,
+ "placed": [
+  {
+   "id": "01",
+   "clip": "SFX01_app-open-pop_00.22s.wav",
+   "track": 1,
+   "start": 0.2102,
+   "sync_at": 0.22,
+   "length": 0.1426
+  },
+  {
+   "id": "02",
+   "clip": "SFX02_icon-grows-into-window_03.00s.wav",
+   "track": 2,
+   "start": 2.281,
+   "sync_at": 3.0,
+   "length": 2.05
+  },
+  {
+   "id": "03",
+   "clip": "SFX03_item-arrives-picture_05.38s.wav",
+   "track": 1,
+   "start": 5.361,
+   "sync_at": 5.38,
+   "length": 0.14
+  },
+  {
+   "id": "06",
+   "clip": "SFX06_item-arrives-note_07.92s.wav",
+   "track": 1,
+   "start": 7.909,
+   "sync_at": 7.92,
+   "length": 0.14
+  },
+  {
+   "id": "09",
+   "clip": "SFX09_screenshot-capture_10.86s.wav",
+   "track": 1,
+   "start": 10.65,
+   "sync_at": 10.86,
+   "length": 0.58
+  },
+  {
+   "id": "10",
+   "clip": "SFX10_item-arrives-screenshot_11.52s.wav",
+   "track": 1,
+   "start": 11.5176,
+   "sync_at": 11.52,
+   "length": 0.0953
+  },
+  {
+   "id": "11",
+   "clip": "SFX11_keep-click_12.65s.wav",
+   "track": 1,
+   "start": 12.632,
+   "sync_at": 12.65,
+   "length": 0.095
+  },
+  {
+   "id": "15",
+   "clip": "SFX15_folder-open-photobook_17.80s.wav",
+   "track": 1,
+   "start": 17.683,
+   "sync_at": 17.8,
+   "length": 0.42
+  },
+  {
+   "id": "16",
+   "clip": "SFX16_folder-open-connected_19.74s.wav",
+   "track": 1,
+   "start": 19.6437,
+   "sync_at": 19.74,
+   "length": 0.2265
+  },
+  {
+   "id": "17",
+   "clip": "SFX17_rename-confirm_21.50s.wav",
+   "track": 1,
+   "start": 21.4798,
+   "sync_at": 21.5,
+   "length": 0.1066
+  },
+  {
+   "id": "18",
+   "clip": "SFX18_frame-expands_24.64s.wav",
+   "track": 2,
+   "start": 24.512,
+   "sync_at": 24.64,
+   "length": 0.52
+  },
+  {
+   "id": "19",
+   "clip": "SFX19_item-arrives-frame-picture_25.73s.wav",
+   "track": 1,
+   "start": 25.7205,
+   "sync_at": 25.73,
+   "length": 0.0329
+  },
+  {
+   "id": "20",
+   "clip": "SFX20_item-arrives-frame-note_26.18s.wav",
+   "track": 1,
+   "start": 26.1708,
+   "sync_at": 26.18,
+   "length": 0.1177
+  },
+  {
+   "id": "21",
+   "clip": "SFX21_item-arrives-frame-video_27.08s.wav",
+   "track": 1,
+   "start": 27.0773,
+   "sync_at": 27.08,
+   "length": 0.1069
+  },
+  {
+   "id": "22",
+   "clip": "SFX22_play-click_27.45s.wav",
+   "track": 1,
+   "start": 27.4406,
+   "sync_at": 27.45,
+   "length": 0.1888
+  },
+  {
+   "id": "23",
+   "clip": "SFX23_green-light-click-1_33.05s.wav",
+   "track": 1,
+   "start": 33.0411,
+   "sync_at": 33.05,
+   "length": 0.1782
+  },
+  {
+   "id": "24",
+   "clip": "SFX24_window-grows-1_33.24s.wav",
+   "track": 2,
+   "start": 33.1551,
+   "sync_at": 33.24,
+   "length": 0.2832
+  },
+  {
+   "id": "25",
+   "clip": "SFX25_green-light-click-2_34.05s.wav",
+   "track": 1,
+   "start": 34.04,
+   "sync_at": 34.05,
+   "length": 0.2
+  },
+  {
+   "id": "26",
+   "clip": "SFX26_window-grows-2_34.27s.wav",
+   "track": 2,
+   "start": 34.169,
+   "sync_at": 34.27,
+   "length": 0.3816
+  },
+  {
+   "id": "27",
+   "clip": "SFX27_logo-chord_36.50s.wav",
+   "track": 3,
+   "start": 36.4199,
+   "sync_at": 36.5,
+   "length": 6.94
+  },
+  {
+   "id": "W6",
+   "clip": "SFXW6_logo-shimmer_36.46s.wav",
+   "track": 3,
+   "start": 35.634,
+   "sync_at": 36.46,
+   "length": 1.1
+  },
+  {
+   "id": "K01",
+   "clip": "SFXK01_mouse-click_20.30s.wav",
+   "track": 4,
+   "start": 20.2995,
+   "sync_at": 20.3,
+   "length": 0.1271
+  },
+  {
+   "id": "K02",
+   "clip": "SFXK02_key-return_20.55s.wav",
+   "track": 4,
+   "start": 20.5302,
+   "sync_at": 20.55,
+   "length": 0.0876
+  },
+  {
+   "id": "K03",
+   "clip": "SFXK03_rename-key_20.70s.wav",
+   "track": 4,
+   "start": 20.6772,
+   "sync_at": 20.7,
+   "length": 0.0826
+  },
+  {
+   "id": "K04",
+   "clip": "SFXK04_rename-key_20.77s.wav",
+   "track": 4,
+   "start": 20.7535,
+   "sync_at": 20.772,
+   "length": 0.0826
+  },
+  {
+   "id": "K05",
+   "clip": "SFXK05_rename-space_20.84s.wav",
+   "track": 4,
+   "start": 20.8351,
+   "sync_at": 20.844,
+   "length": 0.1091
+  },
+  {
+   "id": "K06",
+   "clip": "SFXK06_rename-key_20.94s.wav",
+   "track": 4,
+   "start": 20.9405,
+   "sync_at": 20.944,
+   "length": 0.0826
+  },
+  {
+   "id": "K07",
+   "clip": "SFXK07_rename-key_21.03s.wav",
+   "track": 4,
+   "start": 21.0139,
+   "sync_at": 21.028,
+   "length": 0.0826
+  },
+  {
+   "id": "K08",
+   "clip": "SFXK08_rename-key_21.11s.wav",
+   "track": 4,
+   "start": 21.0832,
+   "sync_at": 21.114,
+   "length": 0.0826
+  },
+  {
+   "id": "K09",
+   "clip": "SFXK09_rename-key_21.18s.wav",
+   "track": 4,
+   "start": 21.1699,
+   "sync_at": 21.184,
+   "length": 0.0826
+  },
+  {
+   "id": "K10",
+   "clip": "SFXK10_rename-key_21.27s.wav",
+   "track": 4,
+   "start": 21.2609,
+   "sync_at": 21.27,
+   "length": 0.0826
+  },
+  {
+   "id": "K11",
+   "clip": "SFXK11_rename-key_21.33s.wav",
+   "track": 4,
+   "start": 21.2977,
+   "sync_at": 21.33,
+   "length": 0.0826
+  },
+  {
+   "id": "K12",
+   "clip": "SFXK12_editor-key_24.12s.wav",
+   "track": 4,
+   "start": 24.0892,
+   "sync_at": 24.12,
+   "length": 0.0826
+  },
+  {
+   "id": "K13",
+   "clip": "SFXK13_editor-key_24.25s.wav",
+   "track": 4,
+   "start": 24.2367,
+   "sync_at": 24.249,
+   "length": 0.0826
+  },
+  {
+   "id": "K14",
+   "clip": "SFXK14_editor-key_24.42s.wav",
+   "track": 4,
+   "start": 24.3942,
+   "sync_at": 24.417,
+   "length": 0.0826
+  },
+  {
+   "id": "K15",
+   "clip": "SFXK15_editor-key_24.55s.wav",
+   "track": 4,
+   "start": 24.5167,
+   "sync_at": 24.549,
+   "length": 0.0826
+  },
+  {
+   "id": "K16",
+   "clip": "SFXK16_editor-key_24.69s.wav",
+   "track": 4,
+   "start": 24.662,
+   "sync_at": 24.688,
+   "length": 0.0826
+  },
+  {
+   "id": "K17",
+   "clip": "SFXK17_editor-key_24.86s.wav",
+   "track": 4,
+   "start": 24.8312,
+   "sync_at": 24.862,
+   "length": 0.0826
+  },
+  {
+   "id": "K18",
+   "clip": "SFXK18_editor-space_24.98s.wav",
+   "track": 4,
+   "start": 24.969,
+   "sync_at": 24.98,
+   "length": 0.1091
+  },
+  {
+   "id": "K19",
+   "clip": "SFXK19_note-key_26.30s.wav",
+   "track": 4,
+   "start": 26.278,
+   "sync_at": 26.3,
+   "length": 0.0826
+  },
+  {
+   "id": "K20",
+   "clip": "SFXK20_note-key_26.40s.wav",
+   "track": 4,
+   "start": 26.3874,
+   "sync_at": 26.4,
+   "length": 0.0826
+  },
+  {
+   "id": "K21",
+   "clip": "SFXK21_note-key_26.46s.wav",
+   "track": 4,
+   "start": 26.4505,
+   "sync_at": 26.463,
+   "length": 0.0826
+  },
+  {
+   "id": "K22",
+   "clip": "SFXK22_note-key_26.53s.wav",
+   "track": 4,
+   "start": 26.5002,
+   "sync_at": 26.534,
+   "length": 0.0826
+  },
+  {
+   "id": "K23",
+   "clip": "SFXK23_note-key_26.61s.wav",
+   "track": 4,
+   "start": 26.5842,
+   "sync_at": 26.615,
+   "length": 0.0826
+  },
+  {
+   "id": "K24",
+   "clip": "SFXK24_note-key_26.69s.wav",
+   "track": 4,
+   "start": 26.6866,
+   "sync_at": 26.694,
+   "length": 0.0826
+  },
+  {
+   "id": "K25",
+   "clip": "SFXK25_note-key_26.78s.wav",
+   "track": 4,
+   "start": 26.7562,
+   "sync_at": 26.779,
+   "length": 0.0826
+  },
+  {
+   "id": "K26",
+   "clip": "SFXK26_note-key_26.88s.wav",
+   "track": 4,
+   "start": 26.865,
+   "sync_at": 26.88,
+   "length": 0.0827
+  },
+  {
+   "id": "K27",
+   "clip": "SFXK27_mouse-click_29.10s.wav",
+   "track": 4,
+   "start": 29.0995,
+   "sync_at": 29.1,
+   "length": 0.1271
+  },
+  {
+   "id": "K28",
+   "clip": "SFXK28_editor-key_29.28s.wav",
+   "track": 4,
+   "start": 29.2615,
+   "sync_at": 29.28,
+   "length": 0.0826
+  },
+  {
+   "id": "K29",
+   "clip": "SFXK29_editor-key_29.40s.wav",
+   "track": 4,
+   "start": 29.3949,
+   "sync_at": 29.404,
+   "length": 0.0826
+  },
+  {
+   "id": "K30",
+   "clip": "SFXK30_editor-key_29.60s.wav",
+   "track": 4,
+   "start": 29.5739,
+   "sync_at": 29.596,
+   "length": 0.0826
+  },
+  {
+   "id": "K31",
+   "clip": "SFXK31_editor-key_29.80s.wav",
+   "track": 4,
+   "start": 29.7622,
+   "sync_at": 29.797,
+   "length": 0.0827
+  },
+  {
+   "id": "K32",
+   "clip": "SFXK32_editor-space_30.00s.wav",
+   "track": 4,
+   "start": 29.993,
+   "sync_at": 30.004,
+   "length": 0.1091
+  },
+  {
+   "id": "K33",
+   "clip": "SFXK33_editor-key_30.17s.wav",
+   "track": 4,
+   "start": 30.1632,
+   "sync_at": 30.172,
+   "length": 0.0827
+  },
+  {
+   "id": "K34",
+   "clip": "SFXK34_editor-key_30.34s.wav",
+   "track": 4,
+   "start": 30.3265,
+   "sync_at": 30.339,
+   "length": 0.0826
+  },
+  {
+   "id": "K35",
+   "clip": "SFXK35_editor-key_30.51s.wav",
+   "track": 4,
+   "start": 30.4772,
+   "sync_at": 30.511,
+   "length": 0.0826
+  },
+  {
+   "id": "K36",
+   "clip": "SFXK36_editor-key_30.65s.wav",
+   "track": 4,
+   "start": 30.6335,
+   "sync_at": 30.646,
+   "length": 0.0826
+  },
+  {
+   "id": "K37",
+   "clip": "SFXK37_editor-key_30.86s.wav",
+   "track": 4,
+   "start": 30.8424,
+   "sync_at": 30.861,
+   "length": 0.0826
+  },
+  {
+   "id": "K38",
+   "clip": "SFXK38_editor-key_31.08s.wav",
+   "track": 4,
+   "start": 31.054,
+   "sync_at": 31.08,
+   "length": 0.0826
+  },
+  {
+   "id": "K39",
+   "clip": "SFXK39_editor-key_31.23s.wav",
+   "track": 4,
+   "start": 31.2065,
+   "sync_at": 31.225,
+   "length": 0.0826
+  },
+  {
+   "id": "K40",
+   "clip": "SFXK40_editor-key_31.44s.wav",
+   "track": 4,
+   "start": 31.4102,
+   "sync_at": 31.441,
+   "length": 0.0826
+  },
+  {
+   "id": "K41",
+   "clip": "SFXK41_editor-space_31.58s.wav",
+   "track": 4,
+   "start": 31.5696,
+   "sync_at": 31.58,
+   "length": 0.1091
+  },
+  {
+   "id": "K42",
+   "clip": "SFXK42_editor-key_31.71s.wav",
+   "track": 4,
+   "start": 31.6969,
+   "sync_at": 31.707,
+   "length": 0.0826
+  },
+  {
+   "id": "K43",
+   "clip": "SFXK43_editor-key_31.90s.wav",
+   "track": 4,
+   "start": 31.8965,
+   "sync_at": 31.9,
+   "length": 0.0826
+  },
+  {
+   "id": "M3",
+   "clip": "SFXM3_logo-chord-answer_38.66s.wav",
+   "track": 3,
+   "start": 38.5799,
+   "sync_at": 38.66,
+   "length": 3.4156
+  },
+  {
+   "id": "M1",
+   "clip": "SFXM1_wand-chimes_14.90s.wav",
+   "track": 3,
+   "start": 14.853,
+   "sync_at": 14.9,
+   "length": 2.94
+  }
+ ]
+}

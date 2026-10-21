@@ -33,8 +33,13 @@ struct CardView: View {
     @ObservedObject private var mark: SelectFlag
     private var selected: Bool { mark.on }
 
-    init(item: Item, asRow: Bool = false, asQuote: Bool = false, asTile: Bool = false, lite: Bool = false, rowIndex: Int? = nil) {
+    /// In the small pop-up, notes and pasted text show as icons; the window and full screen show them as cards.
+    var compact = false
+
+    init(item: Item, asRow: Bool = false, asQuote: Bool = false, asTile: Bool = false, lite: Bool = false, rowIndex: Int? = nil,
+         compact: Bool = false) {
         self.item = item
+        self.compact = compact
         self.asRow = asRow
         self.asQuote = asQuote
         self.asTile = asTile
@@ -323,7 +328,11 @@ struct CardView: View {
     @ViewBuilder private var tileIcon: some View {
         switch item.kind {
         case .text:
-            NotePadIcon(size: 44)
+            if compact {
+                if item.pasted == true { PastedTextIcon(size: 44) } else { NotePadIcon(size: 44) }
+            } else {
+                TextTileIcon(text: item.text ?? "", pasted: item.pasted == true)
+            }
         case .image:
             if let thumb {
                 Image(nsImage: thumb).resizable().aspectRatio(contentMode: .fill)
@@ -705,7 +714,12 @@ struct CardView: View {
             } else {
                 glyph(item.kind == .link ? "link" : "photo", tint: FolderStyle.forKind(item.kind).color, size: size)
             }
-        case .text: NotePadIcon(size: size)
+        case .text:
+            if compact {
+                if item.pasted == true { PastedTextIcon(size: size) } else { NotePadIcon(size: size) }
+            } else {
+                TextTileIcon(text: item.text ?? "", pasted: item.pasted == true, size: size)
+            }
         case .file: fileIcon(size: size)
         }
     }
@@ -969,4 +983,73 @@ struct LayoutToggle: View {
 
 private extension String {
     func ifEmpty(_ fallback: String) -> String { isEmpty ? fallback : self }
+}
+
+/// A note you wrote: a little yellow sticky with its first words (like the Frame's notes). Words you copied and pasted:
+/// a white card with a quote mark, in serif. Tiny sizes (list rows) keep just the colour and the quote mark.
+struct TextTileIcon: View {
+    let text: String
+    let pasted: Bool
+    var size: CGFloat = 50
+
+    var body: some View {
+        let corner = size * 0.16
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: corner, style: .continuous)
+                .fill(pasted ? Color(white: 0.985) : Color(red: 1.0, green: 0.93, blue: 0.62))
+                .overlay(RoundedRectangle(cornerRadius: corner, style: .continuous)
+                    .strokeBorder(Color.black.opacity(pasted ? 0.14 : 0.07), lineWidth: 0.5))
+                .shadow(color: .black.opacity(0.12), radius: size > 24 ? 1.5 : 0.5, y: 0.5)
+            if size >= 30 {
+                VStack(alignment: .leading, spacing: 0) {
+                    if pasted {
+                        Text("\u{201C}").font(.system(size: size * 0.3, weight: .bold, design: .serif))
+                            .foregroundStyle(Color.black.opacity(0.32))
+                            .frame(height: size * 0.17, alignment: .top)
+                    }
+                    Text(String(text.prefix(90)))
+                        .font(.system(size: size * 0.13, weight: pasted ? .regular : .medium, design: pasted ? .serif : .default))
+                        .foregroundStyle(Color.black.opacity(0.72))
+                        .lineLimit(pasted ? 3 : 4)
+                        .naturalDirection(text)
+                }
+                .padding(size * 0.1)
+            } else if pasted {
+                Text("\u{201C}").font(.system(size: size * 0.75, weight: .bold, design: .serif))
+                    .foregroundStyle(Color.black.opacity(0.4))
+                    .frame(width: size, height: size * 0.9, alignment: .center)
+            }
+        }
+        .frame(width: size, height: size)
+        .accessibilityLabel(pasted ? "Pasted text" : "Note")
+    }
+}
+
+/// The pop-up's icon for pasted text: a white page with a red quote mark — next to the note pad, which is for notes you
+/// wrote.
+struct PastedTextIcon: View {
+    var size: CGFloat = 17
+
+    var body: some View {
+        let s = size
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: max(1.5, s * 0.08), style: .continuous)
+                .fill(Color(white: 0.98))
+                .overlay(RoundedRectangle(cornerRadius: max(1.5, s * 0.08), style: .continuous)
+                    .strokeBorder(Color.black.opacity(0.18), lineWidth: max(0.5, s * 0.015)))
+            VStack(alignment: .leading, spacing: max(1.5, s * 0.08)) {
+                Text("\u{201C}")
+                    .font(.system(size: s * 0.42, weight: .bold, design: .serif))
+                    .foregroundStyle(Color(red: 0.86, green: 0.36, blue: 0.32))
+                    .frame(height: s * 0.22, alignment: .top)
+                ForEach(0..<3, id: \.self) { i in
+                    Capsule().fill(.black.opacity(0.22)).frame(width: s * (i == 2 ? 0.28 : 0.42), height: max(1, s * 0.035))
+                }
+            }
+            .padding(.leading, s * 0.1).padding(.top, s * 0.06)
+        }
+        .frame(width: s * 0.72, height: s * 0.86)
+        .frame(width: s, height: s)
+        .accessibilityLabel("Pasted text")
+    }
 }

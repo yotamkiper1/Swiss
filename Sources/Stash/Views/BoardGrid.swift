@@ -135,7 +135,7 @@ struct BoardGrid: View {
                     .layoutValue(key: BoardFrameKey.self, value: plan.frames[.folder(folder.id)] ?? .zero)
             }
             ForEach(items.filter { wanted.contains(.item($0.id)) }) { item in
-                CardView(item: item, asTile: true)
+                CardView(item: item, asTile: true, compact: compact)
                     .id(Selectable.item(item.id))
                     .followsBoardDrag(.item(item.id))
                     .layoutValue(key: BoardFrameKey.self, value: plan.frames[.item(item.id)] ?? .zero)

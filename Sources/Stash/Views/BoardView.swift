@@ -57,7 +57,7 @@ struct BoardView: View {
                                     }
                                     ForEach(pending) { PendingCard(pending: $0, asRow: true) }
                                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                                        CardView(item: item, asRow: true, rowIndex: folders.count + pending.count + index)
+                                        CardView(item: item, asRow: true, rowIndex: folders.count + pending.count + index, compact: compact)
                                             .id(Selectable.item(item.id))
                                     }
                                 }

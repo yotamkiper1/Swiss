@@ -97,6 +97,9 @@ struct Item: Codable, Identifiable, Hashable {
     var spots: [String: BoardSpot]?
     /// Linked files: finds the original again if it's moved or renamed.
     var bookmark: Data?
+    /// Text that came in by copy and paste (or quick save, Recent, a browser) rather than written here: it shows as a
+    /// white quote card instead of a yellow note.
+    var pasted: Bool?
 }
 
 /// Where something sits on the board after you've dragged it there.

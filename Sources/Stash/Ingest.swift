@@ -73,6 +73,7 @@ extension Store {
         var item = Item(kind: .text, projectID: place.project, folderID: place.folder)
         item.text = text
         item.tags = Self.tags(in: text)
+        item.pasted = true // pasted / quick-saved words: a quote card (notes you write are yellow)
         add(item)
     }
 

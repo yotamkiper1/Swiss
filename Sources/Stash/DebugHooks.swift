@@ -395,6 +395,11 @@ extension AppDelegate {
             let combo = KeyCombo(keyCode: code, modifiers: mods)
             log("shortcut \(which.rawValue) \(combo.display): \(which.problem(with: combo) ?? "OK")")
         case "debuglock": setPinned(url.path != "/off")
+        case "debugwritenote":
+            // A note written in Swiss (not pasted): shows as the yellow note.
+            var note = Item(kind: .text, projectID: store.currentPlace.project, folderID: store.currentPlace.folder)
+            note.text = url.query?.removingPercentEncoding ?? "A note I wrote"
+            store.add(note)
         case "debugsavetext": store.addText(url.query?.removingPercentEncoding ?? "Saved note", place: store.currentPlace)
         case "debugkeepimage":
             if let img = RecentStore.shared.items.first(where: { $0.kind == .image && $0.itemID == nil }) {

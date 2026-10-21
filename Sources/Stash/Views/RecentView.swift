@@ -33,7 +33,7 @@ struct RecentView: View {
                         let _ = recent.shownIDs = shown.map(\.id)
                         LazyVStack(spacing: 1) {
                             ForEach(shown) {
-                                RecentRow(item: $0).id($0.id)
+                                RecentRow(item: $0, compact: compact).id($0.id)
                             }
                         }
                         .padding(.horizontal, 8).padding(.vertical, 6)
@@ -176,6 +176,8 @@ private struct RecentRow: View {
     @EnvironmentObject var store: Store
     @ObservedObject private var recent = RecentStore.shared
     let item: RecentItem
+    /// The pop-up: notes and copied text as icons (the window shows them as cards).
+    var compact = false
     @State private var hovering = false
 
     private var selected: Bool { recent.selection.contains(item.id) }
@@ -286,7 +288,11 @@ private struct RecentRow: View {
                 .frame(width: 34, height: 34).clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
         } else if let saved, saved.kind == .text {
-            NotePadIcon(size: 28)
+            if compact {
+                if saved.pasted == true { PastedTextIcon(size: 30) } else { NotePadIcon(size: 30) }
+            } else {
+                TextTileIcon(text: saved.text ?? "", pasted: saved.pasted == true, size: 32)
+            }
         } else if let saved, saved.kind == .file, let url = store.contentURL(saved) {
             Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable()
         } else if let image = recent.previewImage(item) {
@@ -300,6 +306,8 @@ private struct RecentRow: View {
             case .link:
                 Image(systemName: "link").font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
                     .frame(width: 30, height: 30).background(RoundedRectangle(cornerRadius: 7).fill(FolderStyle.linker.color))
+            case .text:
+                if compact { PastedTextIcon(size: 30) } else { TextTileIcon(text: item.text ?? "", pasted: true, size: 32) } // copied words
             default:
                 Image(systemName: item.kind == .screenshot ? "camera.viewfinder" : "text.quote")
                     .font(.system(size: 14)).foregroundStyle(.secondary)

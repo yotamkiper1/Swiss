@@ -8,6 +8,7 @@ struct RecentView: View {
     @ObservedObject private var recent = RecentStore.shared
     @AppStorage(CaptureSettings.clipboardKey) private var clipboardOn = false
     @AppStorage(CaptureSettings.screenshotsKey) private var screenshotsOn = false
+    @AppStorage(CaptureSettings.downloadsKey) private var downloadsOn = false
     @AppStorage(CaptureSettings.retentionKey) private var retention = 7
     let compact: Bool
 
@@ -19,8 +20,8 @@ struct RecentView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "clock.arrow.circlepath").font(.system(size: 30, weight: .light)).foregroundStyle(.tertiary)
                     Text("Nothing here yet").font(.system(size: 13, weight: .semibold))
-                    Text(clipboardOn || screenshotsOn ? "Copy anything, or take a screenshot — it shows up here."
-                         : "Turn on Copies or Screenshots above to catch them here.")
+                    Text(clipboardOn || screenshotsOn || downloadsOn ? "Copy anything, take a screenshot or download something — it shows up here."
+                         : "Turn on Copies, Screenshots or Downloads above to catch them here.")
                         .font(.system(size: 11.5)).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
                 .padding()
@@ -57,7 +58,8 @@ struct RecentView: View {
             // What's being captured, always in sight: flip either one right here.
             captureChip("Copies", symbol: "doc.on.clipboard", on: $clipboardOn)
             captureChip("Screenshots", symbol: "camera.viewfinder", on: $screenshotsOn)
-            if clipboardOn || screenshotsOn {
+            captureChip("Downloads", symbol: "arrow.down.circle", on: $downloadsOn)
+            if clipboardOn || screenshotsOn || downloadsOn {
                 Button { recent.setPaused(!recent.paused) } label: {
                     Image(systemName: recent.paused ? "play.circle.fill" : "pause.circle")
                         .font(.system(size: 12, weight: .medium))

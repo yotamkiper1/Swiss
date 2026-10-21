@@ -6,6 +6,7 @@ struct CaptureSettingsView: View {
     @ObservedObject private var recent = RecentStore.shared
     @AppStorage(CaptureSettings.clipboardKey) private var clipboardOn = false
     @AppStorage(CaptureSettings.screenshotsKey) private var screenshotsOn = false
+    @AppStorage(CaptureSettings.downloadsKey) private var downloadsOn = false
     @AppStorage(CaptureSettings.retentionKey) private var retention = 3
     @AppStorage(CaptureSettings.maxMBKey) private var maxMB = 500
     @State private var folderPath = CaptureSettings.screenshotFolder.path
@@ -15,6 +16,17 @@ struct CaptureSettingsView: View {
         Section {
             Toggle("Capture what I copy (text, links, pictures, files)", isOn: $clipboardOn)
             Toggle("Capture screenshots", isOn: $screenshotsOn)
+            Toggle("Capture downloads", isOn: $downloadsOn)
+            if downloadsOn {
+                LabeledContent("Save here to add to Recent") {
+                    HStack {
+                        Text("Downloads ▸ Swiss").foregroundStyle(.secondary)
+                        Button("Show in Finder") { NSWorkspace.shared.open(RecentStore.prepareSwissFolder()) }
+                    }
+                }
+                Text("New downloads land in Recent. In any Save dialog, pick Downloads ▸ Swiss (drag it into Finder's sidebar to have it in every dialog).")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+            }
             if screenshotsOn {
                 LabeledContent("Screenshot folder") {
                     HStack {
@@ -24,7 +36,7 @@ struct CaptureSettingsView: View {
                 }
             }
             Toggle("Pause capture", isOn: Binding(get: { recent.paused }, set: { recent.setPaused($0) }))
-                .disabled(!clipboardOn && !screenshotsOn)
+                .disabled(!clipboardOn && !screenshotsOn && !downloadsOn)
             Picker("Keep things in Recent for", selection: $retention) {
                 Text("1 day").tag(1)
                 Text("3 days").tag(3)

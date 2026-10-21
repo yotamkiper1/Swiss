@@ -66,12 +66,13 @@ Moving, renaming and deleting in Swiss does the same to the files. Very large fi
 ## Privacy and safety
 
 - Nothing of yours is uploaded. Swiss only contacts a site to fetch a saved link's title and picture, or to download something you asked for.
-- Capture of the clipboard and screenshots is **off** until you enable it (Settings → Capture); Recent keeps items 3 days by default.
+- Capture of the clipboard, screenshots and downloads is **off** until you enable it (Settings → Capture); Recent keeps items 3 days by default.
 - Files are checked before they run (code-like files ask first), downloads are quarantined like Safari's, and the downloader runs without user config.
 - Saves are written in the background, verified, and swapped in atomically; the last good copy and hourly backups are kept.
 
 ## Updates
 
+- Downloads in Recent: turn on **Downloads** at the top of Recent. New downloads land there, and anything you save to **Downloads ▸ Swiss** from any Save dialog does too. Finder: right-click ▸ Services ▸ **Add to Swiss Recent**. Chrome: the right-click extension in `extras/chrome`.
 - Share: right-click anything (or use Share in the picture preview) for AirDrop, Mail, Messages and more; WhatsApp is added to the list.
 - The "you copied…" banner now disappears after 15 seconds or when you move to another project or folder.
 - Welcome tour on first launch.

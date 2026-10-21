@@ -302,6 +302,7 @@ extension AppDelegate {
         case "debugcapture":
             UserDefaults.standard.set(url.path.contains("clip"), forKey: CaptureSettings.clipboardKey)
             UserDefaults.standard.set(url.path.contains("shot"), forKey: CaptureSettings.screenshotsKey)
+            UserDefaults.standard.set(url.path.contains("dl"), forKey: CaptureSettings.downloadsKey)
             if let folder = url.query?.removingPercentEncoding { UserDefaults.standard.set(folder, forKey: CaptureSettings.screenshotFolderKey) }
         case "debugrecentstate":
             let r = RecentStore.shared

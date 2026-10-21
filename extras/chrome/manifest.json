@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Save to Swiss",
+  "version": "1.0",
+  "description": "Right-click a picture, video, link, page or selected text to add it to Recent in Swiss.",
+  "permissions": ["contextMenus", "downloads"],
+  "background": { "service_worker": "background.js" },
+  "icons": { "128": "icon128.png" }
+}

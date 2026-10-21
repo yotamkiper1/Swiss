@@ -64,6 +64,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if ProcessInfo.processInfo.environment["STASH_COUNTERS"] != nil { Perf.startCounterLog() }
         OrganizerSettings.register()
         MainMenu.shared.install() // Swiss's tools in the Mac menu bar
+        NSApp.servicesProvider = self // Finder / browsers: right-click ▸ Services ▸ Add to Swiss Recent
+        NSUpdateDynamicServices()
         setUpPanel()
         setUpCompact()
         setUpFloating()
@@ -95,6 +97,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             switch url.host {
             case "clipboard":
                 if !store.ingest(.general, into: store.currentPlace) { NSSound.beep() }
+            case "recent":
+                // swiss://recent?text=… — a link or words from a browser's right-click, straight into Recent.
+                let text = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "text" }?.value
+                if let text, !text.isEmpty { RecentStore.shared.addExplicit(text: String(text.prefix(20_000)), source: "Browser") }
             case "add":
                 let text = URLComponents(url: url, resolvingAgainstBaseURL: false)?
                     .queryItems?.first { $0.name == "text" }?.value
@@ -539,6 +545,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     @objc private func togglePauseCapture() { RecentStore.shared.setPaused(!RecentStore.shared.paused) }
 
+    /// Finder's Services menu: "Add to Swiss Recent" for files, links and words (see Info.plist ▸ NSServices).
+    @objc func addToRecent(_ pboard: NSPasteboard, userData: String, error: AutoreleasingUnsafeMutablePointer<NSString>) {
+        MainActor.assumeIsolated { RecentStore.shared.addExplicit(pboard, source: "Services") }
+    }
+
+    /// Shows Downloads ▸ Swiss in Finder (made if it isn't there yet).
+    @objc func showSwissDownloads() {
+        NSWorkspace.shared.open(RecentStore.prepareSwissFolder())
+    }
+
     private func makeStatusMenu() -> NSMenu {
         let menu = NSMenu()
         let open = menu.addItem(withTitle: "Open Swiss", action: #selector(showCompactAction), keyEquivalent: " ")
@@ -547,7 +563,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let quick = menu.addItem(withTitle: "Save Clipboard to \(Store.shared.describe(Store.shared.suggestedPlace(for: Store.clipboardKind(.general)?.0)))",
                                  action: #selector(saveClipboard), keyEquivalent: "")
         quick.toolTip = "Same as the quick-save shortcut (\(Shortcut.quickSave.combo?.display ?? "off"))"
-        if CaptureSettings.clipboardOn || CaptureSettings.screenshotsOn {
+        if CaptureSettings.clipboardOn || CaptureSettings.screenshotsOn || CaptureSettings.downloadsOn {
             let paused = RecentStore.shared.paused
             menu.addItem(withTitle: paused ? "Resume Capture" : "Pause Capture", action: #selector(togglePauseCapture), keyEquivalent: "")
         }
@@ -555,6 +571,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let login = menu.addItem(withTitle: "Open at Login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(withTitle: "Open Swiss Folder (Documents)", action: #selector(showLibrary), keyEquivalent: "")
+        menu.addItem(withTitle: "Open Downloads ▸ Swiss (save here to add to Recent)", action: #selector(showSwissDownloads), keyEquivalent: "")
         menu.addItem(withTitle: "Settings…", action: #selector(showSettingsAction), keyEquivalent: ",")
         for shortcut in [Shortcut.open, .quickSave] where isRegistered(shortcut) == false {
             let warning = menu.addItem(withTitle: "\(shortcut.combo?.display ?? "") is used by another app", action: nil, keyEquivalent: "")

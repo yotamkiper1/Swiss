@@ -3,8 +3,13 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-swift build -c release
-BIN="$(swift build -c release --show-bin-path)/Stash"
+# The project may sit in iCloud Drive (Desktop & Documents), which touches files while they compile ("modified during
+# the build"). Compile from a private copy outside it instead.
+WORK="$HOME/Library/Caches/SwissBuild"
+mkdir -p "$WORK/src"
+rsync -a --delete --exclude .build --exclude build --exclude .git --exclude docs --exclude tools --exclude Unused ./ "$WORK/src/"
+(cd "$WORK/src" && swift build -c release --build-path "$WORK/.build")
+BIN="$(cd "$WORK/src" && swift build -c release --build-path "$WORK/.build" --show-bin-path)/Stash"
 
 # `./build.sh test` makes "Swiss Test.app": its own bundle id (own settings), own library, stashtest:// and no
 # global shortcuts — for testing without touching the real Swiss.
@@ -23,6 +28,7 @@ if [[ "$NAME" == "Swiss Test" ]]; then
     $PB -c "Set :CFBundleIdentifier com.yotamkiper.stash.test" "$APP/Contents/Info.plist"
     $PB -c "Set :CFBundleName Swiss Test" -c "Set :CFBundleDisplayName Swiss Test" "$APP/Contents/Info.plist"
     $PB -c "Delete :CFBundleURLTypes:0:CFBundleURLSchemes:1" "$APP/Contents/Info.plist"
+    $PB -c "Delete :NSServices" "$APP/Contents/Info.plist" # the test app doesn't add a second "Add to Swiss Recent" to Finder's menu
     $PB -c "Set :CFBundleURLTypes:0:CFBundleURLName com.yotamkiper.stash.test" -c "Set :CFBundleURLTypes:0:CFBundleURLSchemes:0 stashtest" "$APP/Contents/Info.plist"
 fi
 [ -f Resources/AppIcon.icns ] && cp Resources/AppIcon.icns "$APP/Contents/Resources/"

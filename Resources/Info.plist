@@ -32,6 +32,28 @@
             </array>
         </dict>
     </array>
+    <key>NSServices</key>
+    <array>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Add to Swiss Recent</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>addToRecent</string>
+            <key>NSPortName</key>
+            <string>Swiss</string>
+            <key>NSSendTypes</key>
+            <array>
+                <string>public.file-url</string>
+                <string>NSFilenamesPboardType</string>
+                <string>public.url</string>
+                <string>public.utf8-plain-text</string>
+                <string>NSStringPboardType</string>
+            </array>
+        </dict>
+    </array>
     <key>NSAppleEventsUsageDescription</key>
     <string>Swiss arranges your connected folders in Finder the same way you arrange them in Swiss.</string>
     <key>LSUIElement</key>

@@ -1,4 +1,4 @@
-# Swiss: silent product film (34 s, v2) — production brief
+# Swiss: silent product film (43 s, v3) — production brief
 
 Everything here was checked against the source on `main` (commit `9785414`). File references are to `Sources/Stash/`.
 
@@ -18,55 +18,60 @@ Everything here was checked against the source on `main` (commit `9785414`). Fil
 | 5c | The app’s own organization system | Projects (tabs) → folders (Classic, Linker, PhotoBook, Notepad, Files) → items (link, image, text, file), plus notes, colour tags and #tags. Folder icon = Finder-blue folder with a coloured kind dot. | — | `Models.swift:3–60, 266`; `Views/FolderViews.swift:5–88` |
 | 5d | “Priority folders” | **No feature with that name.** The closest real features: the **first nine folders on a board are numbered**; pressing **1–9** opens that folder and **⌥1–⌥9** puts the selection into it. And **pinned projects** (Pin Tab) always keep a tab and sort first. The film shows numbered folders but does not call them “priority folders”. | Automatic numbering; pinning is an action. | `Views/BoardGrid.swift:126`; `Views/FolderViews.swift:135–160`; `Panel.swift:321–355`; `Views/Sidebar.swift:15–17`; `Views/AllProjects.swift:23, 156–165` |
 
-Not advertised in the film: Convert, YouTube MP3/MP4 download, Share, Deep Organize. They exist but would crowd 34 seconds.
+| 5e | Three sizes | The green window button grows Swiss: **pop-up → window → whole screen**; orange steps back, red closes (Window menu: Pop-up ⌥⌘1, Full Screen ⌥⌘2, Frame ⌥⌘3). The pop-up is 300 × 400 pt. | Action. | `Views/WindowLights.swift:13–32`; `Views/WindowMode.swift:5–9`; `MainMenu.swift:211–216`; `Views/CompactView.swift:13`; `Views/WelcomeTour.swift:82–85` |
 
-## 2. Final on-screen copy (v2)
+Not advertised in the film: Convert, YouTube MP3/MP4 download, Share, Deep Organize. They exist but would crowd the film.
 
-Each beat has a red eyebrow, one headline and at most a few chips (the reference film's style). Inter, near-black on the light stage.
+## 2. Final on-screen copy (v3)
 
-| Eyebrow | Headline | Chips |
+The style follows the owner's second reference. Most of it plays on a dark, warm stage, with a red numbered eyebrow, big white lines that rise into place, a grey line and a few chips; the intro and outro sit on the icon's off-white. Scenes are revealed behind a red diagonal slash.
+
+| # | Eyebrow | Headline | Grey line | Chips / extras |
+|---|---|---|---|---|
+| Intro | — | Icon, a red ring pulse, **Swiss** slides out from behind the icon | *A pocket knife for your ideas.* | — |
+| Opener | YOUR IDEAS ARE | **scattered.** → **links.** → **screenshots.** → **files.** (over drifting cards) | — | — |
+| 01 | Menu bar | One click away. | Lives in your menu bar. Always ready. | — |
+| 02 | Recent | Copy. Capture. Keep. | Everything you copy or screenshot lands here, ready to keep. | Link copied · Text copied · Screenshot captured; *Capture is opt-in · Settings → Capture* |
+| 03 | Projects | Tabs for every idea. | Folders, notes, pictures and links. One calm place. | — |
+| 04 | The wand | One tap. No mess. | Links, pictures, notes and files sort themselves into folders. | Linker · PhotoBook · Notepad · Files |
+| 05 | Connected folders | Finder, inside Swiss. | Rename, move, tag and sort. Finder follows along. | — |
+| 06 | The Frame | A canvas above it all. | Pull anything in from your library. Move it, zoom in, undo. | ⌘ Z keycaps · Undo, any time |
+| 07 | One click, three sizes | Make it yours. | Green grows Swiss: the pop-up, the window, then the whole screen. | POP-UP · WINDOW · FULL SCREEN |
+| Privacy | — | ~~No account.~~ ~~No cloud.~~ **Stays on your Mac.** (red lock) | — | README: “no account, no cloud” |
+| Outro | — | Icon, **Swiss** | *A pocket knife for your ideas.* | FOR MACOS 14 OR LATER |
+
+In-UI strings come from the app: “Recent”, “kept 3 days”, “Copies”, “Screenshots”, “Keep”, “Kept in Mammoth”, “Organized 7 items into 4 new folders” (`Store.swift:1021`), “Linker / PhotoBook / Notepad / Files”, “Connected”, “New”.
+
+## 3. Timed storyboard (30 fps, 43.0 s = 1290 frames)
+
+| Time | Beat | What happens |
 |---|---|---|
-| — | Your project lives in **browser tabs. / Downloads. / screenshots.** (the red word cycles) | — |
-| 01 · Recent | Copy it once. It lands in Recent. | + Link captured · + Screenshot captured · *Opt-in · Settings → Capture* |
-| 02 · Keep | Keep what matters in a project. | + Moved into Mammoth · *Recent clears after 3 days* |
-| 03 · The wand | One click sorts the board by kind. | + Pictures → PhotoBook · + Links → Linker · + Notes → Notepad · + Files & docs → Files |
-| 04 · The Frame | A canvas that stays on top. | + Drag in from your library · + Videos play in place |
-| 05 · Connected folders | Work right inside any Finder folder. | + Rename, move, tag · + Finder follows along |
-| 06 · On your Mac | Everything in one place. | + No account · + No cloud (README: “no account, no cloud”) |
-| End card | Swiss icon, **Swiss**, *A pocket knife for your ideas.*, *For Mac · macOS 14 or later* | — |
+| 0.0–2.7 | Intro | Icon pops in with a small overshoot, a red ring pulses out, the wordmark slides out from behind the icon, then the line fades up |
+| 2.7–6.4 | Scattered | Red slash. About 30 cards drift at different depths (blurred when far): the Commons pictures, coloured poster cards, ghost cards. The word under “YOUR IDEAS ARE” rolls through four words; the camera flies through the cards into black |
+| 6.4–9.8 | 01 Menu bar | The desktop fades up. The cursor clicks the knife in the menu bar; the pop-up opens with the Mammoth tab, its folders and a few things; rings on the icon, then the pop-up |
+| 9.8–15.0 | 02 Recent | A link, a text and a screenshot arrive in Recent, each with a ring and a chip. Select the screenshot, Keep → “Kept in Mammoth”; push in on the list |
+| 15.0–18.4 | 03 Projects | The cursor clicks through the tabs Mammoth → Showreel → Thesis → Mammoth; each board swaps in |
+| 18.4–23.2 | 04 Wand | One click: PhotoBook, Linker, Notepad and Files appear, seven cards fly in (Google Doc and PDF → Files), flash; push in on the folders |
+| 23.2–27.6 | 05 Connected | Swiss › Connected › Exhibit images, with a Finder window of the same folder. Rename “lyuba-baby-mammoth.jpg” → “Lyuba – hero print.jpg”; the Finder row follows |
+| 27.6–32.4 | 06 Frame | Drag the skull from the library onto the canvas, play a local video with the Mac's controls, then ⌘Z takes the drop back |
+| 32.4–35.8 | 07 Sizes | The cursor clicks the green light twice: the pop-up grows to the window, then to the whole screen; the size pills follow |
+| 35.8–38.8 | Privacy | A red lock drops in. “No account.” and “No cloud.” are struck through, then “Stays on your Mac.” |
+| 38.8–43.0 | Outro | Off-white with drifting red crosses: icon, wordmark, line, FOR MACOS 14 OR LATER |
 
-In-UI text uses the app's own strings: “Recent”, “kept 3 days”, “Copies”, “Screenshots”, “Keep”, “Kept in Mammoth”, “Organized 9 items into 4 new folders” (`Store.swift:1021`), “Linker / PhotoBook / Notepad / Files”, “Connected”.
-
-## 3. Timed storyboard (30 fps, 34.0 s = 1020 frames)
-
-| Time | Beat | What happens | Techniques |
-|---|---|---|---|
-| 0.0–3.6 | Problem | Desktop: Chrome on the real Wikipedia *Woolly mammoth* page (tabs: that page and “Exhibition text – Google Docs”), Finder **Downloads** with real names (the project folder, menu-auditorium.jpg, enjoy_the_show!_v1 (1080p).mp4, Stash-Design-and-Features.pdf), two screenshots on the desktop | Word-cycling headline; a red ring moves Chrome → Downloads → screenshots in step with the word |
-| 3.6–9.8 | Recent → Keep | Click the address bar, ⌘C: a link row arrives in Recent (“en.wikipedia.org · Chrome · now”). ⇧⌘4 over the skeleton photo: a screenshot row arrives with that crop as its thumbnail. Zoom 120 % on Recent, select it, **Keep** → “Kept in Mammoth” | Key hints, red ring on each new row, chips as each thing lands |
-| 9.8–15.8 | Wand | Project **Mammoth** (pinned tab) with the plain folder “Print shop” and 9 loose cards: five of the user's pictures, the Wikipedia link, the Google Doc, the video file, a note. Wand click: PhotoBook, Linker, Notepad, Files appear; cards fly in (video and doc → Files); flash; zoom on the folders | Ring on the wand, then on the new folders; four mapping chips |
-| 15.8–22.2 | Frame | Chrome fills the screen; the Frame floats over it with the Mammoth library. Drag picture #3 onto the canvas; play the local video with the Mac's own controls (real frames of enjoy_the_show, 10 fps); click back into Chrome: Chrome becomes active, the Frame stays in front | Push-in on the Frame, ring on the Frame at the end |
-| 22.2–27.4 | Connected folder | Finder list of the real folder (its 10 real image files) beside Swiss › Connected with real thumbnails #1–#6. Rename #3 to “Mammoth #3 – print.jpg” in Swiss; Finder updates the row and date | ↩ hints, ring on the Finder row |
-| 27.4–30.6 | Organized | Mammoth board: Print shop 6, PhotoBook 5, Linker 1, Notepad 1, Files 2, a few cards | Slow pull-back 108 → 100 % |
-| 30.15–31.0 | Wipe | A red diagonal wipe crosses the stage | From the reference film |
-| 30.6–34.0 | End card | Icon, wordmark, line, platform line arrive one after another | Ease-out, no bounce |
-
-Scenes dip through the shared wallpaper (0.3 s). Cubic in-out for camera and cursor, ease-out for arrivals; no zoom above 120 %.
+Easing: cubic in-out for camera, cursor and wipes; ease-out with a light overshoot for icons; titles rise line by line.
 
 ## 4. Assets
 
-- **The user's own material** (`tools/commercial/assets/`, from the connected Mac; **kept out of git**, since the repo is public — it's in the project files, and `assets/names.js` holds the real file names): pictures #1–#6 and #9 of the mammoth series (downscaled to 1200 px), menu-auditorium.jpg, 150 frames of enjoy_the_show!_v1 (1080p).mp4 (480×240, from 96 s), and real file and folder names from Downloads and the project folder.
-- **Chrome:** a real headless-Chromium capture of en.wikipedia.org/wiki/Woolly_mammoth (`wiki.jpg`) and a crop of its skeleton photo (`wiki-skeleton.jpg`), shown inside a Chrome-style window. The user's own Chrome was not screen-recorded.
-- **Deliberately left out:** personal documents seen in Downloads (CV, payment receipt, letters, an applications tracker).
-- **Rebuilt in HTML (faithful demonstration, not a screen recording):** Swiss's windows, sidebar, Recent, cards, folders, the Frame, Finder. The container is Linux, so the macOS app can't run or be recorded here.
+- **Pictures:** six freely licensed pictures from Wikimedia Commons plus a Wikipedia capture. Authors and licenses are in `CREDITS.md`. None of the owner's personal photos, videos or file names are used any more.
+- **Rebuilt in HTML (faithful demonstration, not a screen recording):** Swiss's pop-up, window, sidebar, Recent, tabs, board, folders, the Frame, and a Finder window. The container is Linux, so the macOS app can't run or be recorded here.
 - **Repo:** `Resources/AppIcon-source.png` (logo), the app's colours and strings.
-- **Font:** Inter stands in for SF Pro; Hebrew falls back to Liberation Sans. SF Symbols are drawn as simplified SVGs.
-- **For a version with real captures:** on a Mac run `./build.sh test` and use the `stashtest://debug…` hooks (`DebugHooks.swift`, `tools/film/`) to stage each screen, then record at 2× with the cursor visible; this HTML timing can serve as the edit.
+- **Font:** Inter stands in for SF Pro, and SF Symbols are simplified SVGs.
+- **For a version with real captures:** on a Mac, run `./build.sh test` and use the `stashtest://debug…` hooks (`DebugHooks.swift`, `tools/film/`) to stage each screen.
 
 ## 5. What was rendered
 
-- `swiss-film-1920x1080.mp4`: 1920×1080, 30 fps, 34.0 s (1020 frames), H.264 High, yuv420p, **no audio stream**.
-- `swiss-film-1080x1920-vertical.mp4`: the same film reframed for 1080×1920 (a 680-point-wide crop per scene, captions below).
-- Both decode cleanly end to end; the only still stretch is the 2.6 s end-card hold.
-- v1 (40 s) is in git history.
+- `swiss-film-1920x1080.mp4`: 1920×1080, 30 fps, 43.0 s (1290 frames), H.264 High, yuv420p, **no audio stream**.
+- `swiss-film-1080x1920-vertical.mp4`: the same film for 1080×1920. Titles sit above the app (a 680-point-wide crop of each scene), and the menu bar scene runs full height.
+- v1 (40 s) and v2 (34 s) are in git history.
 
-Rebuild: `node render.mjs video out/swiss-film-1920x1080.mp4` and `node render.mjs video out/swiss-film-1080x1920-vertical.mp4 v` (Node with Playwright, Chromium, ffmpeg, Inter).
+To rebuild: `node render.mjs video out/swiss-film-1920x1080.mp4` and `node render.mjs video out/swiss-film-1080x1920-vertical.mp4 v`. This needs Node with Playwright, Chromium, ffmpeg and Inter.

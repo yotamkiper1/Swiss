@@ -167,10 +167,15 @@ extension AppDelegate {
     func setFullScreen(_ on: Bool) {
         guard let screen = panel.screen ?? NSScreen.main else { return }
         let defaults = UserDefaults.standard
+        if on, isBigLocked { Store.shared.flash("Unlock the window first"); return }
+        // Instant underneath (an animated resize redraws the board every step); the picture on top glides.
+        WindowMorph.run(from: panel, to: panel) { fill(on, screen: screen, defaults: defaults) }
+    }
+
+    private func fill(_ on: Bool, screen: NSScreen, defaults: UserDefaults) {
         if on {
-            guard !isBigLocked else { Store.shared.flash("Unlock the window first"); return }
             defaults.set(NSStringFromRect(panel.frame), forKey: Self.frameBeforeFullKey)
-            panel.setFrame(screen.visibleFrame, display: true, animate: false) // instant: an animated resize redraws the board every step
+            panel.setFrame(screen.visibleFrame, display: true, animate: false)
             defaults.set(true, forKey: Self.fullScreenKey)
         } else {
             let before = defaults.string(forKey: Self.frameBeforeFullKey).map(NSRectFromString)

@@ -337,20 +337,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// Small preview → big movable window.
     func expand() {
-        if !companion { WindowMode.set(.window) } // opened from the canvas: the canvas stays the mode you use
-        compact.orderOut(nil) // one Stash window at a time (the canvas's companion: besides the canvas)
-        if !companion { floating.orderOut(nil) }
-        statusItem.button?.highlight(false)
-        showPanel()
+        let from = compact.isVisible ? compact : (!companion && floating.isVisible ? floating : nil)
+        WindowMorph.run(from: from, to: panel) {
+            if !companion { WindowMode.set(.window) } // opened from the canvas: the canvas stays the mode you use
+            compact.orderOut(nil) // one Stash window at a time (the canvas's companion: besides the canvas)
+            if !companion { floating.orderOut(nil) }
+            statusItem.button?.highlight(false)
+            showPanel()
+        }
     }
 
     /// Big window → back into the menu bar.
     func collapse() {
         if companion { panel.orderOut(nil); openCompanion(); return }
-        WindowMode.set(.popup)
-        panel.orderOut(nil)
-        floating.orderOut(nil)
-        showCompact()
+        WindowMorph.run(from: panel.isVisible ? panel : floating.isVisible ? floating : nil, to: compact) {
+            WindowMode.set(.popup)
+            panel.orderOut(nil)
+            floating.orderOut(nil)
+            showCompact()
+        }
     }
 
     // MARK: Floating frame
@@ -358,11 +363,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Floating mode: one frame above every app, wherever you put it.
     func float() {
         guard !companion else { return } // already in the Frame
-        WindowMode.set(.floating)
-        compact.orderOut(nil)
-        panel.orderOut(nil)
-        statusItem.button?.highlight(false)
-        showFloating()
+        WindowMorph.run(from: compact.isVisible ? compact : panel.isVisible ? panel : nil, to: floating) {
+            WindowMode.set(.floating)
+            compact.orderOut(nil)
+            panel.orderOut(nil)
+            statusItem.button?.highlight(false)
+            showFloating()
+        }
     }
 
     func showFloating() {

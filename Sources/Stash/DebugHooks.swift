@@ -304,6 +304,22 @@ extension AppDelegate {
         case "debuglockstate": log("lock enabled=\(AppLock.enabled) unlocked=\(AppLock.isUnlocked) windows=\(NSApp.windows.filter { $0.isVisible && !$0.className.contains("StatusBar") }.map { "\($0.className):\($0.title)" })")
         case "debuglocknow": AppLock.lock()
         case "debugfeedback": Feedback.sendFeedback()
+        case "debugmorph": // stashtest://debugmorph/expand (or collapse, float, fill, unfill): what's on screen during and after
+            switch url.path {
+            case "/collapse": collapse()
+            case "/float": float()
+            case "/fill": setFullScreen(true)
+            case "/unfill": setFullScreen(false)
+            default: expand()
+            }
+            func windows(_ when: String) {
+                let list = NSApp.windows.filter { $0.isVisible && !$0.className.contains("StatusBar") }
+                    .map { "\($0 is StashPanel ? ($0 as! StashPanel).gateKey : "overlay") a=\(String(format: "%.2f", $0.alphaValue)) w=\(Int($0.frame.width))" }
+                log("morph \(url.path) \(when): \(list.joined(separator: ", "))")
+            }
+            windows("start")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { windows("mid") }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { windows("end") }
         case "debugagerecent": // stashtest://debugagerecent?2 → the newest Recent entry was last seen 2 hours ago
             RecentStore.shared.age(hours: Double(url.query ?? "1") ?? 1)
             log("retention=\(UserDefaults.standard.integer(forKey: CaptureSettings.retentionKey)) recent=\(RecentStore.shared.items.count)")

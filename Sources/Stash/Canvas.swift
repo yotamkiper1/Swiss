@@ -30,12 +30,15 @@ struct CanvasItem: Codable, Identifiable, Equatable {
     var fontSize: Double?
     /// Text you copied and pasted in: shown as a white quote card, not a yellow note.
     var quote: Bool?
+    /// A link showing its web page, live, right on the canvas (Show Page Here).
+    var page: Bool?
 
     /// A note's text size: what resizing made it, or (never resized) the size notes always had for their width.
     var textSize: Double { fontSize ?? 13 * min(3, max(0.7, width / 200)) }
 
     var frame: CGRect { CGRect(x: x, y: y, width: width, height: height) }
     var link: URL? { url.flatMap(URL.init(string:)) }
+    var showsPage: Bool { kind == .link && page == true && link.map(Safety.isWebURL) == true }
 }
 
 private struct CanvasFile: Codable {
@@ -97,6 +100,7 @@ final class CanvasStore: ObservableObject {
 
     /// Saved a moment after the last change (dragging doesn't write on every move), off the main thread.
     func save() {
+        WebPages.shared.keepOnly(Set(items.filter(\.showsPage).map(\.id))) // a page whose card went is closed
         saveWork?.cancel()
         let snapshot = CanvasFile(items: items, zoom: zoom, panX: pan.width, panY: pan.height)
         let file = file
@@ -284,6 +288,23 @@ final class CanvasStore: ObservableObject {
             items[i].height = h
         }
         save()
+    }
+
+    /// Show Page Here / Show as Link. A page gets room to be read (and keeps the card's corner where it was).
+    func togglePage(_ id: UUID) {
+        update(id) { item in
+            guard item.kind == .link else { return }
+            if item.page == true {
+                item.page = nil
+                item.width = 240
+                item.height = 58
+            } else {
+                item.page = true
+                item.width = max(item.width, 720)
+                item.height = max(item.height, 480)
+            }
+        }
+        bringToFront(id)
     }
 
     func bringToFront(_ id: UUID) {

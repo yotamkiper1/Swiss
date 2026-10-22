@@ -264,12 +264,13 @@ private struct CanvasItemView: View {
     /// The size to draw at: the live one while resizing (a video keeps its size and is scaled instead — a playing
     /// player re-laid out on every mouse move is what made resizing stutter).
     private var size: CGSize {
-        guard let liveSize, item.kind != .video else { return frame.size }
+        guard let liveSize, !playsInside else { return frame.size }
         return liveSize
     }
 
     private var selected: Bool { canvas.selection.contains(item.id) }
-    private var playsInside: Bool { item.kind == .video }
+    /// Videos and live pages take their own clicks; they're moved by the bar on top.
+    private var playsInside: Bool { item.kind == .video || item.showsPage }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -282,6 +283,7 @@ private struct CanvasItemView: View {
                     Image(systemName: "line.3.horizontal").font(.system(size: 9, weight: .bold))
                     Text(item.text ?? item.link?.host ?? "Video").font(.system(size: 10, weight: .medium)).lineLimit(1)
                     Spacer(minLength: 0)
+                    if item.showsPage { PageButtons(item: item) }
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 7)
@@ -344,7 +346,7 @@ private struct CanvasItemView: View {
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .modifier(CardClicks(on: !playsInside, open: open, select: select, move: moveGesture) { menu })
-        .scaleEffect(item.kind == .video ? (liveSize.map { $0.width / max(1, frame.width) } ?? 1) : 1, anchor: .topLeading)
+        .scaleEffect(playsInside ? (liveSize.map { $0.width / max(1, frame.width) } ?? 1) : 1, anchor: .topLeading)
         .offset(live.ids.contains(item.id) ? live.offset : .zero) // moving: drawn shifted, saved when you let go
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
@@ -371,6 +373,11 @@ private struct CanvasItemView: View {
             }
         case .text:
             noteView
+        case .link where item.showsPage:
+            if let url = item.link {
+                WebPageView(page: WebPages.shared.page(for: item.id, url: url), zoom: canvas.zoom)
+                    .background(Color(nsColor: .textBackgroundColor))
+            }
         case .link:
             HStack(spacing: 8 * canvas.zoom) {
                 Image(systemName: "link").font(.system(size: 13 * canvas.zoom, weight: .semibold)).foregroundStyle(.white)
@@ -385,6 +392,20 @@ private struct CanvasItemView: View {
             .padding(.horizontal, 10 * canvas.zoom)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(nsColor: .textBackgroundColor))
+            .overlay(alignment: .topTrailing) {
+                // Show the page itself, right here.
+                if hovering, item.link.map(Safety.isWebURL) == true {
+                    Button { canvas.togglePage(item.id) } label: {
+                        Image(systemName: "macwindow").font(.system(size: 10, weight: .semibold))
+                            .frame(width: 20, height: 20)
+                            .background(Circle().fill(.regularMaterial))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(4)
+                    .help("Show the page here, on the canvas")
+                    .accessibilityLabel("Show page here")
+                }
+            }
         case .video:
             if let link = item.link, let id = CanvasStore.youTubeID(link) {
                 YouTubePlayer(videoID: id)
@@ -475,7 +496,10 @@ private struct CanvasItemView: View {
     }
 
     @ViewBuilder private var menu: some View {
-        Button(item.kind == .text ? "Edit" : "Open") { open() }
+        Button(item.kind == .text ? "Edit" : item.kind == .link ? "Open in Browser" : "Open") { open() }
+        if item.kind == .link, item.link.map(Safety.isWebURL) == true {
+            Button(item.showsPage ? "Show as Link" : "Show Page Here") { canvas.togglePage(item.id) }
+        }
         Button("Copy") { canvas.selection = [item.id]; canvas.copySelection() }
         if let file = canvas.fileURL(item) {
             Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([file]) }
@@ -508,7 +532,7 @@ private struct CanvasItemView: View {
     private func open() {
         switch item.kind {
         case .text: canvas.editingID = item.id
-        case .link: if let url = item.link { Safety.openLink(url) }
+        case .link: if let url = WebPages.shared.existing(item.id)?.currentURL ?? item.link { Safety.openLink(url) } // where the page is now
         case .image: if let url = canvas.fileURL(item) { QuickLook.shared.show([url]) }
         case .file, .video:
             if let url = canvas.fileURL(item) { Safety.open(url) } else if let url = item.link { Safety.openLink(url) }
@@ -585,6 +609,37 @@ private struct CardClicks<Menu: View, Move: Gesture>: ViewModifier {
 }
 
 // MARK: - Players
+
+/// On a live page's bar: back, reload, open in your browser, and back to a plain link.
+private struct PageButtons: View {
+    let item: CanvasItem
+    @ObservedObject private var page: WebPage
+
+    init(item: CanvasItem) {
+        self.item = item
+        page = WebPages.shared.page(for: item.id, url: item.link ?? URL(string: "about:blank")!)
+    }
+
+    var body: some View {
+        HStack(spacing: 2) {
+            button("chevron.left", "Back") { page.goBack() }.disabled(!page.canGoBack).opacity(page.canGoBack ? 1 : 0.4)
+            button(page.loading ? "xmark" : "arrow.clockwise", page.loading ? "Stop" : "Reload") {
+                if page.loading { page.web.stopLoading() } else { page.reload() }
+            }
+            button("safari", "Open in your browser") { if let url = page.currentURL ?? item.link { Safety.openLink(url) } }
+            button("rectangle.compress.vertical", "Show as a link again") { CanvasStore.shared.togglePage(item.id) }
+        }
+    }
+
+    private func button(_ symbol: String, _ help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol).font(.system(size: 9.5, weight: .semibold)).frame(width: 20, height: 18).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(help)
+        .accessibilityLabel(help)
+    }
+}
 
 /// A YouTube video playing right on the canvas (YouTube's own player).
 private struct YouTubePlayer: NSViewRepresentable {

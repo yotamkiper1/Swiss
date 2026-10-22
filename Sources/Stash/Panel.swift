@@ -22,6 +22,7 @@ final class StashPanel: NSPanel {
         super.order(place, relativeTo: otherWin)
         if place == .out {
             ShownWindows.shared.set(gateKey, shown: false)
+            if isFloating { WebPages.shared.pauseAll() } // a closed canvas plays nothing
             BoardDrag.shared.cancel() // a drag can't outlive its window (its picture would stay stuck)
             ConnectedDrag.shared.cancel()
         }

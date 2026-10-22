@@ -562,6 +562,32 @@ extension AppDelegate {
                 case "resize": // the selected thing to this width, as its sizer does
                     if let id = canvas.selection.first, let w = Double(item.value ?? "") { canvas.resize(id, to: CGSize(width: w, height: 1), keepAspect: true) }
                 case "url": if let u = item.value.flatMap(URL.init(string:)) { canvas.addLink(u) }
+                case "page": if let last = canvas.items.last(where: { $0.kind == .link }) { canvas.togglePage(last.id) }
+                case "pageplay": // plays the first video on each page, then reports whether it's moving
+                    for it in canvas.items where it.showsPage {
+                        let web = WebPages.shared.existing(it.id)?.web
+                        web?.evaluateJavaScript("(function(){var v=document.querySelector('video'); if(!v) return 'no video'; v.muted=true; v.play(); return 'video ready='+v.readyState;})()") { r, e in log("pageplay \(r ?? e?.localizedDescription ?? "-")") }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            web?.evaluateJavaScript("(function(){var v=document.querySelector('video'); return (v ? 'time='+v.currentTime.toFixed(1)+' paused='+v.paused+' err='+(v.error&&v.error.code)+' net='+v.networkState+' ready='+v.readyState+' src='+(v.currentSrc||'').slice(0,60) : 'no video')+' vis='+document.visibilityState;})()") { r, e in log("pageplay after 3s \(r ?? e?.localizedDescription ?? "-")") }
+                        }
+                    }
+                case "pagevis": // the page's own idea of whether it's seen, 6 times over 3 s
+                    for it in canvas.items where it.showsPage {
+                        guard let web = WebPages.shared.existing(it.id)?.web else { continue }
+                        for k in 0..<6 {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(k) * 0.5) {
+                                web.evaluateJavaScript("document.visibilityState+' '+(document.querySelector('video')?('t='+document.querySelector('video').currentTime.toFixed(1)+' paused='+document.querySelector('video').paused):'')") { r, _ in
+                                    log("pagevis \(k) \(r ?? "-") active=\(NSApp.isActive) key=\(web.window?.isKeyWindow ?? false) space=\(web.window?.isOnActiveSpace ?? false) occl=\(web.window?.occlusionState.contains(.visible) ?? false)")
+                                }
+                            }
+                        }
+                    }
+                case "pagestate":
+                    for it in canvas.items where it.showsPage {
+                        let p = WebPages.shared.existing(it.id)
+                        if let web = p?.web { log("page visible: window=\(web.window?.isVisible ?? false) occluded=\(!(web.window?.occlusionState.contains(.visible) ?? false)) hiddenAncestor=\(web.isHiddenOrHasHiddenAncestor) size=\(web.frame.size)") }
+                        log("page \(it.id.uuidString.prefix(4)) url=\(p?.currentURL?.absoluteString.prefix(90) ?? "-") loading=\(p?.loading ?? false) title=\(p?.web.title ?? "-") inWindow=\(p?.web.window != nil)")
+                    }
                 case "clear": canvas.clear()
                 case "undo": canvas.undoClear()
                 case "z": canvas.undo()

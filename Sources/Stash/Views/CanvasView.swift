@@ -53,6 +53,12 @@ struct CanvasView: View {
                     }
                     if canvas.items.isEmpty { emptyHint.frame(width: geo.size.width, height: geo.size.height) }
                     MarqueeOverlay(box: box)
+                    if let id = canvas.bigPageID, let item = canvas.items.first(where: { $0.id == id && $0.showsPage }) {
+                        BigPage(item: item)
+                            .frame(width: geo.size.width, height: geo.size.height)
+                            .transition(.scale(scale: 0.9).combined(with: .opacity))
+                            .zIndex(1)
+                    }
                 }
                 .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
                 .clipped()
@@ -258,15 +264,18 @@ private struct CanvasItemView: View {
 
     @ObservedObject private var live = CanvasLive.shared
     @Environment(\.colorScheme) private var colorScheme
-    /// While its sizer is dragged: the size it's shown at (view points). The canvas itself changes once, at the end.
-    @State private var liveSize: CGSize?
+    /// While a handle is dragged: where it would be (view points, from its own top left; a top or left handle moves
+    /// that side). The canvas itself changes once, when you let go.
+    @State private var liveRect: CGRect?
 
-    /// The size to draw at: the live one while resizing (a video keeps its size and is scaled instead — a playing
-    /// player re-laid out on every mouse move is what made resizing stutter).
+    /// The size to draw at: the live one while resizing. A video or page stays as it is until you let go (only its
+    /// outline follows the mouse) — a playing player re-laid out on every mouse move stutters.
     private var size: CGSize {
-        guard let liveSize, !playsInside else { return frame.size }
-        return liveSize
+        guard let liveRect, !playsInside else { return frame.size }
+        return liveRect.size
     }
+    /// Pages, links and files can take any shape; pictures, videos, notes and quotes keep theirs.
+    private var freeShape: Bool { item.kind == .link || item.kind == .file }
 
     private var selected: Bool { canvas.selection.contains(item.id) }
     /// Videos and live pages take their own clicks; they're moved by the bar on top.
@@ -302,23 +311,7 @@ private struct CanvasItemView: View {
                 // A quote shows it's chosen with a quiet grey ring, not the coloured one.
                 .strokeBorder(item.quote == true ? Color.primary.opacity(0.3) : Color.accentColor, lineWidth: selected ? (item.quote == true ? 1 : 2) : 0)
         )
-        .overlay(alignment: .bottomTrailing) {
-            if selected {
-                // The sizer: drag the corner to make it bigger or smaller (pictures, videos, notes and quotes keep their shape).
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 7, weight: .heavy))
-                    .foregroundStyle(.white)
-                    .frame(width: 16, height: 16)
-                    .background(Circle().fill(Color.accentColor))
-                    .overlay(Circle().strokeBorder(Color.white, lineWidth: 1.5))
-                    .contentShape(Circle().inset(by: -4))
-                    .offset(x: 6, y: 6)
-                    .highPriorityGesture(resizeGesture) // wins over moving
-                    .onHover { inside in if inside { NSCursor.crosshair.push() } else { NSCursor.pop() } }
-                    .help("Drag to make it bigger or smaller")
-                    .accessibilityLabel("Resize")
-            }
-        }
+        .overlay(alignment: .topLeading) { resizeHandles }
         .overlay(alignment: .bottom) {
             // Its name, if you gave it one.
             if let name = item.name, !name.isEmpty {
@@ -346,7 +339,7 @@ private struct CanvasItemView: View {
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .modifier(CardClicks(on: !playsInside, open: open, select: select, move: moveGesture) { menu })
-        .scaleEffect(playsInside ? (liveSize.map { $0.width / max(1, frame.width) } ?? 1) : 1, anchor: .topLeading)
+        .offset(playsInside ? .zero : CGSize(width: liveRect?.minX ?? 0, height: liveRect?.minY ?? 0)) // a top or left side moving
         .offset(live.ids.contains(item.id) ? live.offset : .zero) // moving: drawn shifted, saved when you let go
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
@@ -374,7 +367,10 @@ private struct CanvasItemView: View {
         case .text:
             noteView
         case .link where item.showsPage:
-            if let url = item.link {
+            if canvas.bigPageID == item.id {
+                // Open big: the same page is up there (one page can't be in two places).
+                Color.primary.opacity(0.06).overlay(Image(systemName: "macwindow").foregroundStyle(.tertiary))
+            } else if let url = item.link {
                 WebPageView(page: WebPages.shared.page(for: item.id, url: url), zoom: canvas.zoom)
                     .background(Color(nsColor: .textBackgroundColor))
             }
@@ -560,21 +556,109 @@ private struct CanvasItemView: View {
     }
 
     /// Resizing: shown at the new size while you drag; the canvas gets it once, when you let go.
-    private var resizeGesture: some Gesture {
-        DragGesture(minimumDistance: 1)
+    // MARK: Resizing
+
+    /// Where a handle sits: a corner, or the middle of a side (sides only for things that can take any shape).
+    private enum Handle: CaseIterable {
+        case topLeft, top, topRight, right, bottomRight, bottom, bottomLeft, left
+        var x: CGFloat { [.topLeft, .left, .bottomLeft].contains(self) ? 0 : [.top, .bottom].contains(self) ? 0.5 : 1 }
+        var y: CGFloat { [.topLeft, .top, .topRight].contains(self) ? 0 : [.left, .right].contains(self) ? 0.5 : 1 }
+        var isCorner: Bool { x != 0.5 && y != 0.5 }
+        var movesLeft: Bool { x == 0 }
+        var movesTop: Bool { y == 0 }
+        var cursor: NSCursor {
+            if !isCorner { return x == 0.5 ? .resizeUpDown : .resizeLeftRight }
+            if #available(macOS 15.0, *) {
+                let position: NSCursor.FrameResizePosition = switch self {
+                case .topLeft: .topLeft
+                case .topRight: .topRight
+                case .bottomLeft: .bottomLeft
+                default: .bottomRight
+                }
+                return .frameResize(position: position, directions: .all)
+            }
+            return .crosshair
+        }
+    }
+
+    /// Handles on the corners (and, for pages, links and files, the sides): shown while it's chosen or under the mouse,
+    /// with a generous grab area. While dragging, an outline and the new size follow the mouse.
+    @ViewBuilder private var resizeHandles: some View {
+        let rect = liveRect ?? CGRect(origin: .zero, size: frame.size)
+        ZStack(alignment: .topLeading) {
+            if let liveRect {
+                RoundedRectangle(cornerRadius: 8 * min(1, canvas.zoom), style: .continuous)
+                    .strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 1.5, dash: [5, 3]))
+                    .frame(width: liveRect.width, height: liveRect.height)
+                    .offset(x: playsInside ? liveRect.minX : 0, y: playsInside ? liveRect.minY : 0)
+                    .allowsHitTesting(false)
+                Text("\(Int((liveRect.width / canvas.zoom).rounded())) × \(Int((liveRect.height / canvas.zoom).rounded()))")
+                    .font(.system(size: 10, weight: .semibold)).monospacedDigit()
+                    .padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(Capsule().fill(Color.accentColor))
+                    .foregroundStyle(.white)
+                    .fixedSize()
+                    .offset(x: (playsInside ? liveRect.minX : 0) + liveRect.width / 2 - 30,
+                            y: (playsInside ? liveRect.minY : 0) + liveRect.height + 6)
+                    .allowsHitTesting(false)
+            }
+            if selected || hovering || liveRect != nil {
+                let origin = playsInside ? rect.origin : .zero
+                ForEach(Handle.allCases.filter { $0.isCorner || freeShape }, id: \.self) { handle in
+                    handleDot(handle)
+                        .position(x: origin.x + rect.width * handle.x, y: origin.y + rect.height * handle.y)
+                }
+            }
+        }
+        .frame(width: rect.width, height: rect.height, alignment: .topLeading)
+    }
+
+    private func handleDot(_ handle: Handle) -> some View {
+        Group {
+            if handle.isCorner {
+                Circle().fill(Color.white).frame(width: 10, height: 10)
+                    .overlay(Circle().strokeBorder(Color.accentColor, lineWidth: 2))
+            } else {
+                Capsule().fill(Color.white)
+                    .frame(width: handle.x == 0.5 ? 18 : 6, height: handle.x == 0.5 ? 6 : 18)
+                    .overlay(Capsule().strokeBorder(Color.accentColor, lineWidth: 1.5))
+            }
+        }
+        .shadow(color: .black.opacity(0.25), radius: 1.5, y: 0.5)
+        .opacity(selected || liveRect != nil ? 1 : 0.75)
+        .frame(width: 24, height: 24) // the grab area, bigger than the dot
+        .contentShape(Rectangle())
+        .highPriorityGesture(resizeGesture(handle)) // wins over moving
+        .onHover { inside in if inside { handle.cursor.push() } else { NSCursor.pop() } }
+        .help(freeShape ? "Drag to resize (⇧ keeps its shape)" : "Drag to make it bigger or smaller")
+        .accessibilityLabel("Resize")
+    }
+
+    private func resizeGesture(_ handle: Handle) -> some Gesture {
+        DragGesture(minimumDistance: 1, coordinateSpace: .global) // global: the view moves while you drag
             .onChanged { value in
-                var w = max(40 * canvas.zoom, frame.width + value.translation.width)
-                var h = max(30 * canvas.zoom, frame.height + value.translation.height)
-                if item.kind != .link && item.kind != .file, frame.width > 0 { h = w * frame.height / frame.width } // keeps its shape
-                if h < 30 * canvas.zoom { h = 30 * canvas.zoom; w = h * frame.width / max(1, frame.height) }
-                liveSize = CGSize(width: w, height: h)
+                let minW = 40 * canvas.zoom, minH = 30 * canvas.zoom
+                let dx = value.translation.width, dy = value.translation.height
+                var w = frame.width, h = frame.height
+                if handle.x == 1 { w += dx } else if handle.x == 0 { w -= dx }
+                if handle.y == 1 { h += dy } else if handle.y == 0 { h -= dy }
+                w = max(minW, w)
+                h = max(minH, h)
+                // Its shape stays: always for pictures, videos and notes; with ⇧ for the rest.
+                let keep = !freeShape || NSEvent.modifierFlags.contains(.shift)
+                if keep, handle.isCorner, frame.width > 0, frame.height > 0 {
+                    let ratio = frame.height / frame.width
+                    if abs(w - frame.width) * ratio >= abs(h - frame.height) { h = w * ratio } else { w = h / ratio }
+                    if h < minH { h = minH; w = h / ratio }
+                }
+                liveRect = CGRect(x: handle.movesLeft ? frame.width - w : 0, y: handle.movesTop ? frame.height - h : 0, width: w, height: h)
             }
             .onEnded { _ in
-                if let liveSize {
-                    canvas.resize(item.id, to: CGSize(width: liveSize.width / canvas.zoom, height: liveSize.height / canvas.zoom),
-                                  keepAspect: item.kind != .link && item.kind != .file)
+                if let r = liveRect {
+                    let z = canvas.zoom
+                    canvas.setFrame(item.id, CGRect(x: item.x + r.minX / z, y: item.y + r.minY / z, width: r.width / z, height: r.height / z))
                 }
-                liveSize = nil
+                liveRect = nil
             }
     }
 
@@ -610,13 +694,41 @@ private struct CardClicks<Menu: View, Move: Gesture>: ViewModifier {
 
 // MARK: - Players
 
+/// A live page opened big: it fills the canvas, the same page as in its card (where you were, what's playing).
+private struct BigPage: View {
+    let item: CanvasItem
+
+    var body: some View {
+        let page = WebPages.shared.page(for: item.id, url: item.link ?? URL(string: "about:blank")!)
+        VStack(spacing: 0) {
+            HStack(spacing: 6) {
+                Text(page.web.title.flatMap { $0.isEmpty ? nil : $0 } ?? item.text ?? item.link?.host ?? "Page")
+                    .font(.system(size: 11, weight: .semibold)).lineLimit(1)
+                Spacer(minLength: 0)
+                PageButtons(item: item, big: true)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .frame(height: 26)
+            .background(Color.black.opacity(0.75))
+            WebPageView(page: page, zoom: 1)
+        }
+        .background(Color(nsColor: .textBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .shadow(color: .black.opacity(0.25), radius: 10, y: 3)
+        .padding(6)
+    }
+}
+
 /// On a live page's bar: back, reload, open in your browser, and back to a plain link.
 private struct PageButtons: View {
     let item: CanvasItem
+    var big = false
     @ObservedObject private var page: WebPage
 
-    init(item: CanvasItem) {
+    init(item: CanvasItem, big: Bool = false) {
         self.item = item
+        self.big = big
         page = WebPages.shared.page(for: item.id, url: item.link ?? URL(string: "about:blank")!)
     }
 
@@ -627,7 +739,12 @@ private struct PageButtons: View {
                 if page.loading { page.web.stopLoading() } else { page.reload() }
             }
             button("safari", "Open in your browser") { if let url = page.currentURL ?? item.link { Safety.openLink(url) } }
-            button("rectangle.compress.vertical", "Show as a link again") { CanvasStore.shared.togglePage(item.id) }
+            if big {
+                button("arrow.down.right.and.arrow.up.left", "Back to the canvas (Esc)") { CanvasStore.shared.setBigPage(nil) }
+            } else {
+                button("arrow.up.left.and.arrow.down.right", "Open big — fill the canvas") { CanvasStore.shared.setBigPage(item.id) }
+                button("rectangle.compress.vertical", "Show as a link again") { CanvasStore.shared.togglePage(item.id) }
+            }
         }
     }
 

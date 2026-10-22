@@ -58,6 +58,12 @@ final class CanvasStore: ObservableObject {
     @Published var pan: CGSize = .zero
     @Published var selection: Set<UUID> = []
     @Published var editingID: UUID?
+    /// A live page opened big, filling the canvas (its card waits underneath; Esc or the shrink button puts it back).
+    @Published private(set) var bigPageID: UUID?
+
+    func setBigPage(_ id: UUID?) {
+        withAnimation(.easeInOut(duration: 0.22)) { bigPageID = id }
+    }
     /// What Clear took away (Undo brings it back for a little while).
     @Published private(set) var cleared: [CanvasItem]?
     @Published var clearArmed = false
@@ -276,6 +282,18 @@ final class CanvasStore: ObservableObject {
         }
     }
 
+    /// A handle dragged: its new place and size at once (a top or left side moves it). A note's text grows with it.
+    func setFrame(_ id: UUID, _ rect: CGRect) {
+        update(id) { item in
+            let w = max(40, rect.width), h = max(30, rect.height)
+            if item.kind == .text, item.width > 0 { item.fontSize = item.textSize * w / item.width }
+            item.x = rect.minX
+            item.y = rect.minY
+            item.width = w
+            item.height = h
+        }
+    }
+
     /// Bigger or smaller by a step (keeps its shape and its middle where it is).
     func scale(_ ids: Set<UUID>, by factor: Double) {
         remember()
@@ -295,6 +313,7 @@ final class CanvasStore: ObservableObject {
         update(id) { item in
             guard item.kind == .link else { return }
             if item.page == true {
+                if bigPageID == id { bigPageID = nil }
                 item.page = nil
                 item.width = 240
                 item.height = 58

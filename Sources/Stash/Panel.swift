@@ -1,4 +1,5 @@
 import AppKit
+import WebKit
 import Quartz
 import Carbon.HIToolbox
 import SwiftUI
@@ -18,7 +19,10 @@ final class StashPanel: NSPanel {
     /// Shown or hidden: the contents start or stop following changes. Set before the window appears,
     /// so its first frame already has everything in it.
     override func order(_ place: NSWindow.OrderingMode, relativeTo otherWin: Int) {
-        if place != .out { ShownWindows.shared.set(gateKey, shown: true) }
+        if place != .out {
+            ShownWindows.shared.set(gateKey, shown: true)
+            if isFloating { WebPages.shared.wakeAll() } // pages that went blank while the canvas was closed load again
+        }
         super.order(place, relativeTo: otherWin)
         if place == .out {
             ShownWindows.shared.set(gateKey, shown: false)
@@ -113,8 +117,15 @@ final class StashPanel: NSPanel {
                 CanvasStore.shared.pressTime = event.timestamp
                 selectPlayer(at: event) // the click still goes to the player's own controls
             }
-            if event.type == .keyDown, !(firstResponder is NSTextView), handleCanvasKey(event) { return }
-            if event.type == .scrollWheel, canvasScroll(event) { return }
+            // Typing and scrolling in a web page or player on the canvas are the page's (only Esc is the canvas's).
+            let inPage = Self.isInWebPage(firstResponder as? NSView)
+            if event.type == .keyDown, event.keyCode == UInt16(kVK_Escape), CanvasStore.shared.bigPageID != nil {
+                CanvasStore.shared.setBigPage(nil)
+                return
+            }
+            if event.type == .keyDown, !(firstResponder is NSTextView), !inPage, handleCanvasKey(event) { return }
+            if event.type == .scrollWheel, !Self.isInWebPage(contentView?.hitTest(contentView?.convert(event.locationInWindow, from: nil) ?? .zero)),
+               canvasScroll(event) { return }
             super.sendEvent(event)
             return
         }
@@ -126,6 +137,19 @@ final class StashPanel: NSPanel {
     }
 
     /// Canvas keys: ⌫ deletes what's selected, Esc lets go, arrows nudge it (⇧ further), Return edits a note.
+    /// Window switches resize a little quicker than the Mac's default (about a third of a second).
+    override func animationResizeTime(_ newFrame: NSRect) -> TimeInterval { 0.24 }
+
+    /// A view inside a web page or player on the canvas.
+    private static func isInWebPage(_ view: NSView?) -> Bool {
+        var view = view
+        while let v = view {
+            if v is WKWebView { return true }
+            view = v.superview
+        }
+        return false
+    }
+
     private func handleCanvasKey(_ event: NSEvent) -> Bool {
         let canvas = CanvasStore.shared
         let flags = event.modifierFlags.intersection([.command, .option, .control])

@@ -27,6 +27,12 @@ final class WebPages {
 
     func existing(_ id: UUID) -> WebPage? { pages[id] }
 
+    /// The canvas opened: a page that's empty (its web process was stopped while Swiss sat in the background,
+    /// or it never got to load) loads again instead of staying white.
+    func wakeAll() {
+        for page in pages.values { page.wake() }
+    }
+
     /// The canvas closed: videos and sounds on its pages stop (they'd play on with nothing on screen to stop them).
     func pauseAll() {
         for page in pages.values { page.web.pauseAllMediaPlayback() }
@@ -44,10 +50,14 @@ final class WebPages {
 @MainActor
 final class WebPage: NSObject, ObservableObject, WKNavigationDelegate, WKUIDelegate {
     let web: WKWebView
+    /// The link's own address: where the page starts, and where it starts again if it went blank.
+    private let home: URL
+    private var stopped = false
     @Published private(set) var canGoBack = false
     @Published private(set) var loading = false
 
     init(url: URL) {
+        home = url
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default() // logins stay (Swiss's own, apart from Safari)
         config.preferences.isElementFullscreenEnabled = true // a video's full-screen button works
@@ -61,6 +71,20 @@ final class WebPage: NSObject, ObservableObject, WKNavigationDelegate, WKUIDeleg
         web.allowsBackForwardNavigationGestures = true
         web.allowsMagnification = true
         if Safety.isWebURL(url) { web.load(URLRequest(url: url)) }
+    }
+
+    func wake() {
+        guard stopped || web.url == nil, Safety.isWebURL(home), !web.isLoading else { return }
+        stopped = false
+        web.load(URLRequest(url: web.url ?? home))
+        if TestMode.isOn { FileHandle.standardError.write("page loads again: \(web.url?.host ?? home.host ?? "-")\n".data(using: .utf8)!) }
+    }
+
+    // macOS stopped the page's web process (memory, a crash): it would stay white. Load it again.
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        stopped = true
+        if TestMode.isOn { FileHandle.standardError.write("page process stopped (on screen: \(webView.window != nil))\n".data(using: .utf8)!) }
+        if webView.window != nil { wake() } // on screen: right away; otherwise when the canvas next opens
     }
 
     func goBack() { web.goBack() }
@@ -123,6 +147,8 @@ struct WebPageView: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let box = NSView()
         place(in: box)
+        page.web.pageZoom = max(0.3, min(3, zoom)) // at the canvas's zoom from the start
+        page.wake()
         return box
     }
 

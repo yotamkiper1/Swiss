@@ -304,6 +304,22 @@ extension AppDelegate {
         case "debuglockstate": log("lock enabled=\(AppLock.enabled) unlocked=\(AppLock.isUnlocked) windows=\(NSApp.windows.filter { $0.isVisible && !$0.className.contains("StatusBar") }.map { "\($0.className):\($0.title)" })")
         case "debuglocknow": AppLock.lock()
         case "debugfeedback": Feedback.sendFeedback()
+        case "debuglivesize": // how long a real animated resize of the big window takes (?small → big and back)
+            panel.setFrame(NSRect(x: 300, y: 300, width: 300, height: 400), display: true)
+            panel.makeKeyAndOrderFront(nil)
+            let big = (panel.screen ?? NSScreen.main)!.visibleFrame.insetBy(dx: 200, dy: 100)
+            var t = Date()
+            panel.setFrame(big, display: true, animate: true)
+            let grow = Date().timeIntervalSince(t)
+            t = Date()
+            panel.setFrame(NSRect(x: 300, y: 300, width: 300, height: 400), display: true, animate: true)
+            log(String(format: "live resize: grow %.0f ms, shrink %.0f ms (animationResizeTime %.0f ms)", grow * 1000, Date().timeIntervalSince(t) * 1000, panel.animationResizeTime(big) * 1000))
+        case "debugwincap": // the window as the screen shows it (web pages included), to the given path
+            if let w = [floating, panel, compact].compactMap({ $0 }).first(where: { $0.isVisible }),
+               let image = CGWindowListCreateImage(.null, .optionIncludingWindow, CGWindowID(w.windowNumber), [.boundsIgnoreFraming, .bestResolution]) {
+                try? NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: url.path))
+                log("wincap ok")
+            } else { log("wincap failed") }
         case "debugmorph": // stashtest://debugmorph/expand (or collapse, float, fill, unfill): what's on screen during and after
             switch url.path {
             case "/collapse": collapse()
@@ -581,6 +597,29 @@ extension AppDelegate {
                                 }
                             }
                         }
+                    }
+                case "pagekill": // stops each page's web process, as macOS does under memory pressure
+                    for it in canvas.items where it.showsPage {
+                        let web = WebPages.shared.existing(it.id)?.web
+                        if let pid = web?.value(forKey: "_webProcessIdentifier") as? Int32, pid > 0 {
+                            log("pagekill pid \(pid)")
+                            Darwin.kill(pid, SIGKILL)
+                        }
+                    }
+                case "setframe": // ?setframe=x,y,w,h on the first selected thing, as a handle drag ends
+                    let v = (item.value ?? "").split(separator: ",").compactMap { Double($0) }
+                    if v.count == 4, let id = canvas.selection.first { canvas.setFrame(id, CGRect(x: v[0], y: v[1], width: v[2], height: v[3])) }
+                case "big": canvas.setBigPage(canvas.items.first(where: \.showsPage)?.id)
+                case "small": canvas.setBigPage(nil)
+                case "typev": // a "v" typed while the page has the keyboard: the page gets it, the canvas tool stays
+                    if let web = canvas.items.first(where: \.showsPage).flatMap({ WebPages.shared.existing($0.id)?.web }), let w = web.window {
+                        w.makeFirstResponder(web)
+                        let before = canvas.tool
+                        if let e = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: w.windowNumber,
+                                                    context: nil, characters: "h", charactersIgnoringModifiers: "h", isARepeat: false, keyCode: UInt16(kVK_ANSI_H)) {
+                            w.sendEvent(e)
+                        }
+                        log("typed h in page: tool before=\(before) after=\(canvas.tool)")
                     }
                 case "pagestate":
                     for it in canvas.items where it.showsPage {

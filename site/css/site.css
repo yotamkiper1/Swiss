@@ -85,10 +85,10 @@ kbd { font-family: var(--font); font-size: .9em; font-weight: 500; }
 
 /* the one video */
 .film {
-  position: relative; margin: 0; overflow: hidden; aspect-ratio: 16 / 9;
-  border-radius: var(--r-tile); background: #2a1d18;
+  position: relative; margin: 0; overflow: hidden; aspect-ratio: 16 / 10;
+  border-radius: var(--r-tile); background: #fff;
 }
-.film video { width: 100%; height: 100%; object-fit: cover; }
+.film video { width: 100%; height: 100%; object-fit: contain; }
 .film-controls { position: absolute; right: var(--s4); bottom: var(--s4); display: flex; gap: var(--s2); }
 .film-btn {
   display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px;
@@ -113,10 +113,10 @@ kbd { font-family: var(--font); font-size: .9em; font-weight: 500; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- feature clips: short muted loops cut from the film ---------- */
-.clip { aspect-ratio: auto; margin: 0; border-radius: var(--r-tile); overflow: hidden; background: #24170F; }
-.clip video { height: auto; object-fit: contain; }
+.clip { aspect-ratio: auto; margin: 0; border-radius: var(--r-tile); overflow: hidden; background: var(--tile); padding: clamp(16px, 3.5vw, 48px); }
+.clip video { height: auto; object-fit: contain; border-radius: 10px; margin: 0 auto; max-height: 70vh; width: auto; max-width: 100%; }
 .clip-wide { max-width: 940px; margin: 0 auto; }
-#clip-sizes { max-width: 1100px; }
+#clip-collect video { max-height: 60vh; }
 .clip-controls { position: absolute; right: var(--s4); bottom: var(--s4); display: flex; gap: var(--s2); }
 .film[data-state="error"] .clip-controls { display: none; }
 .clip-caption { margin-top: var(--s4); text-align: center; font-size: var(--t-small); color: var(--ink-2); }
@@ -188,7 +188,7 @@ pre.cmd { margin: var(--s3) 0 0; /* taste-skill-ignore: real code */ padding: va
 
 /* ---------- FAQ ---------- */
 .faq-list { max-width: 52rem; margin: 0 auto; display: grid; gap: var(--s3); }
-.faq-list details { background: var(--tile-on-alt); border-radius: var(--r-tile-sm); padding: 0 var(--s5); }
+.faq-list details { background: var(--tile); border-radius: var(--r-tile-sm); padding: 0 var(--s5); }
 .faq-list summary {
   display: flex; justify-content: space-between; align-items: center; gap: var(--s4);
   min-height: 64px; padding: var(--s4) 0; cursor: pointer; list-style: none; font-size: var(--t-body); font-weight: 600;

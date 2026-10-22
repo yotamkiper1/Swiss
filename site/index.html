@@ -65,15 +65,10 @@
 
   <div class="wrap wrap-wide hero-film">
     <figure class="film" id="film" data-clip data-state="idle" data-sound="off">
-      <video playsinline muted loop preload="metadata" poster="media/swiss-film-poster.jpg" width="1600" height="900" aria-describedby="film-desc">
+      <video playsinline muted loop preload="metadata" poster="media/swiss-film-poster.jpg" width="1600" height="1000" aria-describedby="film-desc">
         <source src="media/swiss-film.mp4" type="video/mp4">
       </video>
       <div class="film-controls">
-        <button class="film-btn sound-btn" type="button" aria-pressed="false">
-          <svg class="i-sound-off" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path d="M11 6l4 4M15 6l-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <svg class="i-sound-on" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 6h3l4-3v10L5 10H2z"/><path d="M11.5 5.5a3.5 3.5 0 010 5M13 3.5a6 6 0 010 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <span class="label">Sound</span>
-        </button>
         <button class="film-btn play-btn media-control" type="button" aria-pressed="false">
           <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
           <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
@@ -81,12 +76,12 @@
         </button>
       </div>
       <div class="film-error" role="status"><p>The video couldn't load.</p><p><a href="#collect">See the features instead</a></p></div>
-      <figcaption id="film-desc" class="visually-hidden">A 33-second tour of Swiss with sound effects and no voice. A picture, a Wikipedia link and a quote are dragged from a browser into a project. A copied link and a screenshot appear in Recent and one is kept. The magic wand sorts the board into four folders. A connected Finder folder is renamed in Swiss and Finder shows the change. The Frame floats beside a text editor with a picture, a note and a video tutorial that plays on the canvas. The window grows from pop-up to window to full screen.</figcaption>
+      <figcaption id="film-desc" class="visually-hidden">Swiss at work, one window after another: things dragged onto a project, a screenshot kept from Recent, the magic wand sorting a board into folders, a connected Finder folder, and the Frame with a picture, a note and a video tutorial.</figcaption>
     </figure>
   </div>
 </section>
 
-<section class="section alt" id="collect" aria-labelledby="collect-title">
+<section class="section" id="collect" aria-labelledby="collect-title">
   <div class="wrap wrap-wide">
     <div class="section-head reveal">
       <h2 id="collect-title">Found something worth keeping?</h2>
@@ -94,7 +89,7 @@
     </div>
     <div class="tiles tiles-2 reveal">
       <div><figure class="clip film" id="clip-collect" data-clip data-state="idle">
-        <video playsinline muted loop preload="none" poster="media/clip-collect.jpg" width="1190" height="890" aria-describedby="clip-collect-desc">
+        <video playsinline muted loop preload="none" poster="media/clip-collect.jpg" width="574" height="832" aria-describedby="clip-collect-desc">
           <source data-src="media/clip-collect.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
@@ -104,10 +99,9 @@
         </button></div>
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
         <figcaption id="clip-collect-desc" class="visually-hidden">A picture, a Wikipedia link and a quote are dragged from a browser onto the Mammoth project in Swiss.</figcaption>
-      </figure>
-      <p class="clip-caption">Dragged in from a browser: a picture, a link, a quote.</p></div>
+      </figure></div>
       <div><figure class="clip film" id="clip-recent" data-clip data-state="idle">
-        <video playsinline muted loop preload="none" poster="media/clip-recent.jpg" width="1170" height="796" aria-describedby="clip-recent-desc">
+        <video playsinline muted loop preload="none" poster="media/clip-recent.jpg" width="1096" height="750" aria-describedby="clip-recent-desc">
           <source data-src="media/clip-recent.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
@@ -117,13 +111,7 @@
         </button></div>
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
         <figcaption id="clip-recent-desc" class="visually-hidden">Swiss's Recent list: a screenshot and a copied Wikipedia link arrive, and the screenshot is kept in Mammoth.</figcaption>
-      </figure>
-      <p class="clip-caption">Recent: a screenshot, kept in Mammoth with one click.</p></div>
-    </div>
-    <div class="copy-cols reveal">
-      <p class="copy"><strong>Recent, if you want it.</strong> Turn on capture and what you copy and every screenshot waits in Recent for 3 days. It's off until you switch it on.</p>
-      <p class="copy"><strong>Never your passwords.</strong> Items apps mark as private are skipped, and password managers are left out.</p>
-      <p class="copy"><strong>Quick save, anywhere.</strong> Press <span class="combo">⌥⌘V</span> in any app to save what you just copied.</p>
+      </figure></div>
     </div>
   </div>
 </section>
@@ -136,7 +124,7 @@
     </div>
     <div class="reveal">
       <figure class="clip film clip-wide" id="clip-wand" data-clip data-state="idle">
-        <video playsinline muted loop preload="none" poster="media/clip-wand.jpg" width="1200" height="862" aria-describedby="clip-wand-desc">
+        <video playsinline muted loop preload="none" poster="media/clip-wand.jpg" width="1174" height="838" aria-describedby="clip-wand-desc">
           <source data-src="media/clip-wand.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
@@ -147,16 +135,11 @@
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
         <figcaption id="clip-wand-desc" class="visually-hidden">A busy Mammoth board. The magic wand is clicked and the photos, links, notes and files fly into four folders: PhotoBook, Linker, Notepad and Files.</figcaption>
       </figure>
-      <p class="clip-caption">Before and after: one click on the wand.</p>
-    </div>
-    <div class="copy-cols two reveal">
-      <p class="copy"><strong>Folders made for each kind.</strong> Linker for links, PhotoBook for pictures, Notepad for notes and Files for the rest. Add tags, drag between folders, copy whole folders to another project.</p>
-      <p class="copy"><strong>Sorted by kind, not by guesswork.</strong> The wand looks at what something is, not what it's about. If those folders already exist, it asks before adding to them.</p>
     </div>
   </div>
 </section>
 
-<section class="section alt" id="folders" aria-labelledby="folders-title">
+<section class="section" id="folders" aria-labelledby="folders-title">
   <div class="wrap wrap-wide">
     <div class="section-head reveal">
       <h2 id="folders-title">Your folders. A faster way in.</h2>
@@ -164,7 +147,7 @@
     </div>
     <div class="reveal">
       <figure class="clip film clip-wide" id="clip-connected" data-clip data-state="idle">
-        <video playsinline muted loop preload="none" poster="media/clip-connected.jpg" width="1200" height="896" aria-describedby="clip-connected-desc">
+        <video playsinline muted loop preload="none" poster="media/clip-connected.jpg" width="1172" height="692" aria-describedby="clip-connected-desc">
           <source data-src="media/clip-connected.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
@@ -175,12 +158,6 @@
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
         <figcaption id="clip-connected-desc" class="visually-hidden">The connected folder Exhibit images in Swiss. A file is renamed to Lyuba – hero print.jpg, and the Finder window of the same folder shows the new name.</figcaption>
       </figure>
-      <p class="clip-caption">Renamed in Swiss. Finder shows it straight away.</p>
-    </div>
-    <div class="copy-cols reveal">
-      <p class="copy"><strong>Changes are real.</strong> Rename, move, tag or delete in Swiss and the same happens in Finder.</p>
-      <p class="copy"><strong>Both ways.</strong> What you change in Finder shows up in Swiss.</p>
-      <p class="copy"><strong>Sorted your way.</strong> Arrange by name, kind, date or tags.</p>
     </div>
   </div>
 </section>
@@ -193,7 +170,7 @@
     </div>
     <div class="reveal" id="frame-shot">
       <figure class="clip film clip-wide" id="clip-frame" data-clip data-state="idle">
-        <video playsinline muted loop preload="none" poster="media/clip-frame.jpg" width="1200" height="950" aria-describedby="clip-frame-desc">
+        <video playsinline muted loop preload="none" poster="media/clip-frame.jpg" width="1094" height="888" aria-describedby="clip-frame-desc">
           <source data-src="media/clip-frame.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
@@ -205,15 +182,10 @@
         <figcaption id="clip-frame-desc" class="visually-hidden">The Frame opens beside a text editor where a museum label is being written. A photo of Lyuba and a note are dragged on from the library, and a video tutorial plays on the canvas.</figcaption>
       </figure>
     </div>
-    <div class="copy-cols reveal">
-      <p class="copy"><strong>Drag stuff in.</strong> From your projects and Recent in the library beside the canvas, or from any app.</p>
-      <p class="copy"><strong>Watch while you work.</strong> YouTube links and video files play right on the canvas, above the app you're in.</p>
-      <p class="copy"><strong>Arrange freely.</strong> Zoom, pan and move things around. Made a mistake? <span class="combo">⌘Z</span>.</p>
-    </div>
   </div>
 </section>
 
-<section class="section alt" id="sizes" aria-labelledby="sizes-title">
+<section class="section" id="sizes" aria-labelledby="sizes-title">
   <div class="wrap wrap-wide">
     <div class="section-head reveal">
       <h2 id="sizes-title">Just the space you need.</h2>
@@ -221,7 +193,7 @@
     </div>
     <div class="reveal">
       <figure class="clip film clip-wide" id="clip-sizes" data-clip data-state="idle">
-        <video playsinline muted loop preload="none" poster="media/clip-sizes.jpg" width="1280" height="640" aria-describedby="clip-sizes-desc">
+        <video playsinline muted loop preload="none" poster="media/clip-sizes.jpg" width="1162" height="768" aria-describedby="clip-sizes-desc">
           <source data-src="media/clip-sizes.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
@@ -233,48 +205,14 @@
         <figcaption id="clip-sizes-desc" class="visually-hidden">The same Swiss board grows from a pop-up under the menu bar to a window, then to full screen, as the green button is clicked.</figcaption>
       </figure>
     </div>
-    <div class="copy-cols reveal">
-      <p class="copy"><strong>Pop-up.</strong> Drops down from the menu bar, or opens anywhere with <span class="combo">⌥ Space</span>.</p>
-      <p class="copy"><strong>Window.</strong> The green button steps up to a window with the sidebar, projects and connected folders.</p>
-      <p class="copy"><strong>Full screen.</strong> All the room there is, for a big project. Orange steps back down.</p>
-    </div>
   </div>
 </section>
 
-<section class="section" id="details" aria-labelledby="details-title">
-  <div class="wrap wrap-wide">
-    <div class="section-head reveal">
-      <h2 id="details-title">And the small blades.</h2>
-    </div>
-    <div class="facts reveal">
-      <div class="fact"><h3>Convert</h3><p>Right-click ▸ Convert. Pictures to JPG, PNG, HEIC, TIFF, PDF or smaller. Videos to MP4, MOV, M4V, smaller or sound only. Documents to PDF. Videos and YouTube links to MP3 or MP4.</p></div>
-      <div class="fact"><h3>Share</h3><p>AirDrop, Mail, Messages and WhatsApp, from a right-click.</p></div>
-      <div class="fact"><h3>Recover</h3><p>Deleted things stay in Recently Deleted for 30 days. Saves are checked, with hourly backups.</p></div>
-      <div class="fact"><h3>Touch ID lock</h3><p>Optional. Swiss locks again when your Mac locks or sleeps.</p></div>
-      <div class="fact"><h3>Big files stay put</h3><p>Files over 250 MB are linked, not copied, so your library doesn't fill your disk.</p></div>
-      <div class="fact">
-        <h3>Keys</h3>
-        <ul class="keys">
-          <li><span>Open Swiss</span><span>⌥ Space</span></li>
-          <li><span>Save what you copied</span><span>⌥⌘V</span></li>
-          <li><span>Quick Look</span><span>Space</span></li>
-          <li><span>Every key, listed</span><span>?</span></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section alt center" id="privacy" aria-labelledby="privacy-title">
+<section class="section center" id="privacy" aria-labelledby="privacy-title">
   <div class="wrap wrap-wide">
     <div class="reveal">
       <h2 id="privacy-title">Everything stays on your Mac.</h2>
       <p class="lead" style="margin-top: var(--s5)">No account. No servers. No analytics. Swiss only goes online for things you start, like fetching a saved link's title or playing a video.</p>
-    </div>
-    <div class="privacy-points reveal">
-      <p class="copy"><strong>Ordinary files.</strong> Your library is saved as real files in a hidden folder in Documents, so it takes disk space like any file, and syncs with iCloud only if your Documents folder does.</p>
-      <p class="copy"><strong>Off by default.</strong> Clipboard, screenshot and download capture start only when you turn them on.</p>
-      <p class="copy"><strong>Careful with files.</strong> Files that can run code ask before they open, and downloads are marked the way Safari marks them.</p>
     </div>
     <p style="margin-top: var(--s7)"><a class="more" href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">Read the security report</a></p>
   </div>
@@ -347,7 +285,7 @@ cd Swiss</code></pre></li>
   </div>
 </section>
 
-<section class="section alt" id="faq" aria-labelledby="faq-title">
+<section class="section" id="faq" aria-labelledby="faq-title">
   <div class="wrap">
     <div class="section-head reveal"><h2 id="faq-title">Questions.</h2></div>
     <div class="faq-list">
@@ -364,28 +302,12 @@ cd Swiss</code></pre></li>
         <div class="faq-answer"><p>On your Mac, as ordinary files in a hidden folder inside Documents (<code>~/Documents/.Stash</code>), so they use disk space like any other file. Very large files are linked instead of copied. If iCloud syncs your Documents folder, it syncs this folder too.</p></div>
       </details>
       <details>
-        <summary>How do connected folders work?</summary>
-        <div class="faq-answer"><p>Pick a folder in Finder and Swiss shows it in the sidebar. Renaming, moving, tagging and deleting in Swiss change the real folder, and changes made in Finder show up in Swiss. Nothing is copied.</p></div>
-      </details>
-      <details>
-        <summary>Can I watch a tutorial while working?</summary>
-        <div class="faq-answer"><p>Yes. Put a YouTube link or a video file on the Frame. It floats above your other apps, so the video stays in view while you work underneath.</p></div>
-      </details>
-      <details>
         <summary>Which Macs are supported?</summary>
         <div class="faq-answer"><p>Macs with Apple silicon running macOS 14 Sonoma or later. Intel Macs aren't supported yet.</p></div>
       </details>
       <details>
         <summary>How do I install Swiss?</summary>
         <div class="faq-answer"><p>Until a signed download is ready, you build it from the source with Xcode: the steps are in <a href="#download">Get Swiss</a>. When a release is published on GitHub, the download appears there by itself.</p></div>
-      </details>
-      <details>
-        <summary>Do I need an account?</summary>
-        <div class="faq-answer"><p>No. There's no sign-in and no server.</p></div>
-      </details>
-      <details>
-        <summary>How do I report a problem or send an idea?</summary>
-        <div class="faq-answer"><p>In Swiss, choose Help ▸ Report a Problem or Send Feedback. It opens an email you read and send yourself. Or write to <a href="mailto:kipery20@gmail.com">kipery20@gmail.com</a>.</p></div>
       </details>
     </div>
   </div>

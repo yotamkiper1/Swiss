@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Swiss: a pocket knife for your ideas</title>
 <meta name="description" content="Swiss is a Mac menu bar app for keeping links, pictures, files and notes close while you work, and finding them again in a second. No account, no cloud.">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#C8231A">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Swiss">
 <meta property="og:title" content="Swiss: a pocket knife for your ideas">
@@ -20,210 +20,189 @@
 <link rel="canonical" href="https://swiss-kohl.vercel.app/">
 <link rel="icon" type="image/png" sizes="64x64" href="img/icon-64.png">
 <link rel="apple-touch-icon" href="img/icon-256.png">
-<link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/site.css">
-<link rel="preload" as="image" href="media/swiss-film-poster.jpg">
-<script type="module" src="js/main.js"></script>
+<link rel="stylesheet" href="css/tokens.css?v=c1022e">
+<link rel="stylesheet" href="css/site.css?v=c1022e">
+<script type="module" src="js/main.js?v=c1022e"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="nav-bar">
-  <div class="wrap wrap-wide">
-    <a class="brand" href="#top" aria-label="Swiss, back to top"><img src="img/icon-64.png" width="26" height="26" alt=""> Swiss</a>
-    <nav class="nav" aria-label="Main">
-      <ul class="nav-links" id="nav-links">
-        <li><a href="#collect">Collect</a></li>
-        <li><a href="#organize">Organize</a></li>
-        <li><a href="#folders">Folders</a></li>
-        <li><a href="#frame">The Frame</a></li>
-        <li><a href="#privacy">Privacy</a></li>
-        <li><a href="#faq">FAQ</a></li>
-      </ul>
-      <a class="btn btn-small" href="#download" data-download-cta>Get Swiss</a>
-      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
-        <svg class="i-open" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2 6h14M2 12h14"/></svg>
-        <svg class="i-close" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M4 4l10 10M14 4L4 14"/></svg>
-      </button>
-    </nav>
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="nav-bar">
+      <a class="brand" href="#top" aria-label="Swiss, back to top"><img src="img/icon-64.png" width="30" height="30" alt=""> Swiss</a>
+      <nav class="nav" aria-label="Main">
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu</button>
+        <a class="btn btn-white" href="#download" data-download-cta>Get Swiss</a>
+      </nav>
+    </div>
+    <div class="hero-grid">
+      <div>
+        <h1>A pocket knife for your ideas.</h1>
+        <p class="lead">Swiss keeps links, pictures, files and notes close while you work, right in your Mac's menu bar. Try it: add something, then wave the wand.</p>
+        <div class="hero-actions">
+          <a class="btn btn-white" href="#download" data-download-cta>Get Swiss for Mac</a>
+          <a class="more" href="#features">See it work</a>
+        </div>
+        <p class="hero-meta">macOS 14 or later · Apple silicon · No account, no cloud</p>
+      </div>
+      <div class="stage">
+        <div class="board" data-ui data-wand-board>
+          <div class="board-bar">
+            <span class="board-lights" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span class="board-tab">Mammoth</span>
+            <button class="board-wand" type="button" aria-pressed="false">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14L10 6M11 2v2M14 5h-2M13.5 2.5l-1.4 1.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              Wave the wand
+            </button>
+          </div>
+          <form class="board-add">
+            <label class="visually-hidden" for="board-input">Add a link, a note or a file name</label>
+            <input id="board-input" type="text" maxlength="140" autocomplete="off" placeholder="Paste a link, or type a note…">
+            <button type="submit">Add</button>
+          </form>
+          <div class="board-body">
+            <ul class="cards">
+              <li class="card" data-kind="link" data-text="en.wikipedia.org/wiki/Woolly_mammoth"><span class="kind" aria-hidden="true">L</span><div>en.wikipedia.org/wiki/Woolly_mammoth<small>Link</small></div></li>
+              <li class="card" data-kind="picture" data-text="Lyuba – hero print.jpg"><span class="kind" aria-hidden="true">P</span><div>Lyuba – hero print.jpg<small>Picture</small></div></li>
+              <li class="card" data-kind="note" data-text="Under 60 words. Big type."><span class="kind" aria-hidden="true">N</span><div>Under 60 words. Big type.<small>Note</small></div></li>
+              <li class="card" data-kind="file" data-text="Exhibition plan.pdf"><span class="kind" aria-hidden="true">F</span><div>Exhibition plan.pdf<small>File</small></div></li>
+              <li class="card" data-kind="picture" data-text="rouffignac-cave.jpg"><span class="kind" aria-hidden="true">P</span><div>rouffignac-cave.jpg<small>Picture</small></div></li>
+              <li class="card" data-kind="note" data-text="Opening night: 14 November."><span class="kind" aria-hidden="true">N</span><div>Opening night: 14 November.<small>Note</small></div></li>
+            </ul>
+            <ul class="folders" hidden></ul>
+            <p class="board-toast" hidden></p>
+          </div>
+          <p class="visually-hidden" aria-live="polite" data-wand-live></p>
+        </div>
+        <p class="hint">A working copy of Swiss's board. Nothing you type leaves this page.</p>
+      </div>
+    </div>
   </div>
 </header>
 
 <main id="main">
 
-<section class="hero" id="top" aria-labelledby="hero-title">
+<section class="section" id="features" aria-labelledby="features-title">
   <div class="wrap">
-    <p class="product"><img src="img/icon-256.png" width="40" height="40" alt=""> Swiss</p>
-    <h1 id="hero-title">A pocket knife for your ideas.</h1>
-    <p class="lead">Keep links, pictures, files and notes close while you work. Swiss lives in your Mac's menu bar and opens with <span class="combo">⌥ Space</span>.</p>
-    <div class="hero-actions">
-      <a class="btn" href="#download" data-download-cta>Get Swiss</a>
-      <a class="more" href="#collect">See how it works</a>
-    </div>
-    <p class="hero-meta fine">macOS 14 or later · Apple silicon · No account, no cloud</p>
-  </div>
-
-  <div class="wrap wrap-wide hero-film">
-    <figure class="film" id="film" data-clip data-state="idle" data-sound="off">
-      <video playsinline muted loop preload="metadata" poster="media/swiss-film-poster.jpg" width="1600" height="1000" aria-describedby="film-desc">
-        <source src="media/swiss-film.mp4" type="video/mp4">
-      </video>
-      <div class="film-controls">
-        <button class="film-btn play-btn media-control" type="button" aria-pressed="false">
-          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
-          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
-          <span class="label">Play</span>
-        </button>
-      </div>
-      <div class="film-error" role="status"><p>The video couldn't load.</p><p><a href="#collect">See the features instead</a></p></div>
-      <figcaption id="film-desc" class="visually-hidden">Swiss at work, one window after another: things dragged onto a project, a screenshot kept from Recent, the magic wand sorting a board into folders, a connected Finder folder, and the Frame with a picture, a note and a video tutorial.</figcaption>
-    </figure>
-  </div>
-</section>
-
-<section class="section" id="collect" aria-labelledby="collect-title">
-  <div class="wrap wrap-wide">
     <div class="section-head reveal">
-      <h2 id="collect-title">Found something worth keeping?</h2>
-      <p class="lead">Drag it in from any app. Pictures, links, files and quotes land on your project's board, right where you left off.</p>
+      <h2 id="features-title">Six blades. One knife.</h2>
+      <p class="lead">Every clip is Swiss itself, doing one thing.</p>
     </div>
-    <div class="tiles tiles-2 reveal">
-      <div><figure class="clip film" id="clip-collect" data-clip data-state="idle">
+    <div class="blades reveal">
+    <article class="blade">
+      <figure class="clip film" id="clip-collect" data-clip data-state="idle">
         <video playsinline muted loop preload="none" poster="media/clip-collect.jpg" width="574" height="832" aria-describedby="clip-collect-desc">
           <source data-src="media/clip-collect.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
           <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
           <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
-          <span class="label">Play</span>
-        </button></div>
+          <span class="label">Play</span></button></div>
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
-        <figcaption id="clip-collect-desc" class="visually-hidden">A picture, a Wikipedia link and a quote are dragged from a browser onto the Mammoth project in Swiss.</figcaption>
-      </figure></div>
-      <div><figure class="clip film" id="clip-recent" data-clip data-state="idle">
+        <figcaption id="clip-collect-desc" class="visually-hidden">A picture, a Wikipedia link and a quote are dragged from a browser onto the Mammoth project.</figcaption>
+      </figure>
+      <h3>Drag it in.</h3>
+      <p>A picture, a link or a quote from any app lands on your project.</p>
+    </article>
+    <article class="blade">
+      <figure class="clip film" id="clip-recent" data-clip data-state="idle">
         <video playsinline muted loop preload="none" poster="media/clip-recent.jpg" width="1096" height="750" aria-describedby="clip-recent-desc">
           <source data-src="media/clip-recent.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
           <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
           <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
-          <span class="label">Play</span>
-        </button></div>
+          <span class="label">Play</span></button></div>
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
-        <figcaption id="clip-recent-desc" class="visually-hidden">Swiss's Recent list: a screenshot and a copied Wikipedia link arrive, and the screenshot is kept in Mammoth.</figcaption>
-      </figure></div>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="organize" aria-labelledby="organize-title">
-  <div class="wrap wrap-wide">
-    <div class="section-head reveal">
-      <h2 id="organize-title">A little order. In one click.</h2>
-      <p class="lead">Every project is a tab. When the board gets busy, the magic wand puts each thing in a folder for its kind.</p>
-    </div>
-    <div class="reveal">
-      <figure class="clip film clip-wide" id="clip-wand" data-clip data-state="idle">
+        <figcaption id="clip-recent-desc" class="visually-hidden">Swiss's Recent list: a screenshot and a copied link arrive, and the screenshot is kept in Mammoth.</figcaption>
+      </figure>
+      <h3>Copied. Kept.</h3>
+      <p>Recent holds what you copy and screenshot, only if you turn it on.</p>
+    </article>
+    <article class="blade">
+      <figure class="clip film" id="clip-wand" data-clip data-state="idle">
         <video playsinline muted loop preload="none" poster="media/clip-wand.jpg" width="1174" height="838" aria-describedby="clip-wand-desc">
           <source data-src="media/clip-wand.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
           <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
           <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
-          <span class="label">Play</span>
-        </button></div>
+          <span class="label">Play</span></button></div>
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
-        <figcaption id="clip-wand-desc" class="visually-hidden">A busy Mammoth board. The magic wand is clicked and the photos, links, notes and files fly into four folders: PhotoBook, Linker, Notepad and Files.</figcaption>
+        <figcaption id="clip-wand-desc" class="visually-hidden">The magic wand is clicked and loose things on the board fly into four folders.</figcaption>
       </figure>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="folders" aria-labelledby="folders-title">
-  <div class="wrap wrap-wide">
-    <div class="section-head reveal">
-      <h2 id="folders-title">Your folders. A faster way in.</h2>
-      <p class="lead">Connect any Finder folder and work in it like a project. Nothing is copied: Swiss works on the folder itself.</p>
-    </div>
-    <div class="reveal">
-      <figure class="clip film clip-wide" id="clip-connected" data-clip data-state="idle">
+      <h3>One click of order.</h3>
+      <p>The wand puts links, pictures, notes and files in their folders.</p>
+    </article>
+    <article class="blade">
+      <figure class="clip film" id="clip-connected" data-clip data-state="idle">
         <video playsinline muted loop preload="none" poster="media/clip-connected.jpg" width="1172" height="692" aria-describedby="clip-connected-desc">
           <source data-src="media/clip-connected.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
           <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
           <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
-          <span class="label">Play</span>
-        </button></div>
+          <span class="label">Play</span></button></div>
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
-        <figcaption id="clip-connected-desc" class="visually-hidden">The connected folder Exhibit images in Swiss. A file is renamed to Lyuba – hero print.jpg, and the Finder window of the same folder shows the new name.</figcaption>
+        <figcaption id="clip-connected-desc" class="visually-hidden">A connected Finder folder in Swiss; a file is renamed and Finder shows the new name.</figcaption>
       </figure>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="frame" aria-labelledby="frame-title">
-  <div class="wrap wrap-wide">
-    <div class="section-head reveal">
-      <h2 id="frame-title">Keep your references beside your work.</h2>
-      <p class="lead">The Frame is a canvas that floats above every app. Drag in pictures, notes and links, play a tutorial, and keep working underneath.</p>
-    </div>
-    <div class="reveal" id="frame-shot">
-      <figure class="clip film clip-wide" id="clip-frame" data-clip data-state="idle">
+      <h3>Your folders.</h3>
+      <p>Work in any Finder folder like a project. Changes are real.</p>
+    </article>
+    <article class="blade">
+      <figure class="clip film" id="clip-frame" data-clip data-state="idle">
         <video playsinline muted loop preload="none" poster="media/clip-frame.jpg" width="1094" height="888" aria-describedby="clip-frame-desc">
           <source data-src="media/clip-frame.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
           <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
           <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
-          <span class="label">Play</span>
-        </button></div>
+          <span class="label">Play</span></button></div>
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
-        <figcaption id="clip-frame-desc" class="visually-hidden">The Frame opens beside a text editor where a museum label is being written. A photo of Lyuba and a note are dragged on from the library, and a video tutorial plays on the canvas.</figcaption>
+        <figcaption id="clip-frame-desc" class="visually-hidden">The Frame beside a text editor, with a photo, a note and a video tutorial playing.</figcaption>
       </figure>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="sizes" aria-labelledby="sizes-title">
-  <div class="wrap wrap-wide">
-    <div class="section-head reveal">
-      <h2 id="sizes-title">Just the space you need.</h2>
-      <p class="lead">Start small from the menu bar and step up when you need room. Green steps up a size, orange steps back down.</p>
-    </div>
-    <div class="reveal">
-      <figure class="clip film clip-wide" id="clip-sizes" data-clip data-state="idle">
+      <h3>The Frame.</h3>
+      <p>References and a tutorial, floating above the app you work in.</p>
+    </article>
+    <article class="blade">
+      <figure class="clip film" id="clip-sizes" data-clip data-state="idle">
         <video playsinline muted loop preload="none" poster="media/clip-sizes.jpg" width="1162" height="768" aria-describedby="clip-sizes-desc">
           <source data-src="media/clip-sizes.mp4" type="video/mp4">
         </video>
         <div class="clip-controls"><button class="film-btn play-btn media-control" type="button" aria-pressed="false">
           <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
           <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.5 2.5v11l9-5.5z"/></svg>
-          <span class="label">Play</span>
-        </button></div>
+          <span class="label">Play</span></button></div>
         <div class="film-error" role="status"><p>This clip couldn't load.</p></div>
-        <figcaption id="clip-sizes-desc" class="visually-hidden">The same Swiss board grows from a pop-up under the menu bar to a window, then to full screen, as the green button is clicked.</figcaption>
+        <figcaption id="clip-sizes-desc" class="visually-hidden">Swiss grows from a window to full screen.</figcaption>
       </figure>
+      <h3>Just the space you need.</h3>
+      <p>Pop-up, window or full screen. Green steps up, orange steps down.</p>
+    </article>
     </div>
   </div>
 </section>
 
-<section class="section center" id="privacy" aria-labelledby="privacy-title">
-  <div class="wrap wrap-wide">
-    <div class="reveal">
-      <h2 id="privacy-title">Everything stays on your Mac.</h2>
-      <p class="lead" style="margin-top: var(--s5)">No account. No servers. No analytics. Swiss only goes online for things you start, like fetching a saved link's title or playing a video.</p>
-    </div>
-    <p style="margin-top: var(--s7)"><a class="more" href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">Read the security report</a></p>
+<section class="red-chapter" id="privacy" aria-labelledby="privacy-title">
+  <div class="wrap reveal">
+    <h2 id="privacy-title">Everything stays on your Mac.</h2>
+    <p class="lead">No account, no servers, no analytics. Swiss only goes online for things you start, like fetching a saved link's title.</p>
+    <p class="red-facts"><span>Capture is off until you turn it on</span><span>Passwords are never kept</span><span>Your library is ordinary files</span></p>
+    <p style="margin-top: 36px"><a class="more" href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">Read the security report</a></p>
   </div>
 </section>
 
-<section class="section center" id="download" aria-labelledby="download-title">
+<section class="section get" id="download" aria-labelledby="download-title">
   <div class="wrap">
-    <img class="download-icon" src="img/icon-256.png" width="96" height="96" alt="" loading="lazy">
+    <img class="get-icon" src="img/icon-256.png" width="88" height="88" alt="" loading="lazy">
     <h2 id="download-title">Get Swiss.</h2>
-    <p class="lead" style="margin-top: var(--s4)">Version 1.0, for Macs with Apple silicon running macOS 14 Sonoma or later.</p>
-
+    <p class="lead">Version 1.0, for Macs with Apple silicon running macOS 14 Sonoma or later.</p>
     <div class="download-card">
       <p class="status-line" id="release-status" data-status="checking" role="status" aria-live="polite">
         <span class="status-dot" aria-hidden="true"></span>
@@ -238,7 +217,8 @@
         </div>
         <ol class="steps">
           <li>Open the download and drag <strong>Swiss</strong> into Applications.</li>
-          <li>Open it from Applications. It appears in the menu bar with a short tour.</li>
+          <li>Open it from Applications. The first time, macOS says it can't check the app: go to System Settings ▸ Privacy &amp; Security and click <strong>Open Anyway</strong>. You only do this once.</li>
+          <li>Swiss appears in the menu bar with a short tour.</li>
           <li>Press <span class="combo">⌥ Space</span> any time to open it.</li>
         </ol>
       </div>
@@ -280,14 +260,14 @@ cd Swiss</code></pre></li>
         <div><dt>Mac</dt><dd>Apple silicon</dd></div>
         <div><dt>Intel Macs</dt><dd>Not yet</dd></div>
       </dl>
-      <p class="fine" style="margin-top: var(--s5)">Something not working? Email <a href="mailto:kipery20@gmail.com?subject=Swiss%3A%20install%20problem">kipery20@gmail.com</a> or use Help ▸ Report a Problem in Swiss.</p>
+      <p class="fine" style="margin-top: 20px">Something not working? Email <a href="mailto:kipery20@gmail.com?subject=Swiss%3A%20install%20problem">kipery20@gmail.com</a> or use Help ▸ Report a Problem in Swiss.</p>
     </div>
   </div>
 </section>
 
 <section class="section" id="faq" aria-labelledby="faq-title">
   <div class="wrap">
-    <div class="section-head reveal"><h2 id="faq-title">Questions.</h2></div>
+    <div class="section-head reveal faq-head"><h2 id="faq-title">Questions.</h2></div>
     <div class="faq-list">
       <details>
         <summary>What can I keep in Swiss?</summary>
@@ -316,19 +296,18 @@ cd Swiss</code></pre></li>
 </main>
 
 <footer class="site-footer">
-  <div class="wrap wrap-wide">
-    <div class="footer-top">
-      <ul class="footer-links">
-        <li><a href="#collect">Features</a></li>
+  <div class="wrap">
+    <div class="foot">
+      <a class="brand" href="#top"><img src="img/icon-64.png" width="30" height="30" alt=""> Swiss</a>
+      <ul>
+        <li><a href="#features">Features</a></li>
         <li><a href="#download">Get Swiss</a></li>
-        <li><a href="#faq">FAQ</a></li>
         <li><a href="https://github.com/yotamkiper1/Swiss">GitHub</a></li>
-        <li><a href="https://github.com/yotamkiper1/Swiss/blob/main/docs/SECURITY.md">Security</a></li>
         <li><a href="privacy.html">Privacy</a></li>
         <li><a href="mailto:kipery20@gmail.com?subject=Swiss%20feedback">Feedback</a></li>
       </ul>
     </div>
-    <div class="footer-base">
+    <div class="foot-legal">
       <span>© 2026 Yotam Kiper. Swiss is made by one person.</span>
       <span>No cookies or analytics. This page asks GitHub whether a release exists.</span>
     </div>

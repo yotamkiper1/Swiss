@@ -1,6 +1,7 @@
-import { setupClips } from "./videos.js";
-import { resolveRelease } from "./release.js";
-import { checkoutLink, PRICE } from "./purchase.js";
+import { setupClips } from "./videos.js?v=c1022e";
+import { resolveRelease } from "./release.js?v=c1022e";
+import { checkoutLink, PRICE } from "./purchase.js?v=c1022e";
+import { setupWand } from "./wand.js?v=c1022e";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -16,14 +17,14 @@ function setupHeader() {
   const close = (focusToggle) => {
     links.classList.remove("is-open");
     toggle.setAttribute("aria-expanded", "false");
-    toggle.setAttribute("aria-label", "Open menu");
+    toggle.textContent = "Menu";
     if (focusToggle) toggle.focus();
   };
   toggle.addEventListener("click", () => {
     const open = toggle.getAttribute("aria-expanded") !== "true";
     links.classList.toggle("is-open", open);
     toggle.setAttribute("aria-expanded", String(open));
-    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    toggle.textContent = open ? "Close" : "Menu";
     if (open) links.querySelector("a")?.focus();
   });
   links.addEventListener("click", e => { if (e.target.closest("a")) close(false); });
@@ -59,6 +60,21 @@ function setupSound() {
     $(".label", btn).textContent = on ? "Sound on" : "Sound";
     if (on && video.paused) $(".play-btn", fig)?.click(); // a click is a user gesture: sound may start
   });
+}
+
+/* A gentle colour shift: the light page takes on a little Swiss red as you scroll through the middle of it. */
+function setupTint() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const root = document.documentElement;
+  let queued = false;
+  const paint = () => {
+    queued = false;
+    const max = root.scrollHeight - innerHeight;
+    const progress = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    root.style.setProperty("--tint", (Math.sin(progress * Math.PI) * 13).toFixed(2)); // 0 → 13% → 0
+  };
+  addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(paint); } }, { passive: true });
+  paint();
 }
 
 /* Download: show a real release if GitHub has one; otherwise the honest "build it" path. */
@@ -114,6 +130,8 @@ function setupReveal() {
 
 setupHeader();
 setupClips();
+setupWand();
+setupTint();
 setupSound();
 setupReveal();
 setupDownload();

@@ -4,7 +4,7 @@
 // Paste the product's checkout link here (Lemon Squeezy ▸ Products ▸ Swiss ▸ Share), e.g.
 // "https://swiss.lemonsqueezy.com/buy/1a2b3c4d-…". Empty = no Buy button on the page.
 export const CHECKOUT_URL = "";
-export const PRICE = "$2";
+export const PRICE = "$3";
 
 /** The checkout link if it's a real Lemon Squeezy checkout over https, otherwise null. */
 export function checkoutLink(url = CHECKOUT_URL) {

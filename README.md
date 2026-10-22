@@ -91,6 +91,7 @@ Moving, renaming and deleting in Swiss does the same to the files. Very large fi
 | `Sources/Stash/` | The app (SwiftUI + AppKit): `Store.swift` (state), `Panel.swift` (windows, keys), `Canvas.swift` (the Frame), `ConnectedEdit.swift` (connected folders), `RecentStore.swift`, `Views/` |
 | `Resources/` | Icon, Info.plist, entitlements, bundled `yt-dlp` and `lame` |
 | `tools/film/` | The commercial film, made entirely in code (see its README) |
+| `tools/commercial/` | The 40-second silent product film: verified feature brief, HTML scenes, renderer |
 | `docs/` | Screenshots and design notes |
 
 Swiss Test only: `stashtest://debug…` links drive test hooks (`DebugHooks.swift`); the real app ignores them. The bundle id, folder names and `stash://` scheme keep their old "Stash" names so existing libraries carry over; `swiss://` works too.

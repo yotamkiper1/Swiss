@@ -17,6 +17,6 @@ security checklist and says what each item means for Swiss. Last checked: Octobe
 
 ## Still open
 
-- **Signing and notarization** need a paid Apple Developer account (see the README's launch checklist). Until then other Macs show a Gatekeeper warning.
+- **Signing and notarization** need a paid Apple Developer account (see [RELEASING.md](RELEASING.md)). Until then other Macs show a Gatekeeper warning.
 - **Apple silicon only**: the app and its MP3 encoder are arm64.
 - A picture dragged in from a web page is downloaded whole into memory (no size cap). Low risk; you have to drag it in yourself.

@@ -3,3 +3,8 @@ build/
 .swiftpm/
 .DS_Store
 *.xcuserstate
+
+# Local tooling
+.taste-skill/
+.claude/skills/
+skills-lock.json
